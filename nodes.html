@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kargo Yönetimi - Teslimat Noktaları (Node)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT:'#335cff', dark:'#1f3bad', darker:'#2547d0', 600:'#3559e9', light:'#d5e2ff', lighter:'#ebf1ff' },
+            neutral:  { 0:'#ffffff', 50:'#f5f7fa', 100:'#f2f5f8', 200:'#eaecf0', 300:'#cacfd8', 400:'#99a0ae', 500:'#717784', 600:'#525866', 700:'#2b303b', 800:'#222530', 950:'#0e121b' },
+          },
+        },
+      },
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { font-family: 'Inter', system-ui, sans-serif; }
+
+    /* ── Accordion Card ── */
+    .node-card { border: 1.5px solid #eaecf0; border-radius: 14px; overflow: hidden; transition: all 0.2s ease; background: white; }
+    .node-card:hover { border-color: #335cff; box-shadow: 0 4px 12px 0 #0e121b05; }
+    .node-card.expanded { border-color: #335cff; box-shadow: 0 8px 16px -4px #476cff0f; }
+
+    /* ── Badge ── */
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+    .badge-active  { background: #e3f7ec; color: #178c4e; }
+    .badge-passive { background: #f5f7fa; color: #717784; }
+
+    /* ── Tabs ── */
+    .tab-btn { padding: 8px 16px; font-size: 13.5px; font-weight: 550; border-bottom: 2px solid transparent; color: #717784; transition: all 0.15s; }
+    .tab-btn.active { color: #335cff; border-color: #335cff; }
+    .tab-btn:not(.active):hover { color: #0e121b; background: #f5f7fa; }
+
+    /* ── Drag & Order Visuals ── */
+    .row-moving { background-color: #ebf1ff !important; transition: background-color 0.3s; }
+    
+    /* ── Buttons ── */
+    .primary-btn { background: #335cff; color: white; padding: 9px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; border: none; display: inline-flex; align-items: center; gap: 6px; letter-spacing: -0.006em; }
+    .primary-btn:hover:not(:disabled) { background: #2547d0; }
+    .primary-btn:disabled { background: #97baff; cursor: not-allowed; }
+    .secondary-btn { background: white; color: #525866; padding: 9px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; border: 1.5px solid #eaecf0; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px 0 #0a0d1408; }
+    .secondary-btn:hover { background: #f5f7fa; color: #0e121b; }
+
+    /* ── Form Inputs ── */
+    .form-input { width: 100%; border: 1.5px solid #eaecf0; border-radius: 10px; padding: 9px 12px; font-size: 14px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; background: white; color: #0e121b; }
+    .form-input:focus { border-color: #335cff; box-shadow: 0 0 0 3px #476cff1a; }
+    .form-label { display: block; font-size: 13px; font-weight: 500; color: #0e121b; margin-bottom: 5px; letter-spacing: -0.006em; }
+
+    /* ── Modal overlay ── */
+    .overlay  { position: fixed; inset: 0; background: rgba(14,18,27,0.55); z-index: 150; display: flex; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(2px); }
+    .modal-box{ background: white; border-radius: 20px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px -12px #0e121b26; }
+
+    /* ── Toast animations ── */
+    @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeUp  { to { opacity: 0; transform: translateY(-8px); } }
+    .toast     { animation: slideIn 0.3s ease; }
+    .toast.exit{ animation: fadeUp  0.3s ease forwards; }
+
+    /* ── Custom scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: #cacfd8; border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-neutral-50 min-h-screen">
+
+<div id="app"></div>
+<div id="toasts" class="fixed top-4 right-4 z-[200] flex flex-col gap-2" style="width:320px"></div>
+
+<script>
+// =========================================================
+// DATA MODELS
+// =========================================================
+const COMPANIES = [
+  { id: 1, name: 'Yurtiçi Kargo',  color: '#335cff', text: '#ffffff' },
+  { id: 2, name: 'Aras Kargo',     color: '#fa7319', text: '#ffffff' },
+  { id: 3, name: 'MNG Kargo',      color: '#0e121b', text: '#ffffff' },
+  { id: 4, name: 'PTT Kargo',      color: '#ffd000', text: '#0e121b' },
+  { id: 5, name: 'Sürat Kargo',    color: '#00b0ff', text: '#ffffff' },
+  { id: 6, name: 'DHL Express',    color: '#ffcc00', text: '#d00000' },
+  { id: 7, name: 'Horoz Lojistik', color: '#16a34a', text: '#ffffff' },
+  { id: 8, name: 'Hepsijet',       color: '#7c3aed', text: '#ffffff' },
+];
+
+const NODES = [
+  { id: 1, name: 'İstanbul Ana Depo', code: 'IST001' },
+  { id: 2, name: 'İstanbul Anadolu',  code: 'IST002' },
+  { id: 3, name: 'Ankara Merkez',     code: 'ANK001' },
+  { id: 4, name: 'Ankara Ostim',      code: 'ANK002' },
+  { id: 5, name: 'İzmir Depo',        code: 'IZM001' },
+];
+
+let contracts = [
+  {
+    id: 1, companyId: 1, name: 'Yurtiçi - Ana Depo', status: 'active',
+    credentials: [
+      { id: 101, name: 'YK Prod Hesabı 1' },
+      { id: 102, name: 'YK Test Hesabı' }
+    ]
+  },
+  {
+    id: 2, companyId: 2, name: 'Aras - İstanbul', status: 'active',
+    credentials: [
+      { id: 201, name: 'Aras Prod' }
+    ]
+  },
+  {
+    id: 3, companyId: 6, name: 'DHL Sözleşmesi', status: 'active',
+    credentials: [
+      { id: 601, name: 'DHL Prod (X)' }
+    ]
+  },
+  {
+    id: 4, companyId: 7, name: 'Horoz Ağır Taşıma', status: 'active',
+    credentials: [
+      { id: 701, name: 'Horoz Ana Hesap (Z)' }
+    ]
+  },
+  {
+    id: 5, companyId: 8, name: 'Hepsijet Standart', status: 'active',
+    credentials: [
+      { id: 801, name: 'Hepsijet API (T)' }
+    ]
+  }
+];
+
+// Priority State for Nodes (matches user sketch)
+// Node A (ID 1): DHL (Contract X)
+// Node B (ID 2): DHL (Contract X), Horoz (Contract Z), Hepsijet (Contract T)
+let nodePriorities = {
+  1: {
+    order: [
+      { companyId: 6, credId: 601 }, // DHL Prod (X)
+      { companyId: 1, credId: 101 }, // Yurtiçi
+      { companyId: 2, credId: 201 }  // Aras
+    ],
+    return: [
+      { companyId: 1, credId: 101 },
+      { companyId: 6, credId: 601 }
+    ]
+  },
+  2: {
+    order: [
+      { companyId: 6, credId: 601 }, // DHL Prod (X)
+      { companyId: 7, credId: 701 }, // Horoz Ana Hesap (Z)
+      { companyId: 8, credId: 801 }  // Hepsijet API (T)
+    ],
+    return: [
+      { companyId: 8, credId: 801 }, // Hepsijet API (T)
+      { companyId: 6, credId: 601 }  // DHL Prod (X)
+    ]
+  },
+  3: {
+    order: [
+      { companyId: 1, credId: 101 },
+      { companyId: 2, credId: 201 }
+    ],
+    return: [
+      { companyId: 2, credId: 201 }
+    ]
+  }
+};
+
+// =========================================================
+// UI STATE
+// =========================================================
+let S = {
+  expandedNodeId: 2, // Node B expanded by default to match sketch
+  activeTabs: {}, // Key: nodeId, Value: 'order' or 'return'
+  searchQuery: '',
+  nodeModal: { show: false },
+  bindModal: { show: false, nodeId: null, selectedCompanyId: '', selectedCredId: '', applyToOrder: true, applyToReturn: true }
+};
+
+// Helpers
+function getCompany(id) { return COMPANIES.find(c => c.id === +id); }
+function getNode(id) { return NODES.find(n => n.id === +id); }
+function getCredential(credId) {
+  for (let c of contracts) {
+    let cred = c.credentials.find(cr => cr.id === +credId);
+    if (cred) return { cred, contract: c };
+  }
+  return null;
+}
+
+// Ensure all nodes have basic priority arrays initialized
+function initPriorities() {
+  NODES.forEach(n => {
+    if (!nodePriorities[n.id]) {
+      nodePriorities[n.id] = { order: [], return: [] };
+    }
+    if (!S.activeTabs[n.id]) {
+      S.activeTabs[n.id] = 'order';
+    }
+  });
+}
+
+// =========================================================
+// RENDER & BUILD
+// =========================================================
+function render() {
+  initPriorities();
+  const app = document.getElementById('app');
+  app.innerHTML = buildApp();
+}
+
+function buildApp() {
+  return `
+    ${buildNav()}
+    <div class="max-w-6xl mx-auto px-4 py-8">
+      ${buildHeader()}
+      ${buildNodeList()}
+    </div>
+    ${S.nodeModal.show ? buildNodeModal() : ''}
+    ${S.bindModal.show ? buildBindModal() : ''}
+  `;
+}
+
+function buildNav() {
+  return `
+    <nav class="bg-white border-b border-neutral-200" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <div class="max-w-6xl mx-auto px-4 flex items-center justify-between h-14">
+        <div class="flex items-center gap-3">
+          <div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+          </div>
+          <span class="font-semibold text-neutral-950 text-[15px] tracking-tight">Kargo Yönetimi</span>
+        </div>
+        <div class="flex items-center gap-6 h-full flex-row">
+          <a href="index.html" class="flex items-center text-sm font-medium border-b-2 border-transparent text-neutral-500 hover:text-neutral-950 h-full px-1 transition-colors">Sözleşme Tanımlama</a>
+          <a href="nodes.html" class="flex items-center text-sm font-semibold border-b-2 border-primary text-primary h-full px-1">Teslimat Noktaları (Node)</a>
+        </div>
+      </div>
+    </nav>
+  `;
+}
+
+function buildHeader() {
+  return `
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">Teslimat Noktaları (Node Listesi)</h1>
+        <p class="text-sm text-neutral-500 mt-0.5">Her teslimat noktası için kargo firmalarının öncelik sırasını düzenleyin.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="relative w-64">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" class="form-input pl-9 text-sm py-2" placeholder="Node adı veya kod ile ara..." 
+            value="${S.searchQuery}" oninput="searchNodes(this.value)" />
+        </div>
+        <button class="primary-btn text-sm py-2" onclick="openNodeModal()">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Yeni Node Ekle
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function buildNodeList() {
+  const filteredNodes = NODES.filter(n => {
+    const q = S.searchQuery.toLowerCase().trim();
+    return q === '' || n.name.toLowerCase().includes(q) || n.code.toLowerCase().includes(q);
+  });
+
+  if (filteredNodes.length === 0) {
+    return `
+      <div class="text-center py-16 bg-white border border-neutral-200 rounded-2xl">
+        <svg class="w-12 h-12 text-neutral-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        <p class="text-neutral-400 text-sm">Aradığınız kriterlere uygun teslimat noktası bulunamadı.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="flex flex-col gap-4">
+      ${filteredNodes.map(node => buildNodeCard(node)).join('')}
+    </div>
+  `;
+}
+
+function buildNodeCard(node) {
+  const isExpanded = S.expandedNodeId === node.id;
+  const priorities = nodePriorities[node.id] || { order: [], return: [] };
+  
+  // Create circular initial badges for mapped companies
+  const activeTab = S.activeTabs[node.id] || 'order';
+  const currentMappings = priorities[activeTab];
+  
+  const connectedCompanyBadges = currentMappings.map(m => {
+    const comp = getCompany(m.companyId);
+    if (!comp) return '';
+    return `
+      <span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border border-white shadow-sm -ml-1.5 first:ml-0" 
+        style="background:${comp.color}; color:${comp.text}" title="${comp.name}">
+        ${comp.name.charAt(0)}
+      </span>
+    `;
+  }).join('');
+
+  return `
+    <div class="node-card ${isExpanded ? 'expanded' : ''}">
+      <!-- Card Header -->
+      <div class="flex items-center justify-between p-5 cursor-pointer select-none" onclick="toggleNodeCollapse(${node.id})">
+        <div class="flex items-center gap-4 flex-1 min-w-0">
+          <div class="w-10 h-10 rounded-xl bg-primary-lighter text-primary flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <h3 class="font-semibold text-neutral-950 text-[16px]">${node.name}</h3>
+              <span class="font-mono text-xs text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded">${node.code}</span>
+            </div>
+            <p class="text-xs text-neutral-400 mt-1">
+              ${priorities.order.length} Sipariş · ${priorities.return.length} İade sözleşmesi bağlı
+            </p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-4 flex-shrink-0">
+          ${!isExpanded && currentMappings.length > 0 ? `
+            <div class="flex items-center pr-2">
+              <div class="flex items-center">
+                ${connectedCompanyBadges}
+              </div>
+              <span class="text-xs text-neutral-400 ml-2 font-medium">${currentMappings.length} firma bağlı</span>
+            </div>
+          ` : ''}
+          <div class="w-8 h-8 rounded-lg hover:bg-neutral-100 flex items-center justify-center transition-colors text-neutral-400">
+            <svg class="w-5 h-5 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-primary' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Content -->
+      ${isExpanded ? `
+        <div class="border-t border-neutral-100 px-6 py-5 bg-white">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-100 pb-3 mb-4">
+            <!-- Tabs -->
+            <div class="flex items-center gap-1">
+              <button class="tab-btn ${activeTab === 'order' ? 'active' : ''}" onclick="setNodeTab(${node.id}, 'order')">
+                Sipariş Gönderimleri (${priorities.order.length})
+              </button>
+              <button class="tab-btn ${activeTab === 'return' ? 'active' : ''}" onclick="setNodeTab(${node.id}, 'return')">
+                İade Gönderimleri (${priorities.return.length})
+              </button>
+            </div>
+            <!-- Action Button -->
+            <button class="secondary-btn text-xs py-1.5 px-3 flex items-center gap-1.5" onclick="openBindModal(${node.id}, '${activeTab}')">
+              <svg class="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+              Kargo Firması Bağla
+            </button>
+          </div>
+
+          <!-- Priorities Table -->
+          ${currentMappings.length === 0 ? `
+            <div class="text-center py-10 bg-neutral-50/50 rounded-xl border border-dashed border-neutral-200">
+              <svg class="w-8 h-8 text-neutral-300 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg>
+              <p class="text-neutral-400 text-sm">Bu gönderim tipi için bağlı kargo firması bulunmamaktadır.</p>
+              <button class="text-primary font-medium text-xs mt-2 underline" onclick="openBindModal(${node.id}, '${activeTab}')">Firma Bağla</button>
+            </div>
+          ` : `
+            <div class="flex gap-4 flex-col lg:flex-row">
+              <!-- Priority Table -->
+              <div class="flex-1 overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                  <thead>
+                    <tr class="text-xs font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-100">
+                      <th class="py-2.5 px-3 w-16">Öncelik</th>
+                      <th class="py-2.5 px-3 w-48">Kargo Firması</th>
+                      <th class="py-2.5 px-3">Bağlı Sözleşme (Credential)</th>
+                      <th class="py-2.5 px-3 w-28 text-center">Sıralama</th>
+                      <th class="py-2.5 px-3 w-20 text-right">İşlemler</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${currentMappings.map((m, idx) => buildRowHTML(node.id, activeTab, m, idx, currentMappings.length)).join('')}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Sketch Reference Info Bar -->
+              <div class="w-full lg:w-64 bg-primary-lighter/35 border border-primary-light/50 rounded-xl p-4 flex flex-col items-center justify-between text-center flex-shrink-0">
+                <div>
+                  <div class="w-8 h-8 rounded-full bg-primary-lighter text-primary flex items-center justify-center mx-auto mb-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                  </div>
+                  <h4 class="text-xs font-semibold text-neutral-850 uppercase tracking-wider">Otomatik Öncelik Sırası</h4>
+                  <p class="text-[11px] text-neutral-500 mt-1 leading-relaxed">
+                    Siparişleriniz yukarıdaki sıraya göre kargo firmalarına atanacaktır. En üstteki kargo firması birinci önceliklidir.
+                  </p>
+                </div>
+                <div class="text-[10px] text-primary-dark font-medium border border-primary-light/70 bg-white rounded-lg px-2.5 py-1.5 mt-3">
+                  Siparişlerin atanmasında desi ve tutar kısıtları da kontrol edilir.
+                </div>
+              </div>
+            </div>
+          `}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function buildRowHTML(nodeId, type, mapping, idx, total) {
+  const comp = getCompany(mapping.companyId);
+  const credInfo = getCredential(mapping.credId);
+  const credName = credInfo ? credInfo.cred.name : 'Bilinmeyen Credential';
+  const contractName = credInfo ? credInfo.contract.name : 'Bilinmeyen Sözleşme';
+  const priorityNum = idx + 1;
+  const isFirst = idx === 0;
+  const isLast = idx === total - 1;
+
+  return `
+    <tr id="row-${nodeId}-${type}-${idx}" class="border-b border-neutral-100 hover:bg-neutral-50/50 transition-colors">
+      <!-- Priority Badge -->
+      <td class="py-3 px-3">
+        <div class="flex items-center gap-2">
+          <span class="w-5 h-5 rounded-full bg-neutral-100 text-neutral-700 text-xs font-semibold flex items-center justify-center">
+            ${priorityNum}
+          </span>
+        </div>
+      </td>
+      <!-- Company -->
+      <td class="py-3 px-3">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${comp ? comp.color : '#cacfd8'}"></span>
+          <span class="font-medium text-neutral-800">${comp ? comp.name : 'Bilinmiyor'}</span>
+        </div>
+      </td>
+      <!-- Connected Credential -->
+      <td class="py-3 px-3">
+        <div>
+          <span class="text-neutral-900 font-medium">${credName}</span>
+          <span class="text-neutral-400 text-xs block">${contractName}</span>
+        </div>
+      </td>
+      <!-- Reordering Buttons -->
+      <td class="py-3 px-3 text-center">
+        <div class="inline-flex items-center gap-1">
+          <button class="w-7 h-7 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 flex items-center justify-center text-neutral-500 disabled:opacity-30 disabled:hover:bg-white transition-all"
+            onclick="movePriority(${nodeId}, '${type}', ${idx}, -1)" ${isFirst ? 'disabled' : ''} title="Yukarı taşı">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+          </button>
+          <button class="w-7 h-7 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 flex items-center justify-center text-neutral-500 disabled:opacity-30 disabled:hover:bg-white transition-all"
+            onclick="movePriority(${nodeId}, '${type}', ${idx}, 1)" ${isLast ? 'disabled' : ''} title="Aşağı taşı">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+        </div>
+      </td>
+      <!-- Actions -->
+      <td class="py-3 px-3 text-right">
+        <button class="w-7 h-7 rounded-lg bg-[#ffebec] text-[#ad1f2b] hover:bg-[#ffc0c5]/50 flex items-center justify-center ml-auto transition-colors"
+          onclick="removeMapping(${nodeId}, '${type}', ${idx})" title="Eşleşmeyi kaldır">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </td>
+    </tr>
+  `;
+}
+
+// =========================================================
+// MODALS
+// =========================================================
+
+// Modal: Yeni Node Tanımla
+function buildNodeModal() {
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeNodeModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <div class="flex items-center justify-between border-b border-neutral-100 pb-3 mb-4">
+          <h3 class="font-semibold text-neutral-950">Yeni Teslimat Noktası (Node)</h3>
+          <button class="text-neutral-400 hover:text-neutral-600 p-1" onclick="closeNodeModal()">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        
+        <div class="flex flex-col gap-4">
+          <div>
+            <label class="form-label">Node Adı <span class="text-red-500">*</span></label>
+            <input type="text" id="newNodeName" class="form-input" placeholder="Örn: İzmir Depo" />
+          </div>
+          <div>
+            <label class="form-label">Node Kodu <span class="text-red-500">*</span></label>
+            <input type="text" id="newNodeCode" class="form-input" placeholder="Örn: IZM002" />
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeNodeModal()">İptal</button>
+          <button class="primary-btn" onclick="saveNewNode()">Kaydet</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Modal: Kargo Firması Bağla
+function buildBindModal() {
+  const node = getNode(S.bindModal.nodeId);
+  const selectedCompanyId = S.bindModal.selectedCompanyId;
+  const filteredContracts = contracts.filter(c => c.companyId === +selectedCompanyId);
+
+  let credentialOptions = `<option value="">Önce firma seçin...</option>`;
+  if (selectedCompanyId) {
+    if (filteredContracts.length === 0) {
+      credentialOptions = `<option value="">Sözleşme bulunamadı</option>`;
+    } else {
+      credentialOptions = `<option value="">Seçiniz...</option>` + filteredContracts.map(c => 
+        c.credentials.map(cred => `<option value="${cred.id}" ${S.bindModal.selectedCredId == cred.id ? 'selected': ''}>${cred.name} (${c.name})</option>`).join('')
+      ).join('');
+    }
+  }
+
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeBindModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <div class="flex items-center justify-between border-b border-neutral-100 pb-3 mb-4">
+          <div>
+            <h3 class="font-semibold text-neutral-950">Kargo Firması Bağla</h3>
+            <p class="text-xs text-neutral-400 mt-0.5">${node ? node.name : ''}</p>
+          </div>
+          <button class="text-neutral-400 hover:text-neutral-600 p-1" onclick="closeBindModal()">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <div>
+            <label class="form-label">Kargo Firması <span class="text-red-500">*</span></label>
+            <select class="form-input" onchange="setBindCompany(this.value)">
+              <option value="">Seçiniz...</option>
+              ${COMPANIES.map(c => `<option value="${c.id}" ${selectedCompanyId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label">Credential / Sözleşme <span class="text-red-500">*</span></label>
+            <select class="form-input" id="bindCredId" onchange="setBindCred(this.value)" ${!selectedCompanyId ? 'disabled' : ''}>
+              ${credentialOptions}
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label mb-2">Gönderim Türleri</label>
+            <div class="flex flex-col gap-2 bg-neutral-50 p-3 rounded-lg border border-neutral-100">
+              <label class="flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
+                <input type="checkbox" id="bindApplyOrder" ${S.bindModal.applyToOrder ? 'checked' : ''} onchange="S.bindModal.applyToOrder = this.checked" />
+                Sipariş Gönderimleri (Outbound)
+              </label>
+              <label class="flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
+                <input type="checkbox" id="bindApplyReturn" ${S.bindModal.applyToReturn ? 'checked' : ''} onchange="S.bindModal.applyToReturn = this.checked" />
+                İade Gönderimleri (Return)
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeBindModal()">İptal</button>
+          <button class="primary-btn" onclick="saveBindMapping()" ${!S.bindModal.selectedCredId ? 'disabled' : ''}>Bağla</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// =========================================================
+// ACTIONS & LOGIC
+// =========================================================
+
+function toggleNodeCollapse(nodeId) {
+  if (S.expandedNodeId === nodeId) {
+    S.expandedNodeId = null;
+  } else {
+    S.expandedNodeId = nodeId;
+  }
+  render();
+}
+
+function setNodeTab(nodeId, tabName) {
+  S.activeTabs[nodeId] = tabName;
+  render();
+}
+
+function searchNodes(query) {
+  S.searchQuery = query;
+  render();
+}
+
+// Reordering Logic
+function movePriority(nodeId, type, index, direction) {
+  const priorities = nodePriorities[nodeId][type];
+  if (!priorities) return;
+
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= priorities.length) return;
+
+  // Swap elements
+  const temp = priorities[index];
+  priorities[index] = priorities[targetIndex];
+  priorities[targetIndex] = temp;
+
+  const comp = getCompany(temp.companyId);
+  const compName = comp ? comp.name : 'Firma';
+  const typeText = type === 'order' ? 'Sipariş' : 'İade';
+  
+  toast(`"${compName}" önceliği ${targetIndex + 1}. sıraya getirildi (${typeText}).`, 'success');
+  render();
+
+  // Temporary highlight effect
+  setTimeout(() => {
+    const row = document.getElementById(`row-${nodeId}-${type}-${targetIndex}`);
+    if (row) {
+      row.classList.add('row-moving');
+      setTimeout(() => row.classList.remove('row-moving'), 600);
+    }
+  }, 50);
+}
+
+// Delete mapping
+function removeMapping(nodeId, type, index) {
+  const list = nodePriorities[nodeId][type];
+  const comp = getCompany(list[index].companyId);
+  const compName = comp ? comp.name : 'Kargo firması';
+  const typeText = type === 'order' ? 'Sipariş' : 'İade';
+
+  if (confirm(`"${compName}" firmasının bu node üzerindeki ${typeText} önceliğini kaldırmak istediğinize emin misiniz?`)) {
+    list.splice(index, 1);
+    toast(`"${compName}" sözleşmesi kaldırıldı (${typeText}).`, 'warning');
+    render();
+  }
+}
+
+// Open / Close Node Modal
+function openNodeModal() {
+  S.nodeModal.show = true;
+  render();
+}
+function closeNodeModal() {
+  S.nodeModal.show = false;
+  render();
+}
+
+function saveNewNode() {
+  const name = document.getElementById('newNodeName').value.trim();
+  const code = document.getElementById('newNodeCode').value.trim().toUpperCase();
+
+  if (!name || !code) {
+    alert('Lütfen tüm zorunlu alanları doldurun.');
+    return;
+  }
+
+  const nextId = Math.max(0, ...NODES.map(n => n.id)) + 1;
+  NODES.push({ id: nextId, name, code });
+  nodePriorities[nextId] = { order: [], return: [] };
+  S.activeTabs[nextId] = 'order';
+  S.expandedNodeId = nextId;
+
+  closeNodeModal();
+  toast(`"${name}" teslimat noktası başarıyla eklendi.`, 'success');
+  render();
+}
+
+// Open / Close Bind Modal
+function openBindModal(nodeId, tabName) {
+  S.bindModal = {
+    show: true,
+    nodeId,
+    selectedCompanyId: '',
+    selectedCredId: '',
+    applyToOrder: tabName === 'order',
+    applyToReturn: tabName === 'return'
+  };
+  render();
+}
+function closeBindModal() {
+  S.bindModal.show = false;
+  render();
+}
+
+function setBindCompany(compId) {
+  S.bindModal.selectedCompanyId = compId;
+  S.bindModal.selectedCredId = '';
+  render();
+}
+
+function setBindCred(credId) {
+  S.bindModal.selectedCredId = credId;
+  const btn = document.querySelector('.modal-box .primary-btn');
+  if (btn) btn.disabled = !credId;
+}
+
+function saveBindMapping() {
+  const bm = S.bindModal;
+  if (!bm.selectedCompanyId || !bm.selectedCredId) return;
+
+  const nodeId = bm.nodeId;
+  const compId = +bm.selectedCompanyId;
+  const credId = +bm.selectedCredId;
+  const comp = getCompany(compId);
+  const compName = comp ? comp.name : 'Kargo firması';
+
+  // Validation: 1 node aynı kargo firması için sadece 1 credentialla kullanılabilir
+  let hasViolation = false;
+  let existingCredName = '';
+
+  if (bm.applyToOrder) {
+    const existing = nodePriorities[nodeId].order.find(m => m.companyId === compId);
+    if (existing && existing.credId !== credId) {
+      hasViolation = true;
+      existingCredName = getCredential(existing.credId)?.cred.name || '';
+    }
+  }
+  if (bm.applyToReturn && !hasViolation) {
+    const existing = nodePriorities[nodeId].return.find(m => m.companyId === compId);
+    if (existing && existing.credId !== credId) {
+      hasViolation = true;
+      existingCredName = getCredential(existing.credId)?.cred.name || '';
+    }
+  }
+
+  if (hasViolation) {
+    alert(`Hata: Bir teslimat noktası, aynı kargo firması için yalnızca bir credential ile eşleşebilir.\n\nBu node üzerinde "${compName}" firması için zaten "${existingCredName}" tanımlanmış durumda.`);
+    return;
+  }
+
+  // Save order mapping
+  if (bm.applyToOrder) {
+    const list = nodePriorities[nodeId].order;
+    const exists = list.some(m => m.companyId === compId && m.credId === credId);
+    if (!exists) {
+      list.push({ companyId: compId, credId: credId });
+    }
+  }
+
+  // Save return mapping
+  if (bm.applyToReturn) {
+    const list = nodePriorities[nodeId].return;
+    const exists = list.some(m => m.companyId === compId && m.credId === credId);
+    if (!exists) {
+      list.push({ companyId: compId, credId: credId });
+    }
+  }
+
+  closeBindModal();
+  toast(`"${compName}" firması teslimat noktasına bağlandı.`, 'success');
+  render();
+}
+
+// =========================================================
+// TOAST NOTIFICATIONS
+// =========================================================
+function toast(msg, type = 'info') {
+  const container = document.getElementById('toasts');
+  if (!container) return;
+
+  const colors = {
+    success: { bg: '#e3f7ec', border: '#84ebb4', text: '#0b4627', icon: '#1fc16b' },
+    error:   { bg: '#ffebec', border: '#ffc0c5', text: '#681219', icon: '#fb3748' },
+    warning: { bg: '#fff3eb', border: '#ffd9c0', text: '#71330a', icon: '#fa7319' },
+    info:    { bg: '#ebf1ff', border: '#c0d5ff', text: '#182f8b', icon: '#335cff' },
+  };
+  const c = colors[type] || colors.info;
+
+  const icons = {
+    success: 'M5 13l4 4L19 7',
+    error:   'M6 18L18 6M6 6l12 12',
+    warning: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
+    info:    'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+  };
+
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.style.cssText = `background:${c.bg};border:1.5px solid ${c.border};color:${c.text};border-radius:12px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;font-size:13px;box-shadow:0 16px 32px -12px #0e121b1a`;
+  el.innerHTML = `
+    <svg style="width:16px;height:16px;color:${c.icon};flex-shrink:0;margin-top:1px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="${icons[type]}"/>
+    </svg>
+    <span>${msg}</span>
+  `;
+  container.appendChild(el);
+  setTimeout(() => { el.classList.add('exit'); setTimeout(() => el.remove(), 300); }, 3500);
+}
+
+// Boot UI
+render();
+</script>
+</body>
+</html>
