@@ -547,6 +547,8 @@ const I18N = {
     'sidebar.nav_contracts': 'Kargo Firmaları',
     'sidebar.nav_nodes': 'Stok Merkezleri',
     'sidebar.nav_returns': 'İade Yönetimi',
+    'sidebar.nav_shipment_create': 'Gönderi Oluştur',
+    'sidebar.nav_return_create': 'İade Gönderisi Oluştur',
     'sidebar.nav_routing': 'Akıllı Yönlendirme',
     'sidebar.nav_monitoring': 'Entegrasyon & İzleme',
     'sidebar.nav_reports': 'Raporlama',
@@ -805,6 +807,8 @@ const I18N = {
     'sidebar.nav_contracts': 'Cargo Companies',
     'sidebar.nav_nodes': 'Stock Centers',
     'sidebar.nav_returns': 'İade Yönetimi',
+    'sidebar.nav_shipment_create': 'Gönderi Oluştur',
+    'sidebar.nav_return_create': 'İade Gönderisi Oluştur',
     'sidebar.nav_routing': 'Akıllı Yönlendirme',
     'sidebar.nav_monitoring': 'Entegrasyon & İzleme',
     'sidebar.nav_reports': 'Raporlama',
@@ -1056,7 +1060,6 @@ function t(key, vars) {
 // =========================================================
 let S = {
   lang: 'tr',
-  sidebarCollapsed: false,
   langMenuOpen: false,
   page: 'contracts',
   view: 'list',
@@ -1112,7 +1115,6 @@ let S = {
     detailId: null,
     search: '',
     filterStatus: 'all',
-    newModal: { show: false, originalShipmentId: '', reason: 'begenmedim', pickup: true, note: '' },
     statusModal: { show: false, id: null, value: null },
     cancelModal: { show: false, id: null },
     detailExpanded: {},
@@ -1141,6 +1143,18 @@ let S = {
   templates: {
     editModal: { show: false, id: null, form: null },
   },
+
+  shipmentCreate: {
+    orderNo: '', companyId: '', cargoType: 'order', customerName: '',
+    shipFrom: '', provinceId: '', district: '', referenceId: '', packageNo: '',
+    channel: 'Kendi Web Sitesi', errors: {},
+  },
+
+  returnCreate: {
+    originalShipmentId: '', reason: 'begenmedim', pickup: true, note: '', errors: {},
+  },
+
+  barcodeModal: { show: false, kind: null, id: null },
 };
 
 function newCredId()     { return ++S._credSeq; }
@@ -1191,106 +1205,132 @@ function render() {
   document.getElementById('sidebar-root').innerHTML = buildSidebar();
   document.getElementById('topbar').innerHTML = buildTopHeader();
   const app = document.getElementById('app');
-  app.innerHTML = buildApp();
+  app.innerHTML = buildApp() + (S.barcodeModal.show ? buildBarcodeModal() : '');
   bindEvents();
 }
 
 // =========================================================
-// SIDEBAR (JS-rendered so it reacts to language / collapse state)
+// SIDEBAR (JS-rendered so it reacts to language)
 // =========================================================
 function sidebarShellClasses() {
-  return `flex-shrink-0 bg-[#f7f7f8] border-r border-line flex flex-col h-screen sticky top-0 overflow-hidden transition-all duration-200 ${S.sidebarCollapsed ? 'w-[72px]' : 'w-64'}`;
+  return `w-64 flex-shrink-0 bg-[#f7f7f8] border-r border-line flex flex-col h-screen sticky top-0 overflow-hidden`;
 }
 
 function sidebarNavItem(page, iconSvg, labelKey) {
-  const collapsed = S.sidebarCollapsed;
   return `
-    <div class="nav-link ${S.page === page ? 'active' : ''} ${collapsed ? 'justify-center px-0' : ''}" data-page="${page}" onclick="navigateTo('${page}')" title="${collapsed ? t(labelKey) : ''}">
+    <div class="nav-link ${S.page === page ? 'active' : ''}" data-page="${page}" onclick="navigateTo('${page}')">
       <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">${iconSvg}</svg>
-      ${collapsed ? '' : `<span class="flex-1">${t(labelKey)}</span>`}
+      <span class="flex-1">${t(labelKey)}</span>
     </div>
   `;
 }
 
 function buildSidebar() {
-  const collapsed = S.sidebarCollapsed;
   return `
-    <div class="flex items-center gap-3 px-5 py-5 ${collapsed ? 'justify-center px-0' : ''}">
+    <div class="flex items-center gap-3 px-5 py-5">
       <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background:radial-gradient(circle at 35% 35%, #3a3a3a, #0e0e0e)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
           <circle cx="9" cy="12" r="7" fill="#ffffff" opacity="0.9"/>
           <circle cx="15" cy="12" r="7" fill="#9aa0ff" opacity="0.85"/>
         </svg>
       </div>
-      ${collapsed ? '' : `
-        <div class="min-w-0">
-          <p class="text-[14.5px] font-bold text-ink-950 leading-tight truncate">Shipment Hub</p>
-          <p class="text-[12px] text-ink-400 leading-tight truncate">Akıllı Taşıma Karar Destek</p>
-        </div>
-      `}
+      <div class="min-w-0">
+        <p class="text-[14.5px] font-bold text-ink-950 leading-tight truncate">Shipment Hub</p>
+        <p class="text-[12px] text-ink-400 leading-tight truncate">Akıllı Taşıma Karar Destek</p>
+      </div>
     </div>
 
     <nav class="flex-1 overflow-y-auto px-4 pb-4">
       ${sidebarNavItem('dashboard', `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 15l4-5 3 3 5-6"/>`, 'sidebar.nav_dashboard')}
 
-      ${collapsed ? '' : `<p class="nav-section-label">Operasyon</p>`}
+      <p class="nav-section-label">Operasyon</p>
       ${sidebarNavItem('shipments', `<path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path stroke-linecap="round" stroke-linejoin="round" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/>`, 'sidebar.nav_shipments')}
       ${sidebarNavItem('returns', `<path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>`, 'sidebar.nav_returns')}
       ${sidebarNavItem('contracts', `<rect x="1" y="7" width="14" height="10" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 10h4l3 3v4h-7z"/><circle cx="6" cy="19" r="1.6"/><circle cx="18" cy="19" r="1.6"/>`, 'sidebar.nav_contracts')}
       ${sidebarNavItem('nodes', `<rect x="2" y="3" width="20" height="5" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12" stroke-linecap="round"/>`, 'sidebar.nav_nodes')}
 
-      ${collapsed ? '' : `<p class="nav-section-label">Otomasyon</p>`}
+      <p class="nav-section-label">Otomasyon</p>
       ${sidebarNavItem('routing', `<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>`, 'sidebar.nav_routing')}
       ${sidebarNavItem('monitoring', `<path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"/>`, 'sidebar.nav_monitoring')}
 
-      ${collapsed ? '' : `<p class="nav-section-label">Yönetim</p>`}
+      <p class="nav-section-label">Yönetim</p>
       ${sidebarNavItem('reports', `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M8 17V10m5 7V6m5 11v-4"/>`, 'sidebar.nav_reports')}
       ${sidebarNavItem('users', `<path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>`, 'sidebar.nav_users')}
       ${sidebarNavItem('templates', `<rect x="2" y="4" width="20" height="16" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/>`, 'sidebar.nav_templates')}
     </nav>
 
     <div class="px-4 pb-2">
-      <div class="nav-link ${collapsed ? 'justify-center px-0' : ''}" title="${collapsed ? t('sidebar.settings') : ''}">
+      <div class="nav-link">
         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-        ${collapsed ? '' : `<span class="flex-1">${t('sidebar.settings')}</span>`}
+        <span class="flex-1">${t('sidebar.settings')}</span>
       </div>
-    </div>
-
-    <div class="border-t border-line px-4 py-4">
-      <button class="w-full flex items-center gap-2.5 rounded-xl p-1.5 hover:bg-white transition-colors ${collapsed ? 'justify-center' : ''}">
-        <div class="relative flex-shrink-0">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold text-white" style="background:#f0b429">SW</div>
-          <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-primary border-2 border-white flex items-center justify-center">
-            <svg width="7" height="7" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-        </div>
-        ${collapsed ? '' : `
-          <div class="flex-1 min-w-0 text-left">
-            <p class="text-[13px] font-semibold text-ink-950 truncate">Muharrem Güngör</p>
-            <p class="text-[11.5px] text-ink-400 truncate">${t('sidebar.role_admin')}</p>
-          </div>
-          <svg class="w-4 h-4 text-ink-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
-        `}
-      </button>
     </div>
   `;
 }
 
-function toggleSidebarCollapsed() {
-  S.sidebarCollapsed = !S.sidebarCollapsed;
-  render();
+// =========================================================
+// TOP HEADER (page title merged in, bell + language only)
+// =========================================================
+const PAGE_ICONS = {
+  dashboard: `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 15l4-5 3 3 5-6"/>`,
+  shipments: `<path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path stroke-linecap="round" stroke-linejoin="round" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/>`,
+  shipmentCreate: `<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>`,
+  returns: `<path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>`,
+  returnCreate: `<path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 3v6m3-3h-6"/>`,
+  contracts: `<rect x="1" y="7" width="14" height="10" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 10h4l3 3v4h-7z"/><circle cx="6" cy="19" r="1.6"/><circle cx="18" cy="19" r="1.6"/>`,
+  nodes: `<rect x="2" y="3" width="20" height="5" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12" stroke-linecap="round"/>`,
+  routing: `<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>`,
+  monitoring: `<path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"/>`,
+  reports: `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M8 17V10m5 7V6m5 11v-4"/>`,
+  users: `<path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>`,
+  templates: `<rect x="2" y="4" width="20" height="16" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/>`,
+};
+
+function getHeaderInfo() {
+  switch (S.page) {
+    case 'dashboard': return { title: 'Gösterge Paneli', desc: 'Genel operasyon durumu ve öne çıkan metrikler' };
+    case 'shipments':
+      if (S.shipments.view === 'detail') {
+        const s = SHIPMENTS.find(x => x.id === S.shipments.detailId);
+        return { title: s ? `Gönderi #${s.shipmentNo}` : 'Gönderi Detay', desc: '' };
+      }
+      return { title: 'Gönderiler', desc: 'Tüm gönderileri görüntüleyin ve yönetin' };
+    case 'shipmentCreate': return { title: 'Yeni Gönderi Oluştur', desc: 'Sipariş bilgilerini girerek yeni bir gönderi oluşturun' };
+    case 'returns':
+      if (S.returns.view === 'detail') {
+        const x = returns.find(r => r.id === S.returns.detailId);
+        return { title: x ? `İade #${x.returnNo}` : 'İade Detay', desc: '' };
+      }
+      return { title: 'İade Yönetimi', desc: 'Gönderi iade taleplerini yönetin' };
+    case 'returnCreate': return { title: 'Yeni İade Gönderisi Oluştur', desc: 'Orijinal gönderiyi seçerek iade talebi oluşturun' };
+    case 'contracts':
+      if (S.view === 'wizard') return { title: S.editingId !== null ? 'Sözleşme Düzenle' : 'Yeni Sözleşme Tanımla', desc: '' };
+      return { title: 'Kargo Firmaları', desc: 'Kargo firması sözleşmelerini yönetin' };
+    case 'nodes': return { title: 'Stok Merkezleri', desc: 'Depo ve node ilişkilerini görüntüleyin' };
+    case 'routing': return { title: 'Akıllı Yönlendirme', desc: 'Desi, bölge ve tutara göre otomatik taşıyıcı kuralları' };
+    case 'monitoring': return { title: 'Entegrasyon & İzleme', desc: 'Kargo firması API sağlığı, hata yönetimi ve webhook kuyruğu' };
+    case 'reports': return { title: 'Raporlama & Analitik', desc: 'Performans, teslimat ve maliyet analizleri' };
+    case 'users': return { title: 'Kullanıcılar', desc: 'Rol bazlı kullanıcı ve yetki yönetimi' };
+    case 'templates': return { title: 'Bildirim Şablonları', desc: 'SMS ve e-posta bildirim şablonlarını yönetin' };
+    default: return { title: '', desc: '' };
+  }
 }
 
-// =========================================================
-// TOP HEADER
-// =========================================================
 function buildTopHeader() {
+  const info = getHeaderInfo();
+  const icon = PAGE_ICONS[S.page] || '';
   return `
-    <div class="flex items-center justify-between px-6 h-14 bg-white border-b border-neutral-200 flex-shrink-0">
-      <button onclick="toggleSidebarCollapsed()" class="p-2 rounded-lg hover:bg-neutral-100 text-neutral-500 transition-colors" title="${t('header.toggle_menu')}">
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-      <div class="flex items-center gap-1.5">
+    <div class="flex items-center justify-between px-6 py-4 bg-white border-b border-neutral-200 flex-shrink-0">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center flex-shrink-0">
+          <svg class="w-5 h-5 text-neutral-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">${icon}</svg>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-[17px] font-semibold text-neutral-950 tracking-tight leading-tight truncate">${info.title}</h1>
+          ${info.desc ? `<p class="text-xs text-neutral-500 mt-0.5 truncate">${info.desc}</p>` : ''}
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 flex-shrink-0">
         <button class="relative p-2 rounded-lg hover:bg-neutral-100 text-neutral-500 transition-colors" title="${t('header.notifications')}">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
           <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#fb3748] rounded-full"></span>
@@ -1314,10 +1354,6 @@ function buildTopHeader() {
               </button>
             </div>
           ` : ''}
-        </div>
-        <div class="flex items-center gap-2 pl-2.5 ml-0.5 border-l border-neutral-200">
-          <div class="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold text-white flex-shrink-0" style="background:#f0b429">SW</div>
-          <span class="text-[13px] font-medium text-neutral-700 hidden md:inline whitespace-nowrap">Muharrem Güngör</span>
         </div>
       </div>
     </div>
@@ -1344,10 +1380,7 @@ function buildNodesPage() {
 
   return `
     <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">${t('nodes.title')}</h1>
-        <p class="text-sm text-neutral-500 mt-0.5">${t('nodes.count', { n: NODES.length })}</p>
-      </div>
+      <p class="text-sm text-neutral-500">${t('nodes.count', { n: NODES.length })}</p>
     </div>
 
     <div class="relative mb-4">
@@ -1591,11 +1624,12 @@ function buildShipmentsPage() {
 
   return `
     <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">${t('shipments.title')}</h1>
-        <p class="text-sm text-neutral-500 mt-0.5">${t('shipments.count', { n: list.length })}</p>
-      </div>
+      <p class="text-sm text-neutral-500">${t('shipments.count', { n: list.length })}</p>
       <div class="flex items-center gap-2">
+        <button class="secondary-btn" onclick="navigateTo('shipmentCreate')">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Gönderi Oluştur
+        </button>
         <button class="secondary-btn" onclick="exportShipmentsCsv()">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
           ${t('shipments.export_csv')}
@@ -1895,7 +1929,6 @@ function buildShipmentDetail() {
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
           ${t('shipmentDetail.back')}
         </button>
-        <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">${t('shipmentDetail.title', { no: s.shipmentNo })}</h1>
       </div>
       <div class="flex items-center gap-2">
         <button class="secondary-btn" onclick="openStatusUpdateModal(${s.id})">
@@ -2098,17 +2131,11 @@ function cancelShipment() {
   render();
 }
 
-function singleBarcode(id) {
-  const s = SHIPMENTS.find(x => x.id === id);
-  toast(t('toast.barcode_generating_single', { no: s ? s.shipmentNo : '' }), 'info');
-  setTimeout(() => toast(t('toast.barcode_ready'), 'success'), 800);
-}
+function singleBarcode(id) { openBarcodeModal('shipment', id); }
 
 function bulkBarcode() {
-  const ids = S.shipments.selectedIds;
-  if (ids.length === 0) return;
-  toast(t('toast.barcode_generating_bulk', { n: ids.length }), 'info');
-  setTimeout(() => toast(t('toast.barcode_ready_bulk', { n: ids.length }), 'success'), 900);
+  if (S.shipments.selectedIds.length === 0) return;
+  openBarcodeModal('shipmentBulk', null);
 }
 
 function csvEscape(val) {
@@ -2167,11 +2194,8 @@ function buildReturnsPage() {
 
   return `
     <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">İade Yönetimi</h1>
-        <p class="text-sm text-neutral-500 mt-0.5">${returns.length} iade talebi listeleniyor</p>
-      </div>
-      <button class="primary-btn" onclick="openNewReturnModal()">
+      <p class="text-sm text-neutral-500">${returns.length} iade talebi listeleniyor</p>
+      <button class="primary-btn" onclick="navigateTo('returnCreate')">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
         Yeni İade Talebi
       </button>
@@ -2221,8 +2245,6 @@ function buildReturnsPage() {
         </table>
       `}
     </div>
-
-    ${r.newModal.show ? buildNewReturnModal() : ''}
   `;
 }
 
@@ -2253,54 +2275,6 @@ function buildReturnRow(x, i) {
         </div>
       </td>
     </tr>
-  `;
-}
-
-function buildNewReturnModal() {
-  const m = S.returns.newModal;
-  return `
-    <div class="overlay" onclick="if(event.target===this)closeNewReturnModal()">
-      <div class="modal-box w-full max-w-lg p-6">
-        <h3 class="font-semibold text-neutral-950 mb-4">Yeni İade Talebi</h3>
-
-        <div class="grid grid-cols-1 gap-4">
-          <div>
-            <label class="form-label">Orijinal Gönderi <span class="text-[#fb3748]">*</span></label>
-            <select class="form-input" onchange="setNewReturnField('originalShipmentId', this.value)">
-              <option value="">Gönderi seçin...</option>
-              ${SHIPMENTS.map(s => `<option value="${s.id}" ${m.originalShipmentId == s.id ? 'selected' : ''}>#${s.shipmentNo} — ${s.customerName} (${getCompany(s.companyId)?.name || ''})</option>`).join('')}
-            </select>
-          </div>
-          <div>
-            <label class="form-label">İade Nedeni</label>
-            <select class="form-input" onchange="setNewReturnField('reason', this.value)">
-              ${Object.keys(RETURN_REASONS).map(k => `<option value="${k}" ${m.reason === k ? 'selected' : ''}>${RETURN_REASONS[k]}</option>`).join('')}
-            </select>
-          </div>
-          <div class="flex items-center justify-between p-4 rounded-xl border border-neutral-100 bg-neutral-50/50">
-            <div>
-              <p class="text-sm font-medium text-neutral-950">Adresten İade Toplama</p>
-              <p class="text-xs text-neutral-400 mt-0.5">Kurye müşteri adresinden ürünü teslim alsın</p>
-            </div>
-            <div class="toggle-track ${m.pickup ? 'on' : 'off'}" onclick="toggleNewReturnPickup()">
-              <div class="toggle-thumb"></div>
-            </div>
-          </div>
-          <div>
-            <label class="form-label">Not <span class="font-normal normal-case text-neutral-400">(isteğe bağlı)</span></label>
-            <textarea class="form-input" rows="3" oninput="setNewReturnField('note', this.value)">${m.note}</textarea>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3 mt-6">
-          <button class="secondary-btn" onclick="closeNewReturnModal()">Vazgeç</button>
-          <button class="primary-btn" onclick="submitNewReturn()" ${!m.originalShipmentId ? 'disabled' : ''}>
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-            İade Talebi Oluştur
-          </button>
-        </div>
-      </div>
-    </div>
   `;
 }
 
@@ -2371,7 +2345,6 @@ function buildReturnDetail() {
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
           Geri
         </button>
-        <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">İade #${x.returnNo}</h1>
       </div>
       <div class="flex items-center gap-2">
         <button class="secondary-btn" onclick="openReturnStatusModal(${x.id})">
@@ -2461,32 +2434,6 @@ function buildReturnCancelModal() {
 function setReturnsSearch(val) { S.returns.search = val; render(); }
 function setReturnsStatusFilter(status) { S.returns.filterStatus = status; render(); }
 
-function openNewReturnModal() {
-  S.returns.newModal = { show: true, originalShipmentId: '', reason: 'begenmedim', pickup: true, note: '' };
-  render();
-}
-function closeNewReturnModal() { S.returns.newModal.show = false; render(); }
-function setNewReturnField(field, val) { S.returns.newModal[field] = val; }
-function toggleNewReturnPickup() { S.returns.newModal.pickup = !S.returns.newModal.pickup; render(); }
-
-function submitNewReturn() {
-  const m = S.returns.newModal;
-  if (!m.originalShipmentId) return;
-  const newReturn = {
-    id: newReturnId(),
-    returnNo: 9300000 + Math.floor(Math.random() * 900) + 200,
-    originalShipmentId: +m.originalShipmentId,
-    reason: m.reason,
-    status: 'requested',
-    requestDate: new Date().toISOString(),
-    pickup: m.pickup,
-    note: m.note,
-  };
-  returns.unshift(newReturn);
-  S.returns.newModal.show = false;
-  toast(`İade #${newReturn.returnNo} talebi oluşturuldu.`, 'success');
-  render();
-}
 
 function openReturnDetail(id) {
   S.returns.view = 'detail';
@@ -2523,10 +2470,194 @@ function cancelReturn() {
   render();
 }
 
-function returnBarcode(id) {
-  const x = returns.find(r => r.id === id);
-  toast(`İade #${x ? x.returnNo : ''} için barkod oluşturuluyor...`, 'info');
-  setTimeout(() => toast('Barkod hazır. İndirme başlatıldı.', 'success'), 800);
+function returnBarcode(id) { openBarcodeModal('return', id); }
+
+// =========================================================
+// BARKOD FORMATI SEÇİMİ — 2.4.1.2 Dinamik Etiket (ZPL, EPL, PDF) Üretimi
+// =========================================================
+const BARCODE_FORMATS = [
+  { key: 'pdf', label: 'PDF', desc: 'Yazdırılabilir standart belge' },
+  { key: 'zpl', label: 'ZPL', desc: 'Zebra termal yazıcı formatı' },
+  { key: 'epl', label: 'EPL', desc: 'Eltron termal yazıcı formatı' },
+];
+
+function openBarcodeModal(kind, id) {
+  S.barcodeModal = { show: true, kind, id, format: 'pdf' };
+  render();
+}
+function closeBarcodeModal() { S.barcodeModal.show = false; render(); }
+function setBarcodeFormat(fmt) { S.barcodeModal.format = fmt; render(); }
+
+function buildBarcodeModal() {
+  const m = S.barcodeModal;
+  let subtitle = '';
+  if (m.kind === 'shipment') {
+    const s = SHIPMENTS.find(x => x.id === m.id);
+    subtitle = s ? `Gönderi #${s.shipmentNo}` : '';
+  } else if (m.kind === 'shipmentBulk') {
+    subtitle = `${S.shipments.selectedIds.length} gönderi seçildi`;
+  } else if (m.kind === 'return') {
+    const x = returns.find(r => r.id === m.id);
+    subtitle = x ? `İade #${x.returnNo}` : '';
+  }
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeBarcodeModal()">
+      <div class="modal-box w-full max-w-sm p-6">
+        <h3 class="font-semibold text-neutral-950 mb-1">Barkod Formatı Seçin</h3>
+        <p class="text-sm text-neutral-500 mb-4">${subtitle}</p>
+        <div class="flex flex-col gap-2">
+          ${BARCODE_FORMATS.map(f => `
+            <button type="button" class="flex items-center justify-between p-3.5 rounded-xl border transition-colors text-left ${m.format === f.key ? 'border-primary bg-primary-lighter' : 'border-neutral-200 hover:bg-neutral-50'}" onclick="setBarcodeFormat('${f.key}')">
+              <div>
+                <p class="text-sm font-semibold ${m.format === f.key ? 'text-primary-darker' : 'text-neutral-800'}">${f.label}</p>
+                <p class="text-xs text-neutral-400 mt-0.5">${f.desc}</p>
+              </div>
+              ${m.format === f.key ? `<svg class="w-4 h-4 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>` : ''}
+            </button>
+          `).join('')}
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeBarcodeModal()">Vazgeç</button>
+          <button class="primary-btn" onclick="confirmBarcodeGeneration()">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 5v14M8 5v14M11 5v14M15 5v14M18 5v14M21 5v14"/></svg>
+            Barkod Oluştur
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function shipmentBarcodeData(s) {
+  const co = getCompany(s.companyId);
+  return {
+    companyName: co ? co.name : t('common.unknown'),
+    docNo: `Gönderi #${s.shipmentNo}`,
+    trackingNo: s.trackingNo,
+    from: s.shipFrom,
+    to: s.customerName,
+    address: `${s.shipTo.district} / ${s.shipTo.province}`,
+  };
+}
+
+function returnBarcodeData(x) {
+  const orig = getOriginalShipment(x.originalShipmentId);
+  const co = orig ? getCompany(orig.companyId) : null;
+  return {
+    companyName: co ? co.name : t('common.unknown'),
+    docNo: `İade #${x.returnNo}`,
+    trackingNo: orig ? orig.trackingNo : `IADE-${x.returnNo}`,
+    from: orig ? orig.customerName : '-',
+    to: co ? co.name : 'Depo',
+    address: orig ? `${orig.shipTo.district} / ${orig.shipTo.province}` : '-',
+  };
+}
+
+function buildBarcodeLabelHtml(items) {
+  const labels = items.map(it => `
+    <div class="label">
+      <div class="company">${it.companyName}</div>
+      <div class="row"><span>${it.docNo}</span><span class="tag">PDF ETİKET</span></div>
+      <div class="barcode"></div>
+      <div class="track">${it.trackingNo}</div>
+      <hr>
+      <div class="section-title">Gönderen</div>
+      <div class="addr">${it.from}</div>
+      <hr>
+      <div class="section-title">Alıcı</div>
+      <div class="addr">${it.to}</div>
+      <div class="addr2">${it.address}</div>
+    </div>
+  `).join('');
+
+  return `<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><title>Kargo Etiketi</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;background:#f2f2f3;margin:0;padding:24px;}
+  .toolbar{max-width:420px;margin:0 auto 16px;text-align:right;}
+  .toolbar button{padding:9px 16px;border-radius:10px;border:none;background:#335cff;color:#fff;font-weight:600;font-size:13px;cursor:pointer;}
+  .label{max-width:420px;margin:0 auto 24px;background:#fff;border:2px solid #111;border-radius:10px;padding:22px;}
+  .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:13px;color:#333;}
+  .tag{background:#ebf1ff;color:#2547d0;font-size:10px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:999px;}
+  .company{font-size:19px;font-weight:800;margin-bottom:6px;}
+  .barcode{height:70px;margin:16px 0 8px;background:repeating-linear-gradient(90deg,#000 0 2px,#fff 2px 4px,#000 4px 7px,#fff 7px 8px,#000 8px 11px,#fff 11px 14px,#000 14px 15px,#fff 15px 18px,#000 18px 21px,#fff 21px 23px);}
+  .track{text-align:center;font-family:'SF Mono',Menlo,monospace;font-size:13px;letter-spacing:2px;margin-bottom:8px;color:#111;}
+  .section-title{font-size:10px;text-transform:uppercase;color:#888;letter-spacing:.06em;margin-bottom:2px;margin-top:10px;}
+  .addr{font-size:14px;font-weight:700;color:#111;}
+  .addr2{font-size:13px;color:#444;}
+  hr{border:none;border-top:1px dashed #bbb;margin:12px 0 0;}
+  @media print { body{background:#fff;padding:0;} .toolbar{display:none;} .label{border:2px solid #000;box-shadow:none;margin-bottom:0;page-break-after:always;} }
+</style></head>
+<body>
+  <div class="toolbar"><button onclick="window.print()">Yazdır</button></div>
+  ${labels}
+</body></html>`;
+}
+
+function buildBarcodeRawHtml(items, format) {
+  const blocks = items.map(it => {
+    const cmd = format === 'zpl' ? `^XA
+^FO40,30^A0N,34,34^FD${it.companyName}^FS
+^FO40,80^BY3^BCN,110,Y,N,N
+^FD${it.trackingNo}^FS
+^FO40,210^A0N,24,24^FD${it.docNo}^FS
+^FO40,240^A0N,22,22^FDGonderen: ${it.from}^FS
+^FO40,270^A0N,22,22^FDAlici: ${it.to}^FS
+^FO40,300^A0N,22,22^FD${it.address}^FS
+^XZ` : `N
+A40,20,0,3,1,1,N,"${it.companyName}"
+B40,60,0,1,2,4,110,B,"${it.trackingNo}"
+A40,190,0,2,1,1,N,"${it.docNo}"
+A40,215,0,2,1,1,N,"Gonderen: ${it.from}"
+A40,240,0,2,1,1,N,"Alici: ${it.to}"
+A40,265,0,2,1,1,N,"${it.address}"
+P1`;
+    return `<div class="block"><p class="head"># ${it.trackingNo} — ${format.toUpperCase()}</p><pre>${cmd}</pre></div>`;
+  }).join('\n');
+
+  return `<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><title>${format.toUpperCase()} Barkod Çıktısı</title>
+<style>
+  body{background:#0e121b;color:#c9d1d9;font-family:'SF Mono',Menlo,Consolas,monospace;margin:0;padding:24px;}
+  h1{color:#fff;font-family:Arial,sans-serif;font-size:14px;margin:0 0 18px;}
+  .block{background:#161b26;border:1px solid #2b303b;border-radius:10px;padding:16px 18px;margin-bottom:16px;max-width:640px;}
+  .head{color:#9aa0ff;font-size:12px;margin:0 0 10px;font-family:Arial,sans-serif;font-weight:600;}
+  pre{white-space:pre-wrap;font-size:13px;line-height:1.7;margin:0;color:#7ee787;}
+</style></head>
+<body>
+  <h1>${format.toUpperCase()} Barkod Çıktısı — ${items.length} kayıt</h1>
+  ${blocks}
+</body></html>`;
+}
+
+function confirmBarcodeGeneration() {
+  const m = S.barcodeModal;
+  const format = m.format;
+  S.barcodeModal.show = false;
+
+  let items = [];
+  if (m.kind === 'shipment') {
+    const s = SHIPMENTS.find(x => x.id === m.id);
+    if (s) items = [shipmentBarcodeData(s)];
+  } else if (m.kind === 'shipmentBulk') {
+    items = S.shipments.selectedIds
+      .map(id => SHIPMENTS.find(s => s.id === id))
+      .filter(Boolean)
+      .map(shipmentBarcodeData);
+  } else if (m.kind === 'return') {
+    const x = returns.find(r => r.id === m.id);
+    if (x) items = [returnBarcodeData(x)];
+  }
+
+  if (items.length === 0) { render(); return; }
+
+  const html = format === 'pdf' ? buildBarcodeLabelHtml(items) : buildBarcodeRawHtml(items, format);
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+
+  toast(`${items.length > 1 ? items.length + ' barkod' : 'Barkod'} yeni sekmede açıldı (${format.toUpperCase()}).`, 'success');
+  render();
 }
 
 function viewShipmentFromReturn(shipmentId) {
@@ -2571,10 +2702,7 @@ function buildRoutingPage() {
 
   return `
     <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">Akıllı Yönlendirme</h1>
-        <p class="text-sm text-neutral-500 mt-0.5">Desi, bölge ve tutara göre otomatik taşıyıcı seçim kuralları — ${routingRules.length} kural tanımlı</p>
-      </div>
+      <p class="text-sm text-neutral-500">${routingRules.length} kural tanımlı</p>
       <button class="primary-btn" onclick="openRoutingRuleModal(null)">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
         Yeni Kural Ekle
@@ -2935,11 +3063,6 @@ function buildMonitoringPage() {
   ];
 
   return `
-    <div class="mb-6">
-      <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">Entegrasyon &amp; İzleme</h1>
-      <p class="text-sm text-neutral-500 mt-0.5">Kargo firması API sağlığı, hata yönetimi ve webhook yeniden deneme kuyruğu</p>
-    </div>
-
     <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden" style="box-shadow:0 1px 2px 0 #0a0d1408">
       <div class="flex items-center gap-1.5 px-5 py-3 border-b border-neutral-100">
         ${tabs.map(tb => `
@@ -3131,11 +3254,6 @@ function buildReportsPage() {
   }).sort((a, b) => b.count - a.count);
 
   return `
-    <div class="mb-6">
-      <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">Raporlama &amp; Analitik</h1>
-      <p class="text-sm text-neutral-500 mt-0.5">Kargo firması bazlı hacim, teslimat performansı, iade oranı ve maliyet analizleri</p>
-    </div>
-
     <div class="bg-white rounded-xl border border-neutral-200 p-4 mb-6 flex items-end gap-3 flex-wrap" style="box-shadow:0 1px 2px 0 #0a0d1408">
       <div>
         <label class="form-label">Başlangıç</label>
@@ -3261,10 +3379,7 @@ function setReportFilter(field, val) { S.reports[field] = val; render(); }
 function buildUsersPage() {
   return `
     <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">Kullanıcılar</h1>
-        <p class="text-sm text-neutral-500 mt-0.5">${users.length} kullanıcı tanımlı — rol bazlı yetkilendirme (RBAC)</p>
-      </div>
+      <p class="text-sm text-neutral-500">${users.length} kullanıcı tanımlı — rol bazlı yetkilendirme (RBAC)</p>
       <button class="primary-btn" onclick="openUserModal(null)">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
         Yeni Kullanıcı Ekle
@@ -3491,10 +3606,7 @@ function togglePermission(role, moduleIndex) {
 function buildTemplatesPage() {
   return `
     <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">Bildirim Şablonları</h1>
-        <p class="text-sm text-neutral-500 mt-0.5">${templates.length} şablon tanımlı — SMS ve e-posta bildirimleri için parametrik metinler</p>
-      </div>
+      <p class="text-sm text-neutral-500">${templates.length} şablon tanımlı — SMS ve e-posta bildirimleri için parametrik metinler</p>
       <button class="primary-btn" onclick="openTemplateModal(null)">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
         Yeni Şablon Ekle
@@ -3698,11 +3810,6 @@ function buildDashboardPage() {
   const unhealthyCarriers = CARRIER_HEALTH.filter(h => h.status !== 'up');
 
   return `
-    <div class="mb-6">
-      <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">Gösterge Paneli</h1>
-      <p class="text-sm text-neutral-500 mt-0.5">Genel operasyon durumu ve öne çıkan metrikler</p>
-    </div>
-
     <div class="grid grid-cols-5 gap-3 mb-6">
       ${reportStatTile('Toplam Gönderi', totalShipments, '')}
       ${reportStatTile('Teslimat Başarı Oranı', successRate, '%')}
@@ -3816,6 +3923,10 @@ function buildDashboardPage() {
     </div>
 
     <div class="flex items-center gap-3 mt-6">
+      <button class="secondary-btn" onclick="navigateTo('shipmentCreate')">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Yeni Gönderi Oluştur
+      </button>
       <button class="secondary-btn" onclick="goToNewContract()">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
         Yeni Sözleşme
@@ -3843,13 +3954,305 @@ function goToNewContract() {
 }
 
 function goToNewReturn() {
+  S.page = 'returnCreate';
+}
+
+// =========================================================
+// GÖNDERİ OLUŞTUR — 2.4 Gönderi Yönetimi (tekil gönderi oluşturma)
+// =========================================================
+const SHIPMENT_CHANNELS = ['Trendyol', 'Hepsiburada', 'N11', 'Kendi Web Sitesi'];
+
+function generateTrackingNo(companyId) {
+  const co = getCompany(companyId);
+  const prefix = co ? co.name.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() : 'TRK';
+  return `${prefix}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000000) + 1000000}`;
+}
+
+function buildShipmentCreatePage() {
+  const f = S.shipmentCreate;
+  const e = f.errors;
+  const province = getProvince(f.provinceId);
+
+  return `
+    <div class="bg-white rounded-xl border border-neutral-200 p-8" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <div class="grid grid-cols-2 gap-6">
+
+        <div class="col-span-2">
+          <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4">Sipariş Bilgileri</p>
+          <div class="grid grid-cols-2 gap-5">
+            <div>
+              <label class="form-label">Sipariş Numarası <span class="text-[#fb3748]">*</span></label>
+              <input type="text" class="form-input ${e.orderNo ? 'error' : ''}" value="${f.orderNo}" placeholder="Örn. 61234599" oninput="setShipmentCreateField('orderNo', this.value)" />
+              ${e.orderNo ? `<p class="form-error">${e.orderNo}</p>` : ''}
+            </div>
+            <div>
+              <label class="form-label">Referans ID <span class="font-normal normal-case text-neutral-400">(isteğe bağlı)</span></label>
+              <input type="text" class="form-input" value="${f.referenceId}" oninput="setShipmentCreateField('referenceId', this.value)" />
+            </div>
+            <div>
+              <label class="form-label">Müşteri Adı <span class="text-[#fb3748]">*</span></label>
+              <input type="text" class="form-input ${e.customerName ? 'error' : ''}" value="${f.customerName}" oninput="setShipmentCreateField('customerName', this.value)" />
+              ${e.customerName ? `<p class="form-error">${e.customerName}</p>` : ''}
+            </div>
+            <div>
+              <label class="form-label">Kanal</label>
+              <select class="form-input" onchange="setShipmentCreateField('channel', this.value)">
+                ${SHIPMENT_CHANNELS.map(c => `<option ${f.channel === c ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-span-2">
+          <div class="h-px bg-neutral-100 my-1"></div>
+          <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-4 mb-4">Kargo Bilgileri</p>
+          <div class="grid grid-cols-2 gap-5">
+            <div>
+              <label class="form-label">Kargo Firması <span class="text-[#fb3748]">*</span></label>
+              <select class="form-input ${e.companyId ? 'error' : ''}" onchange="setShipmentCreateField('companyId', this.value)">
+                <option value="">Firma seçin...</option>
+                ${COMPANIES.map(c => `<option value="${c.id}" ${f.companyId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+              ${e.companyId ? `<p class="form-error">${e.companyId}</p>` : ''}
+            </div>
+            <div>
+              <label class="form-label">Sevk Yeri (Depo) <span class="text-[#fb3748]">*</span></label>
+              <select class="form-input ${e.shipFrom ? 'error' : ''}" onchange="setShipmentCreateField('shipFrom', this.value)">
+                <option value="">Depo seçin...</option>
+                ${NODES.map(n => `<option value="${n.name}" ${f.shipFrom === n.name ? 'selected' : ''}>${n.name}</option>`).join('')}
+              </select>
+              ${e.shipFrom ? `<p class="form-error">${e.shipFrom}</p>` : ''}
+            </div>
+            <div>
+              <label class="form-label">Paket No <span class="font-normal normal-case text-neutral-400">(boş bırakılırsa otomatik)</span></label>
+              <input type="text" class="form-input" value="${f.packageNo}" oninput="setShipmentCreateField('packageNo', this.value)" />
+            </div>
+          </div>
+        </div>
+
+        <div class="col-span-2">
+          <div class="h-px bg-neutral-100 my-1"></div>
+          <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-4 mb-4">Teslimat Adresi</p>
+          <div class="grid grid-cols-2 gap-5">
+            <div>
+              <label class="form-label">İl <span class="text-[#fb3748]">*</span></label>
+              <select class="form-input ${e.provinceId ? 'error' : ''}" onchange="setShipmentCreateProvince(this.value)">
+                <option value="">İl seçin...</option>
+                ${PROVINCES.map(p => `<option value="${p.id}" ${f.provinceId == p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+              </select>
+              ${e.provinceId ? `<p class="form-error">${e.provinceId}</p>` : ''}
+            </div>
+            <div>
+              <label class="form-label">İlçe <span class="text-[#fb3748]">*</span></label>
+              <select class="form-input ${e.district ? 'error' : ''}" onchange="setShipmentCreateField('district', this.value)" ${!province ? 'disabled' : ''}>
+                <option value="">İlçe seçin...</option>
+                ${province ? province.districts.map(d => `<option ${f.district === d ? 'selected' : ''}>${d}</option>`).join('') : ''}
+              </select>
+              ${e.district ? `<p class="form-error">${e.district}</p>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-span-2">
+          <div class="h-px bg-neutral-100 my-1"></div>
+          <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-4 mb-4">Gönderim Türü</p>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" class="p-4 rounded-xl border text-left transition-colors ${f.cargoType === 'order' ? 'border-primary bg-primary-lighter' : 'border-neutral-200 bg-white hover:bg-neutral-50'}" onclick="setShipmentCreateField('cargoType', 'order')">
+              <p class="text-sm font-medium ${f.cargoType === 'order' ? 'text-primary-darker' : 'text-neutral-700'}">Sipariş Gönderisi</p>
+              <p class="text-xs text-neutral-400 mt-0.5">Standart müşteri sipariş gönderimi</p>
+            </button>
+            <button type="button" class="p-4 rounded-xl border text-left transition-colors ${f.cargoType === 'return' ? 'border-primary bg-primary-lighter' : 'border-neutral-200 bg-white hover:bg-neutral-50'}" onclick="setShipmentCreateField('cargoType', 'return')">
+              <p class="text-sm font-medium ${f.cargoType === 'return' ? 'text-primary-darker' : 'text-neutral-700'}">İade Gönderisi</p>
+              <p class="text-xs text-neutral-400 mt-0.5">Müşteriye giden iade/değişim gönderimi</p>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-neutral-100">
+        <button class="secondary-btn" onclick="resetShipmentCreateForm()">Temizle</button>
+        <button class="primary-btn" onclick="submitShipmentCreate()">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          Gönderi Oluştur
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function setShipmentCreateField(field, val) {
+  S.shipmentCreate[field] = val;
+  if (S.shipmentCreate.errors[field]) delete S.shipmentCreate.errors[field];
+  render();
+}
+function setShipmentCreateProvince(val) {
+  S.shipmentCreate.provinceId = val;
+  S.shipmentCreate.district = '';
+  if (S.shipmentCreate.errors.provinceId) delete S.shipmentCreate.errors.provinceId;
+  render();
+}
+function resetShipmentCreateForm() {
+  S.shipmentCreate = {
+    orderNo: '', companyId: '', cargoType: 'order', customerName: '',
+    shipFrom: '', provinceId: '', district: '', referenceId: '', packageNo: '',
+    channel: 'Kendi Web Sitesi', errors: {},
+  };
+  render();
+}
+
+function validateShipmentCreate() {
+  const f = S.shipmentCreate;
+  const errs = {};
+  if (!f.orderNo.trim()) errs.orderNo = 'Sipariş numarası zorunludur.';
+  if (!f.companyId) errs.companyId = 'Kargo firması seçilmelidir.';
+  if (!f.customerName.trim()) errs.customerName = 'Müşteri adı zorunludur.';
+  if (!f.shipFrom) errs.shipFrom = 'Sevk yeri seçilmelidir.';
+  if (!f.provinceId) errs.provinceId = 'İl seçilmelidir.';
+  if (!f.district) errs.district = 'İlçe seçilmelidir.';
+  return errs;
+}
+
+function submitShipmentCreate() {
+  const errs = validateShipmentCreate();
+  if (Object.keys(errs).length) {
+    S.shipmentCreate.errors = errs;
+    render();
+    return;
+  }
+  const f = S.shipmentCreate;
+  const province = getProvince(f.provinceId);
+  const id = Math.max(0, ...SHIPMENTS.map(s => s.id)) + 1;
+  const shipmentNo = Math.max(...SHIPMENTS.map(s => s.shipmentNo)) + 1;
+  const orderNoVal = isNaN(+f.orderNo) ? f.orderNo : +f.orderNo;
+
+  const newShipment = {
+    id, shipmentNo, orderNo: orderNoVal, companyId: +f.companyId,
+    trackingNo: generateTrackingNo(+f.companyId),
+    shipFrom: f.shipFrom,
+    shipTo: { district: f.district, province: province.name },
+    shipTime: new Date().toISOString(),
+    status: 'preparing',
+    cargoType: f.cargoType,
+    referenceId: f.referenceId || `REF-${Math.floor(Math.random() * 90000) + 10000}`,
+    packageNo: f.packageNo || `PKT-${String(id).padStart(6, '0')}`,
+    customerName: f.customerName,
+    channel: f.channel,
+  };
+  SHIPMENTS.push(newShipment);
+  toast(`Gönderi #${newShipment.shipmentNo} oluşturuldu.`, 'success');
+  resetShipmentCreateForm();
+  S.page = 'shipments';
+  openShipmentDetail(newShipment.id);
+}
+
+// =========================================================
+// İADE GÖNDERİSİ OLUŞTUR — 2.5 İade Yönetimi (dedike oluşturma sayfası)
+// =========================================================
+function buildReturnCreatePage() {
+  const f = S.returnCreate;
+  const e = f.errors;
+  const orig = f.originalShipmentId ? getOriginalShipment(+f.originalShipmentId) : null;
+
+  return `
+    <div class="bg-white rounded-xl border border-neutral-200 p-8 max-w-2xl" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <div class="flex flex-col gap-5">
+        <div>
+          <label class="form-label">Orijinal Gönderi <span class="text-[#fb3748]">*</span></label>
+          <select class="form-input ${e.originalShipmentId ? 'error' : ''}" onchange="setReturnCreateField('originalShipmentId', this.value)">
+            <option value="">Gönderi seçin...</option>
+            ${SHIPMENTS.map(s => `<option value="${s.id}" ${f.originalShipmentId == s.id ? 'selected' : ''}>#${s.shipmentNo} — ${s.customerName} (${getCompany(s.companyId)?.name || ''})</option>`).join('')}
+          </select>
+          ${e.originalShipmentId ? `<p class="form-error">${e.originalShipmentId}</p>` : ''}
+        </div>
+
+        ${orig ? `
+          <div class="border border-neutral-100 rounded-xl p-4 bg-neutral-50/50 grid grid-cols-2 gap-3 text-sm">
+            <div><p class="text-xs text-neutral-400 mb-0.5">Sipariş #</p><p class="font-medium text-neutral-700">${orig.orderNo}</p></div>
+            <div><p class="text-xs text-neutral-400 mb-0.5">Kargo Firması</p><p class="font-medium text-neutral-700">${getCompany(orig.companyId)?.name || ''}</p></div>
+            <div><p class="text-xs text-neutral-400 mb-0.5">Teslimat Adresi</p><p class="font-medium text-neutral-700">${orig.shipTo.district} / ${orig.shipTo.province}</p></div>
+            <div><p class="text-xs text-neutral-400 mb-0.5">Durum</p><span class="badge ${SHIPMENT_STATUS[orig.status].badge}">${statusLabel(orig.status)}</span></div>
+          </div>
+        ` : ''}
+
+        <div>
+          <label class="form-label">İade Nedeni</label>
+          <select class="form-input" onchange="setReturnCreateField('reason', this.value)">
+            ${Object.keys(RETURN_REASONS).map(k => `<option value="${k}" ${f.reason === k ? 'selected' : ''}>${RETURN_REASONS[k]}</option>`).join('')}
+          </select>
+        </div>
+
+        <div class="flex items-center justify-between p-4 rounded-xl border border-neutral-100 bg-neutral-50/50">
+          <div>
+            <p class="text-sm font-medium text-neutral-950">Adresten İade Toplama</p>
+            <p class="text-xs text-neutral-400 mt-0.5">Kurye müşteri adresinden ürünü teslim alsın</p>
+          </div>
+          <div class="toggle-track ${f.pickup ? 'on' : 'off'}" onclick="toggleReturnCreatePickup()">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+
+        <div>
+          <label class="form-label">Not <span class="font-normal normal-case text-neutral-400">(isteğe bağlı)</span></label>
+          <textarea class="form-input" rows="3" oninput="setReturnCreateField('note', this.value)">${f.note}</textarea>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-neutral-100">
+        <button class="secondary-btn" onclick="resetReturnCreateForm()">Temizle</button>
+        <button class="primary-btn" onclick="submitReturnCreate()">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          İade Talebi Oluştur
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function setReturnCreateField(field, val) {
+  S.returnCreate[field] = val;
+  if (S.returnCreate.errors[field]) delete S.returnCreate.errors[field];
+  render();
+}
+function toggleReturnCreatePickup() { S.returnCreate.pickup = !S.returnCreate.pickup; render(); }
+function resetReturnCreateForm() {
+  S.returnCreate = { originalShipmentId: '', reason: 'begenmedim', pickup: true, note: '', errors: {} };
+  render();
+}
+
+function submitReturnCreate() {
+  const f = S.returnCreate;
+  if (!f.originalShipmentId) {
+    S.returnCreate.errors = { originalShipmentId: 'Orijinal gönderi seçilmelidir.' };
+    render();
+    return;
+  }
+  const newReturn = {
+    id: newReturnId(),
+    returnNo: 9300000 + Math.floor(Math.random() * 900) + 200,
+    originalShipmentId: +f.originalShipmentId,
+    reason: f.reason,
+    status: 'requested',
+    requestDate: new Date().toISOString(),
+    pickup: f.pickup,
+    note: f.note,
+  };
+  returns.unshift(newReturn);
+  toast(`İade #${newReturn.returnNo} talebi oluşturuldu.`, 'success');
+  resetReturnCreateForm();
   S.page = 'returns';
-  openNewReturnModal();
+  openReturnDetail(newReturn.id);
 }
 
 function buildApp() {
   if (S.page === 'dashboard') {
     return `<div class="max-w-6xl mx-auto px-4 py-8">${buildDashboardPage()}</div>`;
+  }
+  if (S.page === 'shipmentCreate') {
+    return `<div class="max-w-6xl mx-auto px-4 py-8">${buildShipmentCreatePage()}</div>`;
+  }
+  if (S.page === 'returnCreate') {
+    return `<div class="max-w-6xl mx-auto px-4 py-8">${buildReturnCreatePage()}</div>`;
   }
   if (S.page === 'shipments') {
     return `<div class="max-w-6xl mx-auto px-4 py-8">${buildShipmentsPage()}</div>`;
@@ -3894,10 +4297,7 @@ function buildList() {
 
   return `
     <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">${t('contracts.title')}</h1>
-        <p class="text-sm text-neutral-500 mt-0.5">${t('contracts.count', { n: contracts.length })}</p>
-      </div>
+      <p class="text-sm text-neutral-500">${t('contracts.count', { n: contracts.length })}</p>
       <button class="primary-btn" onclick="openWizard(null)">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
         ${t('contracts.new')}
@@ -4057,7 +4457,6 @@ function buildWizard() {
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
         ${t('wizard.back_to_list')}
       </button>
-      <h1 class="text-xl font-semibold text-neutral-950 tracking-tight">${isEdit ? t('wizard.edit_title') : t('wizard.new_title')}</h1>
     </div>
 
     <div class="bg-white rounded-xl border border-neutral-200 flex overflow-hidden" style="min-height:520px;box-shadow:0 1px 2px 0 #0a0d1408">
