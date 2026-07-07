@@ -296,10 +296,19 @@ const SHIPMENT_STATUS = {
   delivered:  { badge: 'badge-active' },
   returned:   { badge: 'badge-passive' },
   cancelled:  { badge: 'badge-danger' },
+  recalled:   { badge: 'badge-danger' },
 };
 
 function statusLabel(key) { return t('status.' + key); }
 function cargoTypeLabel(type) { return t('cargoType.' + type); }
+
+// =========================================================
+// KARGO TANIMLARI — ek kural sözlükleri (ürün/segment/paket/kanal/ödeme)
+// =========================================================
+const PRODUCT_TYPES = { gida: 'Gıda', elektronik: 'Elektronik', tekstil: 'Tekstil' };
+const CUSTOMER_SEGMENTS = { vip: 'VIP', standart: 'Standart', kurumsal: 'Kurumsal' };
+const PACKAGE_TYPES = { kirilacak: 'Kırılacak Eşya', soguk_zincir: 'Soğuk Zincir', standart: 'Standart Paket' };
+const ORDER_PAYMENT_TYPES = { kapida_odeme: 'Kapıda Ödeme', kredi_karti: 'Kredi Kartı', on_odemeli: 'Ön Ödemeli' };
 
 const PRODUCT_POOL = [
   { name: 'Adela Elbise',    variant: 'Yeşil - 36',  sku: 'GLOND3005212952186', barcode: 'GLOND3005212952186', originalPrice: 650,  price: 450, color: '#7d9a6f' },
@@ -313,6 +322,39 @@ const PRODUCT_POOL = [
 function packageItemFor(shipmentId) {
   return PRODUCT_POOL[shipmentId % PRODUCT_POOL.length];
 }
+
+function packageItemsFor(shipmentId) {
+  const primary = { ...PRODUCT_POOL[shipmentId % PRODUCT_POOL.length], qty: 1 + (shipmentId % 2) };
+  const items = [primary];
+  if (shipmentId % 3 === 0) {
+    items.push({ ...PRODUCT_POOL[(shipmentId + 2) % PRODUCT_POOL.length], qty: 1 });
+  }
+  return items;
+}
+
+function desiKgFor(shipmentId) {
+  const desi = 3 + (shipmentId * 7) % 25;
+  const weight = (1.5 + (shipmentId % 9) * 0.8).toFixed(1);
+  return { desi, weight };
+}
+
+function plannedDeliveryDate(s) {
+  const days = s.cargoType === 'return' ? 4 : 2;
+  const d = new Date(s.shipTime);
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+}
+
+function actualDeliveryDate(s) {
+  if (s.status !== 'delivered' && s.status !== 'returned') return null;
+  const days = s.cargoType === 'return' ? 5 : (1 + (s.id % 3));
+  const d = new Date(s.shipTime);
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+}
+
+function isDamagedFor(shipmentId) { return shipmentId % 11 === 0; }
+function pickupTimeHoursFor(shipmentId) { return 1 + (shipmentId % 6); }
 
 function emailFor(name) {
   const ascii = name.toLowerCase()
@@ -403,6 +445,7 @@ const RETURN_STATUS = {
   in_warehouse: { label: 'Depoya Ulaştı',   badge: 'badge-passive' },
   completed:    { label: 'Tamamlandı',      badge: 'badge-active' },
   cancelled:    { label: 'İptal Edildi',    badge: 'badge-danger' },
+  recalled:     { label: 'Geri Çağrıldı',   badge: 'badge-danger' },
 };
 
 let returns = [
@@ -415,6 +458,29 @@ let returns = [
 ];
 
 function newReturnId() { return Math.max(0, ...returns.map(r => r.id)) + 1; }
+
+// =========================================================
+// TRANSFER — Node/Depo/Mağaza arası transfer gönderileri
+// =========================================================
+const TRANSFER_STATUS = {
+  preparing:  { label: 'Hazırlanıyor', badge: 'badge-warning' },
+  in_transit: { label: 'Yolda',        badge: 'badge-info' },
+  delivered:  { label: 'Teslim Edildi', badge: 'badge-active' },
+  cancelled:  { label: 'İptal Edildi', badge: 'badge-danger' },
+  recalled:   { label: 'Geri Çağrıldı', badge: 'badge-danger' },
+};
+
+function getNode(id) { return NODES.find(n => n.id === +id); }
+
+let transfers = [
+  { id: 1, transferNo: 7100201, fromNodeId: 1, toNodeId: 3,  companyId: 1, trackingNo: 'YK-TR-2026-000201', status: 'in_transit', desi: 22, note: '', createdAt: '2026-07-05T09:30:00' },
+  { id: 2, transferNo: 7100202, fromNodeId: 5, toNodeId: 6,  companyId: 2, trackingNo: 'ARAS-TR-778234',     status: 'delivered',  desi: 14, note: '', createdAt: '2026-07-03T11:00:00' },
+  { id: 3, transferNo: 7100203, fromNodeId: 3, toNodeId: 4,  companyId: 3, trackingNo: 'MNG-TR-2026771',     status: 'preparing',  desi: 30, note: 'Acil sevkiyat', createdAt: '2026-07-06T08:15:00' },
+  { id: 4, transferNo: 7100204, fromNodeId: 7, toNodeId: 8,  companyId: 5, trackingNo: 'SRT-TR-882341',      status: 'cancelled',  desi: 18, note: '', createdAt: '2026-07-02T14:40:00' },
+];
+
+function newTransferId() { return Math.max(0, ...transfers.map(x => x.id)) + 1; }
+function newTransferNo() { return Math.max(0, ...transfers.map(x => x.transferNo)) + 1; }
 
 // =========================================================
 // AKILLI YÖNLENDİRME (ROUTING RULES) — 2.3 / 2.2.7 Routing Engine
@@ -438,6 +504,79 @@ let routingRules = [
 ];
 
 function newRoutingRuleId() { return Math.max(0, ...routingRules.map(r => r.id)) + 1; }
+
+let routingRuleHistory = [
+  { id: 1, time: '2026-06-20T09:00:00', action: 'created', ruleName: 'Genel Varsayılan', detail: 'Kural oluşturuldu.' },
+  { id: 2, time: '2026-06-25T14:30:00', action: 'updated', ruleName: 'İstanbul İçi Ekonomik', detail: 'Birincil taşıyıcı değiştirildi.' },
+  { id: 3, time: '2026-07-01T11:15:00', action: 'toggled', ruleName: 'Ege Bölgesi Standart', detail: 'Kural pasife alındı.' },
+];
+
+function newRuleHistoryId() { return Math.max(0, ...routingRuleHistory.map(h => h.id)) + 1; }
+function logRuleHistory(action, ruleName, detail) {
+  routingRuleHistory.unshift({ id: newRuleHistoryId(), time: new Date().toISOString(), action, ruleName, detail });
+}
+
+// =========================================================
+// FİNANS — Fiyatlandırma (Expected Cost) / Fatura (Real Cost) / Kota
+// =========================================================
+let carrierPricing = [
+  { id: 1, companyId: 1, minDesi: 0,  maxDesi: 10,  price: 45 },
+  { id: 2, companyId: 1, minDesi: 11, maxDesi: 30,  price: 75 },
+  { id: 3, companyId: 1, minDesi: 31, maxDesi: 999, price: 120 },
+  { id: 4, companyId: 2, minDesi: 0,  maxDesi: 10,  price: 42 },
+  { id: 5, companyId: 2, minDesi: 11, maxDesi: 30,  price: 70 },
+  { id: 6, companyId: 6, minDesi: 0,  maxDesi: 10,  price: 68 },
+  { id: 7, companyId: 8, minDesi: 0,  maxDesi: 10,  price: 39 },
+];
+
+function newCarrierPricingId() { return Math.max(0, ...carrierPricing.map(p => p.id)) + 1; }
+
+function expectedCostFor(companyId, desi) {
+  const match = carrierPricing.find(p => p.companyId === companyId && desi >= p.minDesi && desi <= p.maxDesi);
+  return match ? match.price : null;
+}
+
+let carrierInvoices = [
+  { id: 1, companyId: 1, shipmentNo: 8200145, invoiceNo: 'FTR-2026-00234', expectedCost: 45,  realCost: 52,  invoiceDate: '2026-07-03T10:00:00', status: 'matched' },
+  { id: 2, companyId: 2, shipmentNo: 8200146, invoiceNo: 'FTR-2026-00235', expectedCost: 42,  realCost: 42,  invoiceDate: '2026-07-03T11:20:00', status: 'matched' },
+  { id: 3, companyId: 6, shipmentNo: 8200148, invoiceNo: 'FTR-2026-00236', expectedCost: 68,  realCost: 89,  invoiceDate: '2026-07-02T09:00:00', status: 'disputed' },
+  { id: 4, companyId: 8, shipmentNo: 8200150, invoiceNo: 'FTR-2026-00237', expectedCost: 39,  realCost: 39,  invoiceDate: '2026-07-01T15:40:00', status: 'matched' },
+  { id: 5, companyId: 1, shipmentNo: 8200153, invoiceNo: 'FTR-2026-00238', expectedCost: 75,  realCost: 75,  invoiceDate: '2026-06-30T08:15:00', status: 'pending' },
+];
+
+function newCarrierInvoiceId() { return Math.max(0, ...carrierInvoices.map(i => i.id)) + 1; }
+
+const INVOICE_STATUS = {
+  pending:  { label: 'Beklemede', badge: 'badge-warning' },
+  matched:  { label: 'Eşleşti',   badge: 'badge-active' },
+  disputed: { label: 'İtiraz Edildi', badge: 'badge-danger' },
+};
+
+let carrierQuotas = [
+  { companyId: 1,  monthlyLimit: 5000, usedThisMonth: 3120 },
+  { companyId: 2,  monthlyLimit: 3000, usedThisMonth: 2890 },
+  { companyId: 3,  monthlyLimit: 2000, usedThisMonth: 640 },
+  { companyId: 6,  monthlyLimit: 1500, usedThisMonth: 1410 },
+  { companyId: 7,  monthlyLimit: 1000, usedThisMonth: 210 },
+  { companyId: 8,  monthlyLimit: 2500, usedThisMonth: 1980 },
+];
+
+function getCarrierQuota(companyId) { return carrierQuotas.find(q => q.companyId === companyId); }
+
+// =========================================================
+// STATUS MAPLEME — Kargo firması statü → standart statü eşleme
+// =========================================================
+let statusMappings = [
+  { id: 1, companyId: 1, carrierStatus: 'Depoda Hazırlanıyor', standardStatus: 'preparing' },
+  { id: 2, companyId: 1, carrierStatus: 'Dağıtıma Çıktı',       standardStatus: 'in_transit' },
+  { id: 3, companyId: 1, carrierStatus: 'Teslim Edildi',        standardStatus: 'delivered' },
+  { id: 4, companyId: 2, carrierStatus: 'Picked Up',            standardStatus: 'in_transit' },
+  { id: 5, companyId: 2, carrierStatus: 'Delivered',            standardStatus: 'delivered' },
+  { id: 6, companyId: 6, carrierStatus: 'In Transit',           standardStatus: 'in_transit' },
+  { id: 7, companyId: 6, carrierStatus: 'Delivered - Signed',   standardStatus: 'delivered' },
+];
+
+function newStatusMappingId() { return Math.max(0, ...statusMappings.map(m => m.id)) + 1; }
 
 // =========================================================
 // ENTEGRASYON & İZLEME — 2.15 Loglama / 2.2.5 Webhook / 2.14 Hata Yönetimi
@@ -521,6 +660,91 @@ const TEMPLATE_VARS = ['musteri_adi', 'siparis_no', 'takip_no', 'kargo_firmasi']
 function newTemplateId() { return Math.max(0, ...templates.map(t => t.id)) + 1; }
 
 // =========================================================
+// BARKOD ŞABLONLARI — Kargo firmasına göre etiket şablonları
+// =========================================================
+const BARCODE_TEMPLATE_FIELDS = {
+  trackingNo: 'Takip No',
+  companyName: 'Kargo Firması',
+  docNo: 'Belge No',
+  from: 'Gönderen Adresi',
+  to: 'Alıcı Adı',
+  address: 'Alıcı Adresi',
+};
+
+let barcodeTemplates = [
+  { id: 1, name: 'Standart Kargo Etiketi', companyId: 1, format: 'pdf', requiredFields: ['trackingNo', 'companyName', 'address'], active: true },
+  { id: 2, name: 'Termal Yazıcı Etiketi (ZPL)', companyId: 2, format: 'zpl', requiredFields: ['trackingNo', 'to', 'address'], active: true },
+  { id: 3, name: 'İade Etiketi', companyId: null, format: 'pdf', requiredFields: ['trackingNo', 'docNo'], active: false },
+];
+
+function newBarcodeTemplateId() { return Math.max(0, ...barcodeTemplates.map(t => t.id)) + 1; }
+
+function emptyBarcodeTemplateForm() {
+  return { name: '', companyId: '', format: 'pdf', requiredFields: [], active: true };
+}
+
+function openBarcodeTemplateModal(id) {
+  if (id === null) {
+    S.barcodeTemplates.editModal = { show: true, id: null, form: emptyBarcodeTemplateForm() };
+  } else {
+    const tpl = barcodeTemplates.find(t => t.id === id);
+    if (!tpl) return;
+    S.barcodeTemplates.editModal = {
+      show: true,
+      id,
+      form: { name: tpl.name, companyId: tpl.companyId || '', format: tpl.format, requiredFields: [...tpl.requiredFields], active: tpl.active },
+    };
+  }
+  render();
+}
+function closeBarcodeTemplateModal() { S.barcodeTemplates.editModal.show = false; render(); }
+function setBarcodeTemplateField(field, val) { S.barcodeTemplates.editModal.form[field] = val; render(); }
+function toggleBarcodeTemplateRequiredField(field) {
+  const arr = S.barcodeTemplates.editModal.form.requiredFields;
+  const idx = arr.indexOf(field);
+  if (idx >= 0) arr.splice(idx, 1); else arr.push(field);
+  render();
+}
+
+function saveBarcodeTemplate() {
+  const m = S.barcodeTemplates.editModal;
+  const f = m.form;
+  if (!f.name.trim() || f.requiredFields.length === 0) return;
+  const payload = {
+    name: f.name.trim(),
+    companyId: f.companyId ? +f.companyId : null,
+    format: f.format,
+    requiredFields: [...f.requiredFields],
+    active: f.active,
+  };
+  if (m.id) {
+    const idx = barcodeTemplates.findIndex(t => t.id === m.id);
+    if (idx >= 0) barcodeTemplates[idx] = { ...barcodeTemplates[idx], ...payload };
+    toast(`"${payload.name}" şablonu güncellendi.`, 'success');
+  } else {
+    barcodeTemplates.push({ id: newBarcodeTemplateId(), ...payload });
+    toast(`"${payload.name}" şablonu oluşturuldu.`, 'success');
+  }
+  S.barcodeTemplates.editModal.show = false;
+  render();
+}
+
+function deleteBarcodeTemplate(id) {
+  const tpl = barcodeTemplates.find(t => t.id === id);
+  if (!tpl) return;
+  if (!confirm(`"${tpl.name}" şablonunu silmek istediğinizden emin misiniz?`)) return;
+  barcodeTemplates = barcodeTemplates.filter(t => t.id !== id);
+  toast(`"${tpl.name}" şablonu silindi.`, 'info');
+  render();
+}
+
+function toggleBarcodeTemplateActive(id) {
+  const tpl = barcodeTemplates.find(t => t.id === id);
+  if (tpl) tpl.active = !tpl.active;
+  render();
+}
+
+// =========================================================
 // I18N
 // =========================================================
 const I18N = {
@@ -554,6 +778,11 @@ const I18N = {
     'sidebar.nav_reports': 'Raporlama',
     'sidebar.nav_users': 'Kullanıcılar',
     'sidebar.nav_templates': 'Bildirim Şablonları',
+    'sidebar.nav_barcode_templates': 'Barkod Şablonları',
+    'sidebar.nav_finance': 'Finans',
+    'sidebar.nav_performance': 'Kargo Performansı',
+    'sidebar.nav_status_mapping': 'Statü Mapleme',
+    'sidebar.nav_transfers': 'Transfer',
     'sidebar.settings': 'Ayarlar',
     'sidebar.role_admin': 'Admin',
 
@@ -577,6 +806,7 @@ const I18N = {
     'status.delivered': 'Teslim Edildi',
     'status.returned': 'İade Edildi',
     'status.cancelled': 'İptal Edildi',
+    'status.recalled': 'Geri Çağrıldı',
     'cargoType.order': 'Sipariş Gönderisi',
     'cargoType.return': 'İade Gönderisi',
 
@@ -814,6 +1044,11 @@ const I18N = {
     'sidebar.nav_reports': 'Raporlama',
     'sidebar.nav_users': 'Kullanıcılar',
     'sidebar.nav_templates': 'Bildirim Şablonları',
+    'sidebar.nav_barcode_templates': 'Barkod Şablonları',
+    'sidebar.nav_finance': 'Finans',
+    'sidebar.nav_performance': 'Kargo Performansı',
+    'sidebar.nav_status_mapping': 'Statü Mapleme',
+    'sidebar.nav_transfers': 'Transfer',
     'sidebar.settings': 'Settings',
     'sidebar.role_admin': 'Admin',
 
@@ -837,6 +1072,7 @@ const I18N = {
     'status.delivered': 'Delivered',
     'status.returned': 'Returned',
     'status.cancelled': 'Cancelled',
+    'status.recalled': 'Recalled',
     'cargoType.order': 'Order Shipment',
     'cargoType.return': 'Return Shipment',
 
@@ -1062,6 +1298,7 @@ let S = {
   lang: 'tr',
   langMenuOpen: false,
   page: 'contracts',
+  dashboard: { dateFrom: '', dateTo: '' },
   view: 'list',
   step: 1,
   editingId: null,
@@ -1071,10 +1308,11 @@ let S = {
   validationResults: {},
 
   f: {
-    companyId: '', name: '',
+    companyId: '', name: '', isDefault: false,
     minDesi: '', maxDesi: '',
     minOrderAmount: '', maxOrderAmount: '',
-    orderShipping: true, returnShipping: true,
+    orderShipping: true, returnShipping: true, transferShipping: false,
+    productTypes: [], customerSegments: [], packageTypes: [], channels: [], paymentTypes: [],
     coveredRegions: [],
     search2: '', activeProvinceId2: '',
     credentials: [],
@@ -1088,6 +1326,8 @@ let S = {
 
   nodeListSearch: '',
   nodeListExpanded: {},
+  nodeCreateModal: { show: false, name: '', code: '' },
+  nodeDeleteModal: { show: false, id: null },
 
   shipments: {
     view: 'list',
@@ -1103,6 +1343,8 @@ let S = {
     selectedIds: [],
     cancelModal: { show: false, id: null },
     statusModal: { show: false, id: null, value: null },
+    recallModal: { show: false, id: null },
+    editModal: { show: false, id: null, form: null },
     detailExpanded: {},
     visibleColumns: {},
     showColumnPanel: false,
@@ -1117,13 +1359,33 @@ let S = {
     filterStatus: 'all',
     statusModal: { show: false, id: null, value: null },
     cancelModal: { show: false, id: null },
+    recallModal: { show: false, id: null },
+    carrierModal: { show: false, id: null, companyId: '' },
+    addressModal: { show: false, id: null, district: '', province: '' },
     detailExpanded: {},
   },
 
+  transfers: {
+    view: 'list',
+    detailId: null,
+    search: '',
+    filterStatus: 'all',
+    cancelModal: { show: false, id: null },
+    recallModal: { show: false, id: null },
+    carrierModal: { show: false, id: null, companyId: '' },
+    nodeModal: { show: false, id: null, fromNodeId: '', toNodeId: '' },
+  },
+
+  transferCreate: {
+    fromNodeId: '', toNodeId: '', companyId: '', desi: '', note: '', errors: {},
+  },
+
   routing: {
+    tab: 'rules',
     editModal: { show: false, id: null, form: null },
     deleteModal: { show: false, id: null },
     simulator: { desi: '', provinceId: '', amount: '', result: null },
+    weights: { cost: 34, deliveryTime: 33, successRate: 33 },
   },
 
   monitoring: { tab: 'health' },
@@ -1141,6 +1403,21 @@ let S = {
   },
 
   templates: {
+    editModal: { show: false, id: null, form: null },
+  },
+
+  barcodeTemplates: {
+    editModal: { show: false, id: null, form: null },
+  },
+
+  finance: {
+    tab: 'pricing',
+    pricingModal: { show: false, id: null, form: null },
+    invoiceModal: { show: false, id: null, form: null },
+    quotaModal: { show: false, companyId: null, monthlyLimit: '' },
+  },
+
+  statusMapping: {
     editModal: { show: false, id: null, form: null },
   },
 
@@ -1248,15 +1525,22 @@ function buildSidebar() {
       ${sidebarNavItem('returns', `<path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>`, 'sidebar.nav_returns')}
       ${sidebarNavItem('contracts', `<rect x="1" y="7" width="14" height="10" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 10h4l3 3v4h-7z"/><circle cx="6" cy="19" r="1.6"/><circle cx="18" cy="19" r="1.6"/>`, 'sidebar.nav_contracts')}
       ${sidebarNavItem('nodes', `<rect x="2" y="3" width="20" height="5" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12" stroke-linecap="round"/>`, 'sidebar.nav_nodes')}
+      ${sidebarNavItem('transfers', `<path stroke-linecap="round" stroke-linejoin="round" d="M8 7h13M8 7l4-4M8 7l4 4M16 17H3m13 0l-4 4m4-4l-4-4"/>`, 'sidebar.nav_transfers')}
 
       <p class="nav-section-label">Otomasyon</p>
       ${sidebarNavItem('routing', `<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>`, 'sidebar.nav_routing')}
       ${sidebarNavItem('monitoring', `<path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"/>`, 'sidebar.nav_monitoring')}
+      ${sidebarNavItem('statusMapping', `<path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/>`, 'sidebar.nav_status_mapping')}
+
+      <p class="nav-section-label">Finans</p>
+      ${sidebarNavItem('finance', `<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15" stroke-linecap="round"/>`, 'sidebar.nav_finance')}
 
       <p class="nav-section-label">Yönetim</p>
+      ${sidebarNavItem('performance', `<path stroke-linecap="round" stroke-linejoin="round" d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>`, 'sidebar.nav_performance')}
       ${sidebarNavItem('reports', `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M8 17V10m5 7V6m5 11v-4"/>`, 'sidebar.nav_reports')}
       ${sidebarNavItem('users', `<path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>`, 'sidebar.nav_users')}
       ${sidebarNavItem('templates', `<rect x="2" y="4" width="20" height="16" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/>`, 'sidebar.nav_templates')}
+      ${sidebarNavItem('barcodeTemplates', `<rect x="3" y="5" width="18" height="14" rx="1"/><line x1="7" y1="5" x2="7" y2="19" stroke-linecap="round"/><line x1="10" y1="5" x2="10" y2="19" stroke-linecap="round"/><line x1="14" y1="5" x2="14" y2="19" stroke-linecap="round"/><line x1="17" y1="5" x2="17" y2="19" stroke-linecap="round"/>`, 'sidebar.nav_barcode_templates')}
     </nav>
 
     <div class="px-4 pb-2">
@@ -1281,9 +1565,15 @@ const PAGE_ICONS = {
   nodes: `<rect x="2" y="3" width="20" height="5" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12" stroke-linecap="round"/>`,
   routing: `<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>`,
   monitoring: `<path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"/>`,
+  statusMapping: `<path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/>`,
+  transfers: `<path stroke-linecap="round" stroke-linejoin="round" d="M8 7h13M8 7l4-4M8 7l4 4M16 17H3m13 0l-4 4m4-4l-4-4"/>`,
+  transferCreate: `<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>`,
   reports: `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M8 17V10m5 7V6m5 11v-4"/>`,
   users: `<path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>`,
   templates: `<rect x="2" y="4" width="20" height="16" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M22 6l-10 7L2 6"/>`,
+  barcodeTemplates: `<rect x="3" y="5" width="18" height="14" rx="1"/><line x1="7" y1="5" x2="7" y2="19" stroke-linecap="round"/><line x1="10" y1="5" x2="10" y2="19" stroke-linecap="round"/><line x1="14" y1="5" x2="14" y2="19" stroke-linecap="round"/><line x1="17" y1="5" x2="17" y2="19" stroke-linecap="round"/>`,
+  finance: `<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15" stroke-linecap="round"/>`,
+  performance: `<path stroke-linecap="round" stroke-linejoin="round" d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>`,
 };
 
 function getHeaderInfo() {
@@ -1312,6 +1602,17 @@ function getHeaderInfo() {
     case 'reports': return { title: 'Raporlama & Analitik', desc: 'Performans, teslimat ve maliyet analizleri' };
     case 'users': return { title: 'Kullanıcılar', desc: 'Rol bazlı kullanıcı ve yetki yönetimi' };
     case 'templates': return { title: 'Bildirim Şablonları', desc: 'SMS ve e-posta bildirim şablonlarını yönetin' };
+    case 'barcodeTemplates': return { title: 'Barkod Şablonları', desc: 'Kargo firmasına göre barkod etiket şablonlarını yönetin' };
+    case 'finance': return { title: 'Finans', desc: 'Fiyatlandırma, fatura işlemleri ve kota bilgileri' };
+    case 'performance': return { title: 'Kargo Performansı', desc: 'Kargo firması bazlı teslimat ve maliyet performansı' };
+    case 'statusMapping': return { title: 'Statü Mapleme', desc: 'Kargo firması statülerini standart statülere eşleyin' };
+    case 'transfers':
+      if (S.transfers.view === 'detail') {
+        const x = transfers.find(tr => tr.id === S.transfers.detailId);
+        return { title: x ? `Transfer #${x.transferNo}` : 'Transfer Detay', desc: '' };
+      }
+      return { title: 'Transfer', desc: 'Node/depo/mağaza arası transfer gönderilerini yönetin' };
+    case 'transferCreate': return { title: 'Yeni Transfer Oluştur', desc: 'Kaynak ve hedef node bilgilerini girerek transfer gönderisi oluşturun' };
     default: return { title: '', desc: '' };
   }
 }
@@ -1381,6 +1682,10 @@ function buildNodesPage() {
   return `
     <div class="flex items-center justify-between mb-6">
       <p class="text-sm text-neutral-500">${t('nodes.count', { n: NODES.length })}</p>
+      <button class="primary-btn" onclick="openNodeCreateModal()">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Yeni Stok Merkezi
+      </button>
     </div>
 
     <div class="relative mb-4">
@@ -1397,7 +1702,89 @@ function buildNodesPage() {
         </div>
       ` : filtered.map(buildNodeRow).join('')}
     </div>
+
+    ${S.nodeCreateModal.show ? buildNodeCreateModal() : ''}
+    ${S.nodeDeleteModal.show ? buildNodeDeleteModal() : ''}
   `;
+}
+
+function buildNodeCreateModal() {
+  const m = S.nodeCreateModal;
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeNodeCreateModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <h3 class="font-semibold text-neutral-950 mb-4">Yeni Stok Merkezi</h3>
+        <div class="flex flex-col gap-4">
+          <div>
+            <label class="form-label">Ad <span class="text-[#fb3748]">*</span></label>
+            <input type="text" class="form-input" value="${m.name}" placeholder="Örn. İzmit Depo" oninput="setNodeCreateField('name', this.value)" />
+          </div>
+          <div>
+            <label class="form-label">Kod <span class="text-[#fb3748]">*</span></label>
+            <input type="text" class="form-input" value="${m.code}" placeholder="Örn. KOC002" oninput="setNodeCreateField('code', this.value)" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeNodeCreateModal()">Vazgeç</button>
+          <button class="primary-btn" onclick="saveNodeCreate()" ${!m.name.trim() || !m.code.trim() ? 'disabled' : ''}>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Oluştur
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildNodeDeleteModal() {
+  const node = NODES.find(n => n.id === S.nodeDeleteModal.id);
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeNodeDeleteModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-full bg-[#ffebec] flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-[#fb3748]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="font-semibold text-neutral-950 mb-1">Stok Merkezini Sil</h3>
+            <p class="text-sm text-neutral-500"><strong class="text-neutral-700">${node ? node.name : ''}</strong> stok merkezini silmek istediğinizden emin misiniz?</p>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeNodeDeleteModal()">Vazgeç</button>
+          <button class="primary-btn" style="background:#fb3748" onclick="deleteNodeDefinition()">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Evet, Sil
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function openNodeCreateModal() { S.nodeCreateModal = { show: true, name: '', code: '' }; render(); }
+function closeNodeCreateModal() { S.nodeCreateModal.show = false; render(); }
+function setNodeCreateField(field, val) { S.nodeCreateModal[field] = val; render(); }
+function saveNodeCreate() {
+  const m = S.nodeCreateModal;
+  if (!m.name.trim() || !m.code.trim()) return;
+  const id = Math.max(0, ...NODES.map(n => n.id)) + 1;
+  NODES.push({ id, name: m.name.trim(), code: m.code.trim().toUpperCase() });
+  S.nodeCreateModal.show = false;
+  toast(`"${m.name}" stok merkezi oluşturuldu.`, 'success');
+  render();
+}
+
+function confirmDeleteNode(id) { S.nodeDeleteModal = { show: true, id }; render(); }
+function closeNodeDeleteModal() { S.nodeDeleteModal.show = false; render(); }
+function deleteNodeDefinition() {
+  const id = S.nodeDeleteModal.id;
+  const node = NODES.find(n => n.id === id);
+  const idx = NODES.findIndex(n => n.id === id);
+  if (idx >= 0) NODES.splice(idx, 1);
+  S.nodeDeleteModal.show = false;
+  toast(node ? `"${node.name}" stok merkezi silindi.` : 'Stok merkezi silindi.', 'info');
+  render();
 }
 
 function buildNodeRow(node) {
@@ -1421,6 +1808,9 @@ function buildNodeRow(node) {
           ${companyCount > 0
             ? `<span class="text-xs font-medium text-neutral-600 bg-neutral-100 px-2.5 py-1 rounded-full">${t('nodes.companies_count', { n: companyCount })}</span>`
             : `<span class="text-xs font-medium text-neutral-400 bg-neutral-50 px-2.5 py-1 rounded-full">${t('nodes.not_linked')}</span>`}
+          <button class="text-neutral-300 hover:text-[#fb3748] transition-colors p-1 rounded" onclick="event.stopPropagation(); confirmDeleteNode(${node.id})" title="Stok merkezini sil">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
           <svg class="w-4 h-4 text-neutral-400 transition-transform duration-150" style="transform:rotate(${expanded ? '180' : '0'}deg)" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
         </div>
       </div>
@@ -1831,22 +2221,59 @@ function buildShipmentDetail() {
   const co = getCompany(s.companyId);
   const st = SHIPMENT_STATUS[s.status];
   const item = packageItemFor(s.id);
+  const contentItems = packageItemsFor(s.id);
+  const totalQty = contentItems.reduce((sum, it) => sum + it.qty, 0);
+  const dk = desiKgFor(s.id);
+  const planned = plannedDeliveryDate(s);
+  const actual = actualDeliveryDate(s);
 
   const packageExpanded = `
-    <div class="flex items-center gap-4 bg-white border border-neutral-200 rounded-xl p-3">
-      <div class="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${item.color}">
-        <svg class="w-6 h-6 text-white opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41L11 3.83A2 2 0 009.59 3.24L3 3v6.59a2 2 0 00.59 1.41l9.58 9.58a2 2 0 002.83 0l4.59-4.59a2 2 0 000-2.83z"/></svg>
+    <div class="flex flex-col gap-2">
+      ${contentItems.map(it => `
+        <div class="flex items-center gap-4 bg-white border border-neutral-200 rounded-xl p-3">
+          <div class="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${it.color}">
+            <svg class="w-6 h-6 text-white opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41L11 3.83A2 2 0 009.59 3.24L3 3v6.59a2 2 0 00.59 1.41l9.58 9.58a2 2 0 002.83 0l4.59-4.59a2 2 0 000-2.83z"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-neutral-950">${it.name} <span class="text-neutral-400 font-normal">× ${it.qty}</span></p>
+            <p class="text-xs text-neutral-400 mt-0.5">${it.variant}</p>
+            <p class="text-xs text-neutral-400 mt-1">SKU: <span class="font-mono text-neutral-500">${it.sku}</span> &nbsp;·&nbsp; Barkod: <span class="font-mono text-neutral-500">${it.barcode}</span></p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="text-xs text-neutral-400 mb-0.5">${t('shipmentDetail.total')}</p>
+            ${it.originalPrice !== it.price ? `<span class="text-xs text-neutral-300 line-through mr-1.5">₺${it.originalPrice}</span>` : ''}
+            <span class="text-sm font-semibold text-neutral-950">₺${it.price * it.qty}</span>
+          </div>
+        </div>
+      `).join('')}
+      <div class="flex items-center gap-4 bg-neutral-50/50 border border-dashed border-neutral-200 rounded-xl p-3">
+        <div class="flex-1 flex items-center gap-5 text-xs">
+          <span class="text-neutral-400">Desi: <span class="font-semibold text-neutral-700">${dk.desi}</span></span>
+          <span class="text-neutral-400">Ağırlık: <span class="font-semibold text-neutral-700">${dk.weight} kg</span></span>
+          <span class="text-neutral-400">Toplam Ürün: <span class="font-semibold text-neutral-700">${totalQty}</span></span>
+        </div>
       </div>
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-semibold text-neutral-950">${item.name}</p>
-        <p class="text-xs text-neutral-400 mt-0.5">${item.variant}</p>
-        <p class="text-xs text-neutral-400 mt-1">SKU: <span class="font-mono text-neutral-500">${item.sku}</span> &nbsp;·&nbsp; Barkod: <span class="font-mono text-neutral-500">${item.barcode}</span></p>
+    </div>
+  `;
+
+  const deliveryDurationExpanded = `
+    <div class="flex items-center gap-6 bg-white border border-neutral-200 rounded-xl p-3.5">
+      <div class="flex-1">
+        <p class="text-xs text-neutral-400 mb-1">Planlanan Teslimat</p>
+        <p class="text-sm font-semibold text-neutral-800">${fmtDateTimeStr(planned)}</p>
       </div>
-      <div class="text-right flex-shrink-0">
-        <p class="text-xs text-neutral-400 mb-0.5">${t('shipmentDetail.total')}</p>
-        ${item.originalPrice !== item.price ? `<span class="text-xs text-neutral-300 line-through mr-1.5">₺${item.originalPrice}</span>` : ''}
-        <span class="text-sm font-semibold text-neutral-950">₺${item.price}</span>
+      <div class="w-px h-8 bg-neutral-200"></div>
+      <div class="flex-1">
+        <p class="text-xs text-neutral-400 mb-1">Gerçekleşen Teslimat</p>
+        <p class="text-sm font-semibold ${actual ? 'text-neutral-800' : 'text-neutral-300'}">${actual ? fmtDateTimeStr(actual) : 'Henüz teslim edilmedi'}</p>
       </div>
+      ${actual ? `
+        <div class="w-px h-8 bg-neutral-200"></div>
+        <div class="flex-1">
+          <p class="text-xs text-neutral-400 mb-1">Fark</p>
+          <p class="text-sm font-semibold ${new Date(actual) <= new Date(planned) ? 'text-[#1a8245]' : 'text-[#ad1f2b]'}">${Math.round((new Date(actual) - new Date(planned)) / 3600000) >= 0 ? '+' : ''}${Math.round((new Date(actual) - new Date(planned)) / 3600000)} saat</p>
+        </div>
+      ` : ''}
     </div>
   `;
 
@@ -1896,8 +2323,9 @@ function buildShipmentDetail() {
       icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path stroke-linecap="round" stroke-linejoin="round" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/>`,
       title: t('shipmentDetail.section_package'),
       fields: [
-        { label: t('shipmentDetail.field_product_count'), value: '1' },
+        { label: t('shipmentDetail.field_product_count'), value: String(totalQty) },
         { label: t('shipmentDetail.field_package_no'), value: s.packageNo, copy: s.packageNo },
+        { label: 'Desi / Kilo', value: `${dk.desi} desi / ${dk.weight} kg` },
       ],
       expandable: true,
       expandedContent: packageExpanded,
@@ -1913,6 +2341,17 @@ function buildShipmentDetail() {
       ],
       expandable: true,
       expandedContent: shipmentExpanded,
+    }),
+    detailSectionRow({
+      key: 'teslimat',
+      icon: `<circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 3"/>`,
+      title: 'Teslimat Süresi',
+      fields: [
+        { label: 'Planlanan', value: fmtDateTimeStr(planned) },
+        { label: 'Gerçekleşen', value: actual ? fmtDateTimeStr(actual) : '<span class="text-neutral-300">Henüz teslim edilmedi</span>' },
+      ],
+      expandable: true,
+      expandedContent: deliveryDurationExpanded,
     }),
   ];
 
@@ -1939,6 +2378,14 @@ function buildShipmentDetail() {
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4a1 1 0 011-1h10a1 1 0 011 1v5M6 18h12M6 14h12v7H6v-7zM6 14a2 2 0 01-2-2v-3a2 2 0 012-2h12a2 2 0 012 2v3a2 2 0 01-2 2"/></svg>
           ${t('shipmentDetail.print_label')}
         </button>
+        <button class="secondary-btn" onclick="openShipmentEditModal(${s.id})" ${['delivered', 'cancelled', 'returned', 'recalled'].includes(s.status) ? 'disabled' : ''}>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          Düzenle
+        </button>
+        <button class="secondary-btn" style="color:#c2570e;border-color:#ffddb0" onclick="confirmRecallShipment(${s.id})" ${s.status !== 'in_transit' ? 'disabled' : ''}>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+          Geri Çağır
+        </button>
         <button class="secondary-btn" style="color:#ad1f2b;border-color:#ffc0c5" onclick="confirmCancelShipment(${s.id})" ${s.status === 'cancelled' ? 'disabled' : ''}>
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
           ${t('shipmentDetail.cancel_shipment')}
@@ -1958,6 +2405,80 @@ function buildShipmentDetail() {
 
     ${S.shipments.cancelModal.show ? buildShipmentCancelModal() : ''}
     ${S.shipments.statusModal.show ? buildStatusUpdateModal() : ''}
+    ${S.shipments.recallModal.show ? buildShipmentRecallModal() : ''}
+    ${S.shipments.editModal.show ? buildShipmentEditModal() : ''}
+  `;
+}
+
+function buildShipmentRecallModal() {
+  const s = SHIPMENTS.find(x => x.id === S.shipments.recallModal.id);
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeRecallShipmentModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-full bg-[#fff3eb] flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5" style="color:#c2570e" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="font-semibold text-neutral-950 mb-1">Gönderiyi Geri Çağır</h3>
+            <p class="text-sm text-neutral-500">
+              <strong class="text-neutral-700">#${s ? s.shipmentNo : ''}</strong> numaralı gönderi kargo firmasından geri çağrılacak. Bu işlem gönderiyi durdurur ve depoya iade sürecini başlatır.
+            </p>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeRecallShipmentModal()">${t('common.cancel')}</button>
+          <button class="primary-btn" style="background:#c2570e" onclick="recallShipment()">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Geri Çağır
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildShipmentEditModal() {
+  const m = S.shipments.editModal;
+  const f = m.form;
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeShipmentEditModal()">
+      <div class="modal-box w-full max-w-lg flex flex-col" style="max-height:85vh">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100 flex-shrink-0">
+          <h3 class="font-semibold text-neutral-950">Gönderiyi Düzenle</h3>
+          <button class="text-neutral-400 hover:text-neutral-600 p-1 rounded-lg hover:bg-neutral-100 transition-colors" onclick="closeShipmentEditModal()">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-4">
+          <div>
+            <label class="form-label">Alıcı Adı</label>
+            <input type="text" class="form-input" value="${f.customerName}" oninput="setShipmentEditField('customerName', this.value)" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">İlçe</label>
+              <input type="text" class="form-input" value="${f.district}" oninput="setShipmentEditField('district', this.value)" />
+            </div>
+            <div>
+              <label class="form-label">İl</label>
+              <input type="text" class="form-input" value="${f.province}" oninput="setShipmentEditField('province', this.value)" />
+            </div>
+          </div>
+          <div>
+            <label class="form-label">Teslimat Notu</label>
+            <textarea class="form-input" rows="3" oninput="setShipmentEditField('deliveryNote', this.value)">${f.deliveryNote}</textarea>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-100 bg-neutral-50/50 flex-shrink-0">
+          <button class="secondary-btn" onclick="closeShipmentEditModal()">Vazgeç</button>
+          <button class="primary-btn" onclick="saveShipmentEdit()" ${!f.customerName.trim() ? 'disabled' : ''}>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Kaydet
+          </button>
+        </div>
+      </div>
+    </div>
   `;
 }
 
@@ -2131,6 +2652,62 @@ function cancelShipment() {
   render();
 }
 
+function confirmRecallShipment(id) {
+  S.shipments.recallModal = { show: true, id };
+  render();
+}
+
+function closeRecallShipmentModal() {
+  S.shipments.recallModal.show = false;
+  render();
+}
+
+function recallShipment() {
+  const id = S.shipments.recallModal.id;
+  const s = SHIPMENTS.find(x => x.id === id);
+  if (s) s.status = 'recalled';
+  S.shipments.recallModal.show = false;
+  if (s) toast(`Gönderi #${s.shipmentNo} geri çağrıldı.`, 'warning');
+  render();
+}
+
+function openShipmentEditModal(id) {
+  const s = SHIPMENTS.find(x => x.id === id);
+  if (!s) return;
+  S.shipments.editModal = {
+    show: true,
+    id,
+    form: { customerName: s.customerName, district: s.shipTo.district, province: s.shipTo.province, deliveryNote: s.deliveryNote || '' },
+  };
+  render();
+}
+
+function closeShipmentEditModal() {
+  S.shipments.editModal.show = false;
+  render();
+}
+
+function setShipmentEditField(field, val) {
+  S.shipments.editModal.form[field] = val;
+  render();
+}
+
+function saveShipmentEdit() {
+  const m = S.shipments.editModal;
+  const f = m.form;
+  if (!f.customerName.trim()) return;
+  const s = SHIPMENTS.find(x => x.id === m.id);
+  if (s) {
+    s.customerName = f.customerName.trim();
+    s.shipTo.district = f.district.trim();
+    s.shipTo.province = f.province.trim();
+    s.deliveryNote = f.deliveryNote;
+  }
+  S.shipments.editModal.show = false;
+  if (s) toast(`Gönderi #${s.shipmentNo} güncellendi.`, 'success');
+  render();
+}
+
 function singleBarcode(id) { openBarcodeModal('shipment', id); }
 
 function bulkBarcode() {
@@ -2250,7 +2827,7 @@ function buildReturnsPage() {
 
 function buildReturnRow(x, i) {
   const orig = getOriginalShipment(x.originalShipmentId);
-  const co = orig ? getCompany(orig.companyId) : null;
+  const co = getCompany(x.companyId || (orig ? orig.companyId : null));
   const st = RETURN_STATUS[x.status];
   const even = i % 2 === 0;
   return `
@@ -2282,7 +2859,8 @@ function buildReturnDetail() {
   const x = returns.find(r => r.id === S.returns.detailId);
   if (!x) { S.returns.view = 'list'; return buildReturnsPage(); }
   const orig = getOriginalShipment(x.originalShipmentId);
-  const co = orig ? getCompany(orig.companyId) : null;
+  const co = getCompany(x.companyId || (orig ? orig.companyId : null));
+  const pickupAddr = x.pickupAddress || (orig ? orig.shipTo : null);
   const st = RETURN_STATUS[x.status];
 
   const sections = [
@@ -2318,7 +2896,7 @@ function buildReturnDetail() {
       fields: [
         { label: 'Kurye', value: `<span class="font-semibold">${co ? co.name : t('common.unknown')}</span>` },
         { label: 'Adresten Toplama', value: x.pickup ? '<span class="text-[#178c4e] font-semibold">Evet</span>' : '<span class="text-neutral-400">Hayır</span>' },
-        { label: '', value: orig ? `${orig.shipTo.district} / ${orig.shipTo.province}` : '-' },
+        { label: '', value: pickupAddr ? `${pickupAddr.district} / ${pickupAddr.province}` : '-' },
       ],
     }),
   ];
@@ -2355,6 +2933,18 @@ function buildReturnDetail() {
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 5v14M8 5v14M11 5v14M15 5v14M18 5v14M21 5v14"/></svg>
           İade Barkodu Yazdır
         </button>
+        <button class="secondary-btn" onclick="openReturnCarrierModal(${x.id})" ${x.status === 'cancelled' || x.status === 'completed' || x.status === 'recalled' ? 'disabled' : ''}>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          Kargo Firması Güncelle
+        </button>
+        <button class="secondary-btn" onclick="openReturnAddressModal(${x.id})" ${x.status === 'cancelled' || x.status === 'completed' || x.status === 'recalled' ? 'disabled' : ''}>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/></svg>
+          Adres Güncelle
+        </button>
+        <button class="secondary-btn" style="color:#c2570e;border-color:#ffddb0" onclick="confirmRecallReturn(${x.id})" ${x.status !== 'picked_up' ? 'disabled' : ''}>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+          Geri Çağır
+        </button>
         <button class="secondary-btn" style="color:#ad1f2b;border-color:#ffc0c5" onclick="confirmCancelReturn(${x.id})" ${x.status === 'cancelled' || x.status === 'completed' ? 'disabled' : ''}>
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
           İptal Et
@@ -2374,6 +2964,94 @@ function buildReturnDetail() {
 
     ${S.returns.statusModal.show ? buildReturnStatusModal() : ''}
     ${S.returns.cancelModal.show ? buildReturnCancelModal() : ''}
+    ${S.returns.recallModal.show ? buildReturnRecallModal() : ''}
+    ${S.returns.carrierModal.show ? buildReturnCarrierModal() : ''}
+    ${S.returns.addressModal.show ? buildReturnAddressModal() : ''}
+  `;
+}
+
+function buildReturnRecallModal() {
+  const x = returns.find(r => r.id === S.returns.recallModal.id);
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeRecallReturnModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-full bg-[#fff3eb] flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5" style="color:#c2570e" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="font-semibold text-neutral-950 mb-1">İadeyi Geri Çağır</h3>
+            <p class="text-sm text-neutral-500">
+              <strong class="text-neutral-700">İade #${x ? x.returnNo : ''}</strong> kargo firmasından geri çağrılacak.
+            </p>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeRecallReturnModal()">Vazgeç</button>
+          <button class="primary-btn" style="background:#c2570e" onclick="recallReturn()">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Geri Çağır
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildReturnCarrierModal() {
+  const m = S.returns.carrierModal;
+  const x = returns.find(r => r.id === m.id);
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeReturnCarrierModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <h3 class="font-semibold text-neutral-950 mb-1">Kargo Firması Güncelle</h3>
+        <p class="text-sm text-neutral-500 mb-4">
+          <strong class="text-neutral-700">İade #${x ? x.returnNo : ''}</strong> için yeni kurye firmasını seçin.
+        </p>
+        <select class="form-input" onchange="setReturnCarrierValue(this.value)">
+          ${COMPANIES.map(c => `<option value="${c.id}" ${+m.companyId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+        </select>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeReturnCarrierModal()">Vazgeç</button>
+          <button class="primary-btn" onclick="applyReturnCarrierUpdate()">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Güncelle
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildReturnAddressModal() {
+  const m = S.returns.addressModal;
+  const x = returns.find(r => r.id === m.id);
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeReturnAddressModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <h3 class="font-semibold text-neutral-950 mb-1">Adres Güncelle</h3>
+        <p class="text-sm text-neutral-500 mb-4">
+          <strong class="text-neutral-700">İade #${x ? x.returnNo : ''}</strong> için toplama adresini güncelleyin.
+        </p>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="form-label">İlçe</label>
+            <input type="text" class="form-input" value="${m.district}" oninput="setReturnAddressField('district', this.value)" />
+          </div>
+          <div>
+            <label class="form-label">İl</label>
+            <input type="text" class="form-input" value="${m.province}" oninput="setReturnAddressField('province', this.value)" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeReturnAddressModal()">Vazgeç</button>
+          <button class="primary-btn" onclick="applyReturnAddressUpdate()" ${!m.district.trim() || !m.province.trim() ? 'disabled' : ''}>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Güncelle
+          </button>
+        </div>
+      </div>
+    </div>
   `;
 }
 
@@ -2470,6 +3148,54 @@ function cancelReturn() {
   render();
 }
 
+function confirmRecallReturn(id) { S.returns.recallModal = { show: true, id }; render(); }
+function closeRecallReturnModal() { S.returns.recallModal.show = false; render(); }
+function recallReturn() {
+  const id = S.returns.recallModal.id;
+  const x = returns.find(r => r.id === id);
+  if (x) x.status = 'recalled';
+  S.returns.recallModal.show = false;
+  toast(x ? `İade #${x.returnNo} geri çağrıldı.` : 'İade geri çağrıldı.', 'warning');
+  render();
+}
+
+function openReturnCarrierModal(id) {
+  const x = returns.find(r => r.id === id);
+  const orig = x ? getOriginalShipment(x.originalShipmentId) : null;
+  S.returns.carrierModal = { show: true, id, companyId: x ? (x.companyId || (orig ? orig.companyId : '')) : '' };
+  render();
+}
+function closeReturnCarrierModal() { S.returns.carrierModal.show = false; render(); }
+function setReturnCarrierValue(val) { S.returns.carrierModal.companyId = val; render(); }
+function applyReturnCarrierUpdate() {
+  const { id, companyId } = S.returns.carrierModal;
+  const x = returns.find(r => r.id === id);
+  if (x) x.companyId = +companyId;
+  S.returns.carrierModal.show = false;
+  const co = getCompany(+companyId);
+  toast(x ? `İade #${x.returnNo} kargo firması "${co ? co.name : ''}" olarak güncellendi.` : 'Kargo firması güncellendi.', 'success');
+  render();
+}
+
+function openReturnAddressModal(id) {
+  const x = returns.find(r => r.id === id);
+  const orig = x ? getOriginalShipment(x.originalShipmentId) : null;
+  const addr = x ? (x.pickupAddress || (orig ? orig.shipTo : { district: '', province: '' })) : { district: '', province: '' };
+  S.returns.addressModal = { show: true, id, district: addr.district, province: addr.province };
+  render();
+}
+function closeReturnAddressModal() { S.returns.addressModal.show = false; render(); }
+function setReturnAddressField(field, val) { S.returns.addressModal[field] = val; render(); }
+function applyReturnAddressUpdate() {
+  const m = S.returns.addressModal;
+  if (!m.district.trim() || !m.province.trim()) return;
+  const x = returns.find(r => r.id === m.id);
+  if (x) x.pickupAddress = { district: m.district.trim(), province: m.province.trim() };
+  S.returns.addressModal.show = false;
+  toast(x ? `İade #${x.returnNo} adresi güncellendi.` : 'Adres güncellendi.', 'success');
+  render();
+}
+
 function returnBarcode(id) { openBarcodeModal('return', id); }
 
 // =========================================================
@@ -2477,16 +3203,24 @@ function returnBarcode(id) { openBarcodeModal('return', id); }
 // =========================================================
 const BARCODE_FORMATS = [
   { key: 'pdf', label: 'PDF', desc: 'Yazdırılabilir standart belge' },
+  { key: 'png', label: 'PNG', desc: 'Görsel etiket, indirilebilir resim' },
   { key: 'zpl', label: 'ZPL', desc: 'Zebra termal yazıcı formatı' },
   { key: 'epl', label: 'EPL', desc: 'Eltron termal yazıcı formatı' },
 ];
 
+const BARCODE_RESOLUTIONS = [
+  { key: '203', label: '203 dpi', desc: 'Standart termal' },
+  { key: '300', label: '300 dpi', desc: 'Yüksek çözünürlük' },
+  { key: '600', label: '600 dpi', desc: 'Fotoğraf kalitesi' },
+];
+
 function openBarcodeModal(kind, id) {
-  S.barcodeModal = { show: true, kind, id, format: 'pdf' };
+  S.barcodeModal = { show: true, kind, id, format: 'pdf', resolution: '203' };
   render();
 }
 function closeBarcodeModal() { S.barcodeModal.show = false; render(); }
 function setBarcodeFormat(fmt) { S.barcodeModal.format = fmt; render(); }
+function setBarcodeResolution(res) { S.barcodeModal.resolution = res; render(); }
 
 function buildBarcodeModal() {
   const m = S.barcodeModal;
@@ -2500,6 +3234,7 @@ function buildBarcodeModal() {
     const x = returns.find(r => r.id === m.id);
     subtitle = x ? `İade #${x.returnNo}` : '';
   }
+  const needsResolution = m.format !== 'pdf';
   return `
     <div class="overlay" onclick="if(event.target===this)closeBarcodeModal()">
       <div class="modal-box w-full max-w-sm p-6">
@@ -2516,6 +3251,14 @@ function buildBarcodeModal() {
             </button>
           `).join('')}
         </div>
+        ${needsResolution ? `
+          <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-5 mb-2">Yazıcı Çözünürlüğü</p>
+          <div class="flex gap-1.5">
+            ${BARCODE_RESOLUTIONS.map(r => `
+              <button type="button" class="filter-tab flex-1 text-center ${m.resolution === r.key ? 'active' : ''}" onclick="setBarcodeResolution('${r.key}')" title="${r.desc}">${r.label}</button>
+            `).join('')}
+          </div>
+        ` : ''}
         <div class="flex justify-end gap-3 mt-6">
           <button class="secondary-btn" onclick="closeBarcodeModal()">Vazgeç</button>
           <button class="primary-btn" onclick="confirmBarcodeGeneration()">
@@ -2542,14 +3285,15 @@ function shipmentBarcodeData(s) {
 
 function returnBarcodeData(x) {
   const orig = getOriginalShipment(x.originalShipmentId);
-  const co = orig ? getCompany(orig.companyId) : null;
+  const co = getCompany(x.companyId || (orig ? orig.companyId : null));
+  const addr = x.pickupAddress || (orig ? orig.shipTo : null);
   return {
     companyName: co ? co.name : t('common.unknown'),
     docNo: `İade #${x.returnNo}`,
     trackingNo: orig ? orig.trackingNo : `IADE-${x.returnNo}`,
     from: orig ? orig.customerName : '-',
     to: co ? co.name : 'Depo',
-    address: orig ? `${orig.shipTo.district} / ${orig.shipTo.province}` : '-',
+    address: addr ? `${addr.district} / ${addr.province}` : '-',
   };
 }
 
@@ -2630,9 +3374,80 @@ P1`;
 </body></html>`;
 }
 
+function buildBarcodePngHtml(items, resolution) {
+  const cards = items.map((it, i) => `
+    <div class="card">
+      <div class="company">${it.companyName}</div>
+      <div class="row"><span>${it.docNo}</span><span class="tag">PNG · ${resolution} dpi</span></div>
+      <canvas id="bc-canvas-${i}" width="440" height="180"></canvas>
+      <div class="track">${it.trackingNo}</div>
+      <hr>
+      <div class="section-title">Gönderen</div>
+      <div class="addr">${it.from}</div>
+      <hr>
+      <div class="section-title">Alıcı</div>
+      <div class="addr">${it.to}</div>
+      <div class="addr2">${it.address}</div>
+      <button class="dl-btn" onclick="downloadBarcodePng('bc-canvas-${i}','${it.trackingNo}')">PNG İndir</button>
+    </div>
+  `).join('');
+
+  const drawScript = items.map((it, i) => `
+    (function(){
+      var c = document.getElementById('bc-canvas-${i}');
+      var ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,c.width,c.height);
+      var x = 10, bars = 90;
+      for (var b = 0; b < bars; b++) {
+        var w = (b % 5 === 0) ? 3 : (b % 3 === 0 ? 2 : 1);
+        if (b % 2 === 0) { ctx.fillStyle = '#000'; ctx.fillRect(x, 10, w, 120); }
+        x += w + 2;
+        if (x > c.width - 10) break;
+      }
+      ctx.fillStyle = '#111';
+      ctx.font = '600 15px Menlo, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(${JSON.stringify(it.trackingNo)}, c.width/2, 150);
+    })();
+  `).join('\n');
+
+  return `<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><title>PNG Barkod Çıktısı</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;background:#f2f2f3;margin:0;padding:24px;}
+  .card{max-width:460px;margin:0 auto 24px;background:#fff;border:2px solid #111;border-radius:10px;padding:22px;}
+  .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:13px;color:#333;}
+  .tag{background:#ebf1ff;color:#2547d0;font-size:10px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:999px;}
+  .company{font-size:19px;font-weight:800;margin-bottom:6px;}
+  canvas{display:block;width:100%;height:auto;margin:12px 0 8px;border:1px solid #eee;border-radius:6px;}
+  .track{text-align:center;font-family:'SF Mono',Menlo,monospace;font-size:13px;letter-spacing:2px;margin-bottom:8px;color:#111;}
+  .section-title{font-size:10px;text-transform:uppercase;color:#888;letter-spacing:.06em;margin-bottom:2px;margin-top:10px;}
+  .addr{font-size:14px;font-weight:700;color:#111;}
+  .addr2{font-size:13px;color:#444;}
+  hr{border:none;border-top:1px dashed #bbb;margin:12px 0 0;}
+  .dl-btn{margin-top:16px;width:100%;padding:10px 16px;border-radius:10px;border:none;background:#335cff;color:#fff;font-weight:600;font-size:13px;cursor:pointer;}
+</style></head>
+<body>
+  ${cards}
+  <${'script'}>
+    ${drawScript}
+    function downloadBarcodePng(canvasId, trackingNo) {
+      var c = document.getElementById(canvasId);
+      var a = document.createElement('a');
+      a.href = c.toDataURL('image/png');
+      a.download = 'barkod-' + trackingNo + '.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  <${'/script'}>
+</body></html>`;
+}
+
 function confirmBarcodeGeneration() {
   const m = S.barcodeModal;
   const format = m.format;
+  const resolution = m.resolution || '203';
   S.barcodeModal.show = false;
 
   let items = [];
@@ -2651,12 +3466,16 @@ function confirmBarcodeGeneration() {
 
   if (items.length === 0) { render(); return; }
 
-  const html = format === 'pdf' ? buildBarcodeLabelHtml(items) : buildBarcodeRawHtml(items, format);
+  let html;
+  if (format === 'pdf') html = buildBarcodeLabelHtml(items);
+  else if (format === 'png') html = buildBarcodePngHtml(items, resolution);
+  else html = buildBarcodeRawHtml(items, format);
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
   window.open(url, '_blank');
 
-  toast(`${items.length > 1 ? items.length + ' barkod' : 'Barkod'} yeni sekmede açıldı (${format.toUpperCase()}).`, 'success');
+  const resSuffix = format !== 'pdf' ? ` (${resolution} dpi)` : '';
+  toast(`${items.length > 1 ? items.length + ' barkod' : 'Barkod'} yeni sekmede açıldı (${format.toUpperCase()}${resSuffix}).`, 'success');
   render();
 }
 
@@ -2697,6 +3516,27 @@ function matchRoutingRule(desi, provinceId, amount) {
 }
 
 function buildRoutingPage() {
+  const tab = S.routing.tab;
+  const tabs = [
+    { key: 'rules', label: 'Kurallar' },
+    { key: 'weights', label: 'Ağırlık Verme' },
+    { key: 'scoring', label: 'Normalize Puanlama' },
+    { key: 'history', label: 'Kural Geçmişi' },
+  ];
+
+  return `
+    <div class="flex items-center gap-1.5 mb-6">
+      ${tabs.map(tb => `
+        <button class="filter-tab ${tab === tb.key ? 'active' : ''}" onclick="setRoutingTab('${tb.key}')">${tb.label}</button>
+      `).join('')}
+    </div>
+    ${tab === 'rules' ? buildRoutingRulesTab() : tab === 'weights' ? buildRoutingWeightsTab() : tab === 'scoring' ? buildRoutingScoringTab() : buildRoutingHistoryTab()}
+  `;
+}
+
+function setRoutingTab(tab) { S.routing.tab = tab; render(); }
+
+function buildRoutingRulesTab() {
   const sorted = [...routingRules].sort((a, b) => a.priority - b.priority);
   const sim = S.routing.simulator;
 
@@ -2770,6 +3610,143 @@ function buildRoutingPage() {
 
     ${S.routing.editModal.show ? buildRoutingRuleModal() : ''}
     ${S.routing.deleteModal.show ? buildRoutingDeleteModal() : ''}
+  `;
+}
+
+function buildRoutingWeightsTab() {
+  const w = S.routing.weights;
+  const total = w.cost + w.deliveryTime + w.successRate || 1;
+  const norm = {
+    cost: Math.round(w.cost / total * 100),
+    deliveryTime: Math.round(w.deliveryTime / total * 100),
+    successRate: Math.round(w.successRate / total * 100),
+  };
+  const weightFields = [
+    { key: 'cost', label: 'Maliyet' },
+    { key: 'deliveryTime', label: 'Teslimat Süresi (OTD)' },
+    { key: 'successRate', label: 'Başarı Oranı' },
+  ];
+  return `
+    <div class="bg-white rounded-xl border border-neutral-200 p-5" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <p class="text-sm font-semibold text-neutral-950 mb-1">Kriter Ağırlıkları</p>
+      <p class="text-xs text-neutral-400 mb-5">Taşıyıcı seçim motorunun her kriteri ne kadar önemseyeceğini ayarlayın. Ağırlıklar otomatik olarak %100'e normalize edilir.</p>
+      <div class="flex flex-col gap-5">
+        ${weightFields.map(wf => `
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-sm font-medium text-neutral-700">${wf.label}</span>
+              <span class="text-sm font-semibold text-primary">%${norm[wf.key]}</span>
+            </div>
+            <input type="range" min="0" max="100" value="${w[wf.key]}" class="w-full" oninput="setRoutingWeight('${wf.key}', this.value)" />
+          </div>
+        `).join('')}
+      </div>
+      <p class="text-xs text-neutral-400 mt-5">Normalize edilmiş ağırlıklar, "Normalize Puanlama" sekmesindeki taşıyıcı skorlarını doğrudan etkiler.</p>
+    </div>
+  `;
+}
+
+function setRoutingWeight(field, val) { S.routing.weights[field] = +val; render(); }
+
+function computeNormalizedCarrierScores(weights) {
+  const total = weights.cost + weights.deliveryTime + weights.successRate || 1;
+  const wCost = weights.cost / total, wDelivery = weights.deliveryTime / total, wSuccess = weights.successRate / total;
+
+  const perf = computeCarrierPerformance();
+  const perfMap = {};
+  perf.forEach(p => { perfMap[p.companyId] = p; });
+
+  const pricingByCompany = {};
+  carrierPricing.forEach(p => {
+    if (!pricingByCompany[p.companyId]) pricingByCompany[p.companyId] = [];
+    pricingByCompany[p.companyId].push(p.price);
+  });
+  const avgPriceFor = (companyId) => {
+    const prices = pricingByCompany[companyId];
+    return prices && prices.length ? prices.reduce((a, b) => a + b, 0) / prices.length : null;
+  };
+  const allAvgPrices = COMPANIES.map(c => avgPriceFor(c.id)).filter(p => p !== null);
+  const minPrice = allAvgPrices.length ? Math.min(...allAvgPrices) : 0;
+  const maxPrice = allAvgPrices.length ? Math.max(...allAvgPrices) : 0;
+
+  return COMPANIES.map(c => {
+    const p = perfMap[c.id];
+    const avgPrice = avgPriceFor(c.id);
+    const costScore = avgPrice === null ? 0.5 : (maxPrice > minPrice ? 1 - ((avgPrice - minPrice) / (maxPrice - minPrice)) : 1);
+    const deliveryScore = p ? p.otdRate : 0.5;
+    const successScore = p ? p.successRate : 0.5;
+    const combined = wCost * costScore + wDelivery * deliveryScore + wSuccess * successScore;
+    return { companyId: c.id, companyName: c.name, costScore, deliveryScore, successScore, combined };
+  }).sort((a, b) => b.combined - a.combined);
+}
+
+function buildRoutingScoringTab() {
+  const scores = computeNormalizedCarrierScores(S.routing.weights);
+  const maxScore = Math.max(0.01, ...scores.map(s => s.combined));
+  return `
+    <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <div class="px-5 py-3.5 border-b border-neutral-100">
+        <p class="text-sm font-semibold text-neutral-950">Normalize Edilmiş Taşıyıcı Puanları</p>
+        <p class="text-xs text-neutral-400 mt-0.5">Ağırlık Verme sekmesindeki kriterlere göre periyodik olarak hesaplanır.</p>
+      </div>
+      <div class="p-5 flex flex-col gap-3">
+        ${scores.map((s, i) => `
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm font-medium text-neutral-700 flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full ${i === 0 ? 'bg-[#fff3eb] text-[#c2570e]' : 'bg-neutral-100 text-neutral-500'} text-[11px] font-bold flex items-center justify-center flex-shrink-0">${i + 1}</span>
+                ${s.companyName}
+              </span>
+              <span class="text-sm font-semibold text-neutral-800">${(s.combined * 100).toFixed(1)}</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-neutral-100 overflow-hidden">
+              <div class="h-full rounded-full bg-primary" style="width:${(s.combined / maxScore * 100).toFixed(1)}%"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+const RULE_HISTORY_ACTION_META = {
+  created:   { label: 'Oluşturuldu', badge: 'badge-active' },
+  updated:   { label: 'Güncellendi', badge: 'badge-info' },
+  deleted:   { label: 'Silindi',     badge: 'badge-danger' },
+  toggled:   { label: 'Durum Değişti', badge: 'badge-warning' },
+  reordered: { label: 'Öncelik Değişti', badge: 'badge-passive' },
+};
+
+function buildRoutingHistoryTab() {
+  if (routingRuleHistory.length === 0) {
+    return `<div class="py-16 text-center text-neutral-400 text-sm">Kayıtlı değişiklik bulunmuyor.</div>`;
+  }
+  return `
+    <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left border-b border-neutral-100">
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Zaman</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kural</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">İşlem</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Detay</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-neutral-100">
+          ${routingRuleHistory.map(h => {
+            const meta = RULE_HISTORY_ACTION_META[h.action];
+            return `
+              <tr class="hover:bg-neutral-50/80">
+                <td class="px-5 py-3 text-neutral-400 text-xs">${fmtDateTimeStr(h.time)}</td>
+                <td class="px-5 py-3 font-medium text-neutral-700">${h.ruleName}</td>
+                <td class="px-5 py-3"><span class="badge ${meta.badge}">${meta.label}</span></td>
+                <td class="px-5 py-3 text-neutral-500">${h.detail}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
   `;
 }
 
@@ -2987,6 +3964,7 @@ function saveRoutingRule() {
       id: newRoutingRuleId(), name: f.name, priority: routingRules.length + 1, active: f.active,
       conditions, primaryCompanyId: +f.primaryCompanyId, failoverCompanyId: f.failoverCompanyId ? +f.failoverCompanyId : null,
     });
+    logRuleHistory('created', f.name, 'Kural oluşturuldu.');
     toast(`"${f.name}" kuralı oluşturuldu.`, 'success');
   } else {
     const rule = routingRules.find(r => r.id === m.id);
@@ -2994,6 +3972,7 @@ function saveRoutingRule() {
       name: f.name, active: f.active, conditions,
       primaryCompanyId: +f.primaryCompanyId, failoverCompanyId: f.failoverCompanyId ? +f.failoverCompanyId : null,
     });
+    logRuleHistory('updated', f.name, 'Kural güncellendi.');
     toast(`"${f.name}" kuralı güncellendi.`, 'success');
   }
   S.routing.editModal.show = false;
@@ -3007,6 +3986,7 @@ function deleteRoutingRule() {
   const rule = routingRules.find(r => r.id === id);
   routingRules = routingRules.filter(r => r.id !== id);
   S.routing.deleteModal.show = false;
+  if (rule) logRuleHistory('deleted', rule.name, 'Kural silindi.');
   toast(rule ? `"${rule.name}" kuralı silindi.` : 'Kural silindi.', 'info');
   render();
 }
@@ -3014,6 +3994,7 @@ function deleteRoutingRule() {
 function toggleRoutingRuleActive(id) {
   const rule = routingRules.find(r => r.id === id);
   rule.active = !rule.active;
+  logRuleHistory('toggled', rule.name, rule.active ? 'Kural aktif edildi.' : 'Kural pasife alındı.');
   toast(`"${rule.name}" ${rule.active ? 'aktif edildi' : 'pasife alındı'}.`, rule.active ? 'success' : 'info');
   render();
 }
@@ -3025,6 +4006,7 @@ function moveRoutingRulePriority(id, direction) {
   if (swapIdx < 0 || swapIdx >= sorted.length) return;
   const a = sorted[idx], b = sorted[swapIdx];
   const tmp = a.priority; a.priority = b.priority; b.priority = tmp;
+  logRuleHistory('reordered', a.name, `Öncelik sırası değiştirildi (${a.name} ↔ ${b.name}).`);
   render();
 }
 
@@ -3190,6 +4172,1073 @@ function retryWebhookNow(id) {
 }
 
 // =========================================================
+// TRANSFER SAYFASI — Node/depo/mağaza arası transfer gönderileri
+// =========================================================
+function getFilteredTransfers() {
+  const s = S.transfers;
+  return transfers.filter(x => {
+    if (s.filterStatus !== 'all' && x.status !== s.filterStatus) return false;
+    if (s.search) {
+      const q = s.search.toLowerCase();
+      const from = getNode(x.fromNodeId);
+      const to = getNode(x.toNodeId);
+      const hay = `${x.transferNo} ${x.trackingNo} ${from ? from.name : ''} ${to ? to.name : ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
+
+function buildTransfersPage() {
+  const s = S.transfers;
+  const list = getFilteredTransfers();
+  const statusTabs = [{ key: 'all', label: 'Tümü' }, ...Object.keys(TRANSFER_STATUS).map(k => ({ key: k, label: TRANSFER_STATUS[k].label }))];
+
+  return `
+    <div class="flex items-center justify-between mb-6">
+      <p class="text-sm text-neutral-500">${list.length} transfer gönderisi</p>
+      <button class="primary-btn" onclick="navigateTo('transferCreate')">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Yeni Transfer Oluştur
+      </button>
+    </div>
+
+    <div class="bg-white rounded-xl border border-neutral-200 p-4 mb-4 flex items-center gap-3 flex-wrap" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <div class="relative flex-1 min-w-[220px]">
+        <svg class="w-4 h-4 text-neutral-300 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" class="form-input pl-9" placeholder="Transfer no, takip no veya node ara..." value="${s.search}" oninput="setTransferSearch(this.value)" />
+      </div>
+      <div class="flex items-center gap-1.5 flex-wrap">
+        ${statusTabs.map(tb => `
+          <button class="filter-tab ${s.filterStatus === tb.key ? 'active' : ''}" onclick="setTransferStatusFilter('${tb.key}')">${tb.label}</button>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left border-b border-neutral-100">
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Transfer #</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kaynak Node</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Hedef Node</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kargo Firması</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Desi</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Durum</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Tarih</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.length === 0 ? `<tr><td colspan="7" class="px-5 py-10 text-center text-neutral-400 text-sm">Bu filtrede transfer bulunamadı.</td></tr>` : list.map((x, i) => buildTransferRow(x, i)).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function buildTransferRow(x, i) {
+  const even = i % 2 === 0;
+  const from = getNode(x.fromNodeId);
+  const to = getNode(x.toNodeId);
+  const co = getCompany(x.companyId);
+  const st = TRANSFER_STATUS[x.status];
+  return `
+    <tr class="${even ? 'bg-white' : 'bg-neutral-50/50'} hover:bg-primary-lighter/20 transition-colors cursor-pointer" onclick="openTransferDetail(${x.id})">
+      <td class="px-5 py-3.5 text-primary font-semibold">#${x.transferNo}</td>
+      <td class="px-5 py-3.5 text-neutral-600">${from ? from.name : '-'}</td>
+      <td class="px-5 py-3.5 text-neutral-600">${to ? to.name : '-'}</td>
+      <td class="px-5 py-3.5 text-neutral-500">${co ? co.name : t('common.unknown')}</td>
+      <td class="px-5 py-3.5 text-neutral-500">${x.desi}</td>
+      <td class="px-5 py-3.5"><span class="badge ${st.badge}">${st.label}</span></td>
+      <td class="px-5 py-3.5 text-neutral-400 text-xs">${fmtDateTimeStr(x.createdAt)}</td>
+    </tr>
+  `;
+}
+
+function setTransferSearch(val) { S.transfers.search = val; render(); }
+function setTransferStatusFilter(status) { S.transfers.filterStatus = status; render(); }
+
+function openTransferDetail(id) {
+  S.transfers.view = 'detail';
+  S.transfers.detailId = id;
+  render();
+}
+function backToTransfersList() { S.transfers.view = 'list'; S.transfers.detailId = null; render(); }
+
+function buildTransferDetail() {
+  const x = transfers.find(tr => tr.id === S.transfers.detailId);
+  if (!x) { S.transfers.view = 'list'; return buildTransfersPage(); }
+  const from = getNode(x.fromNodeId);
+  const to = getNode(x.toNodeId);
+  const co = getCompany(x.companyId);
+  const st = TRANSFER_STATUS[x.status];
+
+  const sections = [
+    detailSectionRow({
+      key: 'transfer-detay',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M8 7h13M8 7l4-4M8 7l4 4M16 17H3m13 0l-4 4m4-4l-4-4"/>`,
+      title: 'Transfer Detay',
+      fields: [
+        { label: 'Transfer #', value: `<span class="text-primary">${x.transferNo}</span>`, copy: x.transferNo },
+        { label: 'Desi', value: String(x.desi) },
+        { label: 'Oluşturma Tarihi', value: fmtDateTimeStr(x.createdAt) },
+      ],
+    }),
+    detailSectionRow({
+      key: 'node-bilgisi',
+      icon: `<rect x="2" y="3" width="20" height="5" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12" stroke-linecap="round"/>`,
+      title: 'Node Bilgisi',
+      fields: [
+        { label: 'Kaynak Node', value: `<span class="font-semibold">${from ? from.name : '-'}</span>${from ? ` <span class="text-neutral-400 font-mono text-xs">(${from.code})</span>` : ''}` },
+        { label: 'Hedef Node', value: `<span class="font-semibold">${to ? to.name : '-'}</span>${to ? ` <span class="text-neutral-400 font-mono text-xs">(${to.code})</span>` : ''}` },
+      ],
+    }),
+    detailSectionRow({
+      key: 'kargo-firmasi',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path stroke-linecap="round" stroke-linejoin="round" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/>`,
+      title: 'Kargo Firması',
+      fields: [
+        { label: 'Taşıyıcı', value: `<span class="font-semibold">${co ? co.name : t('common.unknown')}</span>` },
+        { label: 'Takip No', value: `<span class="font-mono text-xs">${x.trackingNo}</span>`, copy: x.trackingNo },
+      ],
+    }),
+  ];
+
+  if (x.note) {
+    sections.push(detailSectionRow({
+      key: 'not',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z"/><path stroke-linecap="round" d="M9 13h6M9 17h6M13 3v5h5"/>`,
+      title: 'Not',
+      fields: [{ label: '', value: x.note }],
+    }));
+  }
+
+  return `
+    <div class="flex items-center gap-2 text-xs text-neutral-400 mb-2">
+      <a class="hover:text-neutral-600 cursor-pointer" onclick="backToTransfersList()">Transfer</a>
+      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+      <span class="text-neutral-600 font-medium">Transfer #${x.transferNo}</span>
+    </div>
+
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-1">
+      <div class="flex items-center gap-3">
+        <button class="secondary-btn py-2 px-3" onclick="backToTransfersList()">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          Geri
+        </button>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="secondary-btn" onclick="openTransferNodeModal(${x.id})" ${x.status === 'cancelled' || x.status === 'delivered' || x.status === 'recalled' ? 'disabled' : ''}>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/></svg>
+          Adres (Node) Güncelle
+        </button>
+        <button class="secondary-btn" onclick="openTransferCarrierModal(${x.id})" ${x.status === 'cancelled' || x.status === 'delivered' || x.status === 'recalled' ? 'disabled' : ''}>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          Kargo Firması Güncelle
+        </button>
+        <button class="secondary-btn" style="color:#c2570e;border-color:#ffddb0" onclick="confirmRecallTransfer(${x.id})" ${x.status !== 'in_transit' ? 'disabled' : ''}>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+          Geri Çağır
+        </button>
+        <button class="secondary-btn" style="color:#ad1f2b;border-color:#ffc0c5" onclick="confirmCancelTransfer(${x.id})" ${x.status === 'cancelled' || x.status === 'delivered' ? 'disabled' : ''}>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          İptal Et
+        </button>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2.5 mb-5 text-sm">
+      <svg class="w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 3"/></svg>
+      <span class="text-neutral-500">${fmtDateTimeStr(x.createdAt)}</span>
+      <span class="badge ${st.badge}">${st.label}</span>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      ${sections.join('')}
+    </div>
+
+    ${S.transfers.cancelModal.show ? buildTransferCancelModal() : ''}
+    ${S.transfers.recallModal.show ? buildTransferRecallModal() : ''}
+    ${S.transfers.carrierModal.show ? buildTransferCarrierModal() : ''}
+    ${S.transfers.nodeModal.show ? buildTransferNodeModal() : ''}
+  `;
+}
+
+function buildTransferCancelModal() {
+  const x = transfers.find(tr => tr.id === S.transfers.cancelModal.id);
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeCancelTransferModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-full bg-[#ffebec] flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-[#fb3748]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="font-semibold text-neutral-950 mb-1">Transferi İptal Et</h3>
+            <p class="text-sm text-neutral-500">
+              <strong class="text-neutral-700">Transfer #${x ? x.transferNo : ''}</strong> iptal edilecek. Bu işlem geri alınamaz.
+            </p>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeCancelTransferModal()">Vazgeç</button>
+          <button class="primary-btn" style="background:#fb3748" onclick="cancelTransfer()">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Evet, İptal Et
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildTransferRecallModal() {
+  const x = transfers.find(tr => tr.id === S.transfers.recallModal.id);
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeRecallTransferModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-full bg-[#fff3eb] flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5" style="color:#c2570e" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="font-semibold text-neutral-950 mb-1">Transferi Geri Çağır</h3>
+            <p class="text-sm text-neutral-500">
+              <strong class="text-neutral-700">Transfer #${x ? x.transferNo : ''}</strong> kargo firmasından geri çağrılacak.
+            </p>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeRecallTransferModal()">Vazgeç</button>
+          <button class="primary-btn" style="background:#c2570e" onclick="recallTransfer()">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Geri Çağır
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildTransferCarrierModal() {
+  const m = S.transfers.carrierModal;
+  const x = transfers.find(tr => tr.id === m.id);
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeTransferCarrierModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <h3 class="font-semibold text-neutral-950 mb-1">Kargo Firması Güncelle</h3>
+        <p class="text-sm text-neutral-500 mb-4">
+          <strong class="text-neutral-700">Transfer #${x ? x.transferNo : ''}</strong> için yeni taşıyıcıyı seçin.
+        </p>
+        <select class="form-input" onchange="setTransferCarrierValue(this.value)">
+          ${COMPANIES.map(c => `<option value="${c.id}" ${+m.companyId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+        </select>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeTransferCarrierModal()">Vazgeç</button>
+          <button class="primary-btn" onclick="applyTransferCarrierUpdate()">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Güncelle
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildTransferNodeModal() {
+  const m = S.transfers.nodeModal;
+  const x = transfers.find(tr => tr.id === m.id);
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeTransferNodeModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <h3 class="font-semibold text-neutral-950 mb-1">Adres (Node) Güncelle</h3>
+        <p class="text-sm text-neutral-500 mb-4">
+          <strong class="text-neutral-700">Transfer #${x ? x.transferNo : ''}</strong> için kaynak/hedef node bilgisini güncelleyin.
+        </p>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="form-label">Kaynak Node</label>
+            <select class="form-input" onchange="setTransferNodeField('fromNodeId', this.value)">
+              ${NODES.map(n => `<option value="${n.id}" ${+m.fromNodeId === n.id ? 'selected' : ''}>${n.name}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Hedef Node</label>
+            <select class="form-input" onchange="setTransferNodeField('toNodeId', this.value)">
+              ${NODES.map(n => `<option value="${n.id}" ${+m.toNodeId === n.id ? 'selected' : ''}>${n.name}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        ${m.fromNodeId && m.toNodeId && +m.fromNodeId === +m.toNodeId ? `<p class="form-error mt-2">Kaynak ve hedef node aynı olamaz.</p>` : ''}
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeTransferNodeModal()">Vazgeç</button>
+          <button class="primary-btn" onclick="applyTransferNodeUpdate()" ${+m.fromNodeId === +m.toNodeId ? 'disabled' : ''}>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Güncelle
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function confirmCancelTransfer(id) { S.transfers.cancelModal = { show: true, id }; render(); }
+function closeCancelTransferModal() { S.transfers.cancelModal.show = false; render(); }
+function cancelTransfer() {
+  const id = S.transfers.cancelModal.id;
+  const x = transfers.find(tr => tr.id === id);
+  if (x) x.status = 'cancelled';
+  S.transfers.cancelModal.show = false;
+  toast(x ? `Transfer #${x.transferNo} iptal edildi.` : 'Transfer iptal edildi.', 'info');
+  render();
+}
+
+function confirmRecallTransfer(id) { S.transfers.recallModal = { show: true, id }; render(); }
+function closeRecallTransferModal() { S.transfers.recallModal.show = false; render(); }
+function recallTransfer() {
+  const id = S.transfers.recallModal.id;
+  const x = transfers.find(tr => tr.id === id);
+  if (x) x.status = 'recalled';
+  S.transfers.recallModal.show = false;
+  toast(x ? `Transfer #${x.transferNo} geri çağrıldı.` : 'Transfer geri çağrıldı.', 'warning');
+  render();
+}
+
+function openTransferCarrierModal(id) {
+  const x = transfers.find(tr => tr.id === id);
+  S.transfers.carrierModal = { show: true, id, companyId: x ? x.companyId : '' };
+  render();
+}
+function closeTransferCarrierModal() { S.transfers.carrierModal.show = false; render(); }
+function setTransferCarrierValue(val) { S.transfers.carrierModal.companyId = val; render(); }
+function applyTransferCarrierUpdate() {
+  const { id, companyId } = S.transfers.carrierModal;
+  const x = transfers.find(tr => tr.id === id);
+  if (x) x.companyId = +companyId;
+  S.transfers.carrierModal.show = false;
+  const co = getCompany(+companyId);
+  toast(x ? `Transfer #${x.transferNo} kargo firması "${co ? co.name : ''}" olarak güncellendi.` : 'Kargo firması güncellendi.', 'success');
+  render();
+}
+
+function openTransferNodeModal(id) {
+  const x = transfers.find(tr => tr.id === id);
+  S.transfers.nodeModal = { show: true, id, fromNodeId: x ? x.fromNodeId : '', toNodeId: x ? x.toNodeId : '' };
+  render();
+}
+function closeTransferNodeModal() { S.transfers.nodeModal.show = false; render(); }
+function setTransferNodeField(field, val) { S.transfers.nodeModal[field] = val; render(); }
+function applyTransferNodeUpdate() {
+  const m = S.transfers.nodeModal;
+  if (+m.fromNodeId === +m.toNodeId) return;
+  const x = transfers.find(tr => tr.id === m.id);
+  if (x) { x.fromNodeId = +m.fromNodeId; x.toNodeId = +m.toNodeId; }
+  S.transfers.nodeModal.show = false;
+  toast(x ? `Transfer #${x.transferNo} node bilgisi güncellendi.` : 'Node bilgisi güncellendi.', 'success');
+  render();
+}
+
+function buildTransferCreatePage() {
+  const f = S.transferCreate;
+  const e = f.errors;
+  return `
+    <div class="bg-white rounded-xl border border-neutral-200 p-8" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <div class="grid grid-cols-2 gap-5">
+        <div>
+          <label class="form-label">Kaynak Node <span class="text-[#fb3748]">*</span></label>
+          <select class="form-input ${e.fromNodeId ? 'error' : ''}" onchange="setTransferCreateField('fromNodeId', this.value)">
+            <option value="">Node seçin...</option>
+            ${NODES.map(n => `<option value="${n.id}" ${f.fromNodeId == n.id ? 'selected' : ''}>${n.name}</option>`).join('')}
+          </select>
+          ${e.fromNodeId ? `<p class="form-error">${e.fromNodeId}</p>` : ''}
+        </div>
+        <div>
+          <label class="form-label">Hedef Node <span class="text-[#fb3748]">*</span></label>
+          <select class="form-input ${e.toNodeId ? 'error' : ''}" onchange="setTransferCreateField('toNodeId', this.value)">
+            <option value="">Node seçin...</option>
+            ${NODES.map(n => `<option value="${n.id}" ${f.toNodeId == n.id ? 'selected' : ''}>${n.name}</option>`).join('')}
+          </select>
+          ${e.toNodeId ? `<p class="form-error">${e.toNodeId}</p>` : ''}
+        </div>
+        <div>
+          <label class="form-label">Kargo Firması <span class="text-[#fb3748]">*</span></label>
+          <select class="form-input ${e.companyId ? 'error' : ''}" onchange="setTransferCreateField('companyId', this.value)">
+            <option value="">Firma seçin...</option>
+            ${COMPANIES.map(c => `<option value="${c.id}" ${f.companyId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+          </select>
+          ${e.companyId ? `<p class="form-error">${e.companyId}</p>` : ''}
+        </div>
+        <div>
+          <label class="form-label">Desi <span class="text-[#fb3748]">*</span></label>
+          <input type="number" min="0" class="form-input ${e.desi ? 'error' : ''}" value="${f.desi}" oninput="setTransferCreateField('desi', this.value)" />
+          ${e.desi ? `<p class="form-error">${e.desi}</p>` : ''}
+        </div>
+        <div class="col-span-2">
+          <label class="form-label">Not <span class="font-normal normal-case text-neutral-400">(isteğe bağlı)</span></label>
+          <textarea class="form-input" rows="3" oninput="setTransferCreateField('note', this.value)">${f.note}</textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 mt-8">
+        <button class="secondary-btn" onclick="navigateTo('transfers')">Vazgeç</button>
+        <button class="primary-btn" onclick="submitTransferCreate()">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          Transfer Oluştur
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function setTransferCreateField(field, val) { S.transferCreate[field] = val; S.transferCreate.errors[field] = ''; render(); }
+
+function resetTransferCreateForm() {
+  S.transferCreate = { fromNodeId: '', toNodeId: '', companyId: '', desi: '', note: '', errors: {} };
+}
+
+function submitTransferCreate() {
+  const f = S.transferCreate;
+  const errors = {};
+  if (!f.fromNodeId) errors.fromNodeId = 'Kaynak node seçilmelidir.';
+  if (!f.toNodeId) errors.toNodeId = 'Hedef node seçilmelidir.';
+  if (f.fromNodeId && f.toNodeId && +f.fromNodeId === +f.toNodeId) errors.toNodeId = 'Hedef node, kaynak node ile aynı olamaz.';
+  if (!f.companyId) errors.companyId = 'Kargo firması seçilmelidir.';
+  if (!f.desi || +f.desi <= 0) errors.desi = 'Geçerli bir desi değeri girin.';
+  if (Object.keys(errors).length > 0) {
+    f.errors = errors;
+    render();
+    return;
+  }
+  const co = getCompany(+f.companyId);
+  const prefix = co ? co.name.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() : 'TRF';
+  const newTransfer = {
+    id: newTransferId(),
+    transferNo: newTransferNo(),
+    fromNodeId: +f.fromNodeId,
+    toNodeId: +f.toNodeId,
+    companyId: +f.companyId,
+    trackingNo: `${prefix}-TR-${new Date().getFullYear()}-${Math.floor(Math.random() * 900000) + 100000}`,
+    status: 'preparing',
+    desi: +f.desi,
+    note: f.note,
+    createdAt: new Date().toISOString(),
+  };
+  transfers.unshift(newTransfer);
+  toast(`Transfer #${newTransfer.transferNo} oluşturuldu.`, 'success');
+  resetTransferCreateForm();
+  S.page = 'transfers';
+  openTransferDetail(newTransfer.id);
+}
+
+// =========================================================
+// STATÜ MAPLEME SAYFASI
+// =========================================================
+function buildStatusMappingPage() {
+  return `
+    <div class="flex items-center justify-between mb-6">
+      <p class="text-sm text-neutral-500">${statusMappings.length} eşleme tanımlı — kargo firması statüleri ile standart statüler arasında ilişki</p>
+      <button class="primary-btn" onclick="openStatusMappingModal(null)">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Yeni Eşleme Ekle
+      </button>
+    </div>
+
+    <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left border-b border-neutral-100">
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kargo Firması</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Firma Statüsü</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider"></th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Standart Statü</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right">İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${statusMappings.map((m, i) => buildStatusMappingRow(m, i)).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    ${S.statusMapping.editModal.show ? buildStatusMappingModal() : ''}
+  `;
+}
+
+function buildStatusMappingRow(m, i) {
+  const even = i % 2 === 0;
+  const co = getCompany(m.companyId);
+  const st = SHIPMENT_STATUS[m.standardStatus];
+  return `
+    <tr class="${even ? 'bg-white' : 'bg-neutral-50/50'} hover:bg-primary-lighter/20 transition-colors">
+      <td class="px-5 py-3.5 font-medium text-neutral-700">${co ? co.name : t('common.unknown')}</td>
+      <td class="px-5 py-3.5 text-neutral-500 font-mono text-xs">${m.carrierStatus}</td>
+      <td class="px-5 py-3.5 text-neutral-300">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+      </td>
+      <td class="px-5 py-3.5"><span class="badge ${st.badge}">${statusLabel(m.standardStatus)}</span></td>
+      <td class="px-5 py-3.5">
+        <div class="flex items-center gap-1.5 justify-end">
+          <button class="action-btn btn-edit" onclick="openStatusMappingModal(${m.id})">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Düzenle
+          </button>
+          <button class="action-btn btn-delete" onclick="deleteStatusMapping(${m.id})">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Sil
+          </button>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function buildStatusMappingModal() {
+  const m = S.statusMapping.editModal;
+  const f = m.form;
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeStatusMappingModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <h3 class="font-semibold text-neutral-950 mb-4">${m.id ? 'Eşlemeyi Düzenle' : 'Yeni Eşleme Ekle'}</h3>
+        <div class="flex flex-col gap-4">
+          <div>
+            <label class="form-label">Kargo Firması</label>
+            <select class="form-input" onchange="setStatusMappingField('companyId', this.value)">
+              ${COMPANIES.map(c => `<option value="${c.id}" ${+f.companyId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Kargo Firması Statüsü <span class="text-[#fb3748]">*</span></label>
+            <input type="text" class="form-input" value="${f.carrierStatus}" placeholder="Örn. Dağıtıma Çıktı" oninput="setStatusMappingField('carrierStatus', this.value)" />
+          </div>
+          <div>
+            <label class="form-label">Standart Statü</label>
+            <select class="form-input" onchange="setStatusMappingField('standardStatus', this.value)">
+              ${Object.keys(SHIPMENT_STATUS).map(k => `<option value="${k}" ${f.standardStatus === k ? 'selected' : ''}>${statusLabel(k)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeStatusMappingModal()">Vazgeç</button>
+          <button class="primary-btn" onclick="saveStatusMapping()" ${!f.carrierStatus.trim() ? 'disabled' : ''}>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Kaydet
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function openStatusMappingModal(id) {
+  if (id === null) {
+    S.statusMapping.editModal = { show: true, id: null, form: { companyId: COMPANIES[0].id, carrierStatus: '', standardStatus: 'preparing' } };
+  } else {
+    const m = statusMappings.find(x => x.id === id);
+    if (!m) return;
+    S.statusMapping.editModal = { show: true, id, form: { companyId: m.companyId, carrierStatus: m.carrierStatus, standardStatus: m.standardStatus } };
+  }
+  render();
+}
+function closeStatusMappingModal() { S.statusMapping.editModal.show = false; render(); }
+function setStatusMappingField(field, val) { S.statusMapping.editModal.form[field] = val; render(); }
+function saveStatusMapping() {
+  const m = S.statusMapping.editModal;
+  const f = m.form;
+  if (!f.carrierStatus.trim()) return;
+  const payload = { companyId: +f.companyId, carrierStatus: f.carrierStatus.trim(), standardStatus: f.standardStatus };
+  if (m.id) {
+    const idx = statusMappings.findIndex(x => x.id === m.id);
+    if (idx >= 0) statusMappings[idx] = { ...statusMappings[idx], ...payload };
+    toast('Eşleme güncellendi.', 'success');
+  } else {
+    statusMappings.push({ id: newStatusMappingId(), ...payload });
+    toast('Yeni eşleme oluşturuldu.', 'success');
+  }
+  S.statusMapping.editModal.show = false;
+  render();
+}
+function deleteStatusMapping(id) {
+  statusMappings = statusMappings.filter(x => x.id !== id);
+  toast('Eşleme silindi.', 'info');
+  render();
+}
+
+// =========================================================
+// FİNANS SAYFASI — Fiyatlandırma / Fatura / Kota
+// =========================================================
+function buildFinancePage() {
+  const tab = S.finance.tab;
+  const tabs = [
+    { key: 'pricing', label: 'Fiyatlandırma' },
+    { key: 'invoices', label: 'Fatura İşlemleri' },
+    { key: 'quotas', label: 'Kota Bilgileri' },
+  ];
+
+  return `
+    <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-neutral-100">
+        <div class="flex items-center gap-1.5">
+          ${tabs.map(tb => `
+            <button class="filter-tab ${tab === tb.key ? 'active' : ''}" onclick="setFinanceTab('${tb.key}')">${tb.label}</button>
+          `).join('')}
+        </div>
+        ${tab === 'pricing' ? `
+          <button class="primary-btn" onclick="openPricingModal(null)">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            Yeni Fiyat Kaydı
+          </button>
+        ` : tab === 'invoices' ? `
+          <button class="primary-btn" onclick="openInvoiceModal(null)">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            Yeni Fatura Kaydı
+          </button>
+        ` : ''}
+      </div>
+      <div class="p-5">
+        ${tab === 'pricing' ? buildPricingPanel() : tab === 'invoices' ? buildInvoicePanel() : buildQuotaPanel()}
+      </div>
+    </div>
+
+    ${S.finance.pricingModal.show ? buildPricingModal() : ''}
+    ${S.finance.invoiceModal.show ? buildInvoiceModal() : ''}
+    ${S.finance.quotaModal.show ? buildQuotaModal() : ''}
+  `;
+}
+
+function setFinanceTab(tab) { S.finance.tab = tab; render(); }
+
+function buildPricingPanel() {
+  if (carrierPricing.length === 0) {
+    return `<div class="py-16 text-center text-neutral-400 text-sm">Fiyatlandırma kaydı bulunmuyor.</div>`;
+  }
+  return `
+    <div class="border border-neutral-200 rounded-xl overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left border-b border-neutral-100 bg-neutral-50">
+            <th class="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kargo Firması</th>
+            <th class="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Desi Aralığı</th>
+            <th class="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Beklenen Ücret</th>
+            <th class="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right">İşlem</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-neutral-100">
+          ${carrierPricing.map(p => {
+            const co = getCompany(p.companyId);
+            return `
+              <tr class="hover:bg-neutral-50/80">
+                <td class="px-4 py-3 font-medium text-neutral-700">${co ? co.name : t('common.unknown')}</td>
+                <td class="px-4 py-3 text-neutral-500">${p.minDesi} – ${p.maxDesi} desi</td>
+                <td class="px-4 py-3 text-neutral-800 font-semibold">₺${p.price}</td>
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-1.5 justify-end">
+                    <button class="action-btn btn-edit" onclick="openPricingModal(${p.id})">
+                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                      Düzenle
+                    </button>
+                    <button class="action-btn btn-delete" onclick="deletePricing(${p.id})">
+                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                      Sil
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function buildPricingModal() {
+  const m = S.finance.pricingModal;
+  const f = m.form;
+  return `
+    <div class="overlay" onclick="if(event.target===this)closePricingModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <h3 class="font-semibold text-neutral-950 mb-4">${m.id ? 'Fiyat Kaydını Düzenle' : 'Yeni Fiyat Kaydı'}</h3>
+        <div class="flex flex-col gap-4">
+          <div>
+            <label class="form-label">Kargo Firması</label>
+            <select class="form-input" onchange="setPricingField('companyId', this.value)">
+              ${COMPANIES.map(c => `<option value="${c.id}" ${+f.companyId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">Min. Desi</label>
+              <input type="number" class="form-input" value="${f.minDesi}" oninput="setPricingField('minDesi', this.value)" />
+            </div>
+            <div>
+              <label class="form-label">Maks. Desi</label>
+              <input type="number" class="form-input" value="${f.maxDesi}" oninput="setPricingField('maxDesi', this.value)" />
+            </div>
+          </div>
+          <div>
+            <label class="form-label">Beklenen Ücret (₺)</label>
+            <input type="number" class="form-input" value="${f.price}" oninput="setPricingField('price', this.value)" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closePricingModal()">Vazgeç</button>
+          <button class="primary-btn" onclick="savePricing()" ${!f.companyId || f.minDesi === '' || f.maxDesi === '' || f.price === '' ? 'disabled' : ''}>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Kaydet
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function openPricingModal(id) {
+  if (id === null) {
+    S.finance.pricingModal = { show: true, id: null, form: { companyId: COMPANIES[0].id, minDesi: '', maxDesi: '', price: '' } };
+  } else {
+    const p = carrierPricing.find(x => x.id === id);
+    if (!p) return;
+    S.finance.pricingModal = { show: true, id, form: { companyId: p.companyId, minDesi: p.minDesi, maxDesi: p.maxDesi, price: p.price } };
+  }
+  render();
+}
+function closePricingModal() { S.finance.pricingModal.show = false; render(); }
+function setPricingField(field, val) { S.finance.pricingModal.form[field] = val; render(); }
+function savePricing() {
+  const m = S.finance.pricingModal;
+  const f = m.form;
+  if (!f.companyId || f.minDesi === '' || f.maxDesi === '' || f.price === '') return;
+  const payload = { companyId: +f.companyId, minDesi: +f.minDesi, maxDesi: +f.maxDesi, price: +f.price };
+  if (m.id) {
+    const idx = carrierPricing.findIndex(x => x.id === m.id);
+    if (idx >= 0) carrierPricing[idx] = { ...carrierPricing[idx], ...payload };
+    toast('Fiyat kaydı güncellendi.', 'success');
+  } else {
+    carrierPricing.push({ id: newCarrierPricingId(), ...payload });
+    toast('Yeni fiyat kaydı oluşturuldu.', 'success');
+  }
+  S.finance.pricingModal.show = false;
+  render();
+}
+function deletePricing(id) {
+  carrierPricing = carrierPricing.filter(x => x.id !== id);
+  toast('Fiyat kaydı silindi.', 'info');
+  render();
+}
+
+function buildInvoicePanel() {
+  if (carrierInvoices.length === 0) {
+    return `<div class="py-16 text-center text-neutral-400 text-sm">Fatura kaydı bulunmuyor.</div>`;
+  }
+  return `
+    <div class="border border-neutral-200 rounded-xl overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left border-b border-neutral-100 bg-neutral-50">
+            <th class="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Fatura No</th>
+            <th class="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kargo Firması</th>
+            <th class="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Gönderi</th>
+            <th class="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Beklenen / Gerçek</th>
+            <th class="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Tarih</th>
+            <th class="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Durum</th>
+            <th class="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right">İşlem</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-neutral-100">
+          ${carrierInvoices.map(inv => {
+            const co = getCompany(inv.companyId);
+            const meta = INVOICE_STATUS[inv.status];
+            const diff = inv.realCost - inv.expectedCost;
+            return `
+              <tr class="hover:bg-neutral-50/80">
+                <td class="px-4 py-3 font-mono text-xs text-neutral-700">${inv.invoiceNo}</td>
+                <td class="px-4 py-3 text-neutral-600">${co ? co.name : t('common.unknown')}</td>
+                <td class="px-4 py-3 text-neutral-500">#${inv.shipmentNo}</td>
+                <td class="px-4 py-3">
+                  <span class="text-neutral-500">₺${inv.expectedCost}</span> / <span class="font-semibold ${diff > 0 ? 'text-[#ad1f2b]' : diff < 0 ? 'text-[#1a8245]' : 'text-neutral-700'}">₺${inv.realCost}</span>
+                  ${diff !== 0 ? `<span class="text-xs ${diff > 0 ? 'text-[#ad1f2b]' : 'text-[#1a8245]'} ml-1">(${diff > 0 ? '+' : ''}₺${diff})</span>` : ''}
+                </td>
+                <td class="px-4 py-3 text-neutral-400 text-xs">${fmtDateTimeStr(inv.invoiceDate)}</td>
+                <td class="px-4 py-3"><span class="badge ${meta.badge}">${meta.label}</span></td>
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-1.5 justify-end">
+                    <button class="action-btn btn-edit" onclick="openInvoiceModal(${inv.id})">
+                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                      Düzenle
+                    </button>
+                    <button class="action-btn btn-delete" onclick="deleteInvoice(${inv.id})">
+                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                      Sil
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function buildInvoiceModal() {
+  const m = S.finance.invoiceModal;
+  const f = m.form;
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeInvoiceModal()">
+      <div class="modal-box w-full max-w-md p-6">
+        <h3 class="font-semibold text-neutral-950 mb-4">${m.id ? 'Fatura Kaydını Düzenle' : 'Yeni Fatura Kaydı'}</h3>
+        <div class="flex flex-col gap-4">
+          <div>
+            <label class="form-label">Kargo Firması</label>
+            <select class="form-input" onchange="setInvoiceField('companyId', this.value)">
+              ${COMPANIES.map(c => `<option value="${c.id}" ${+f.companyId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">Gönderi No</label>
+              <input type="text" class="form-input" value="${f.shipmentNo}" oninput="setInvoiceField('shipmentNo', this.value)" />
+            </div>
+            <div>
+              <label class="form-label">Fatura No</label>
+              <input type="text" class="form-input" value="${f.invoiceNo}" oninput="setInvoiceField('invoiceNo', this.value)" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">Beklenen Ücret (₺)</label>
+              <input type="number" class="form-input" value="${f.expectedCost}" oninput="setInvoiceField('expectedCost', this.value)" />
+            </div>
+            <div>
+              <label class="form-label">Gerçek Ücret (₺)</label>
+              <input type="number" class="form-input" value="${f.realCost}" oninput="setInvoiceField('realCost', this.value)" />
+            </div>
+          </div>
+          <div>
+            <label class="form-label">Durum</label>
+            <select class="form-input" onchange="setInvoiceField('status', this.value)">
+              ${Object.keys(INVOICE_STATUS).map(k => `<option value="${k}" ${f.status === k ? 'selected' : ''}>${INVOICE_STATUS[k].label}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeInvoiceModal()">Vazgeç</button>
+          <button class="primary-btn" onclick="saveInvoice()" ${!f.companyId || !f.shipmentNo || !f.invoiceNo || f.expectedCost === '' || f.realCost === '' ? 'disabled' : ''}>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Kaydet
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function openInvoiceModal(id) {
+  if (id === null) {
+    S.finance.invoiceModal = { show: true, id: null, form: { companyId: COMPANIES[0].id, shipmentNo: '', invoiceNo: '', expectedCost: '', realCost: '', status: 'pending' } };
+  } else {
+    const inv = carrierInvoices.find(x => x.id === id);
+    if (!inv) return;
+    S.finance.invoiceModal = { show: true, id, form: { companyId: inv.companyId, shipmentNo: inv.shipmentNo, invoiceNo: inv.invoiceNo, expectedCost: inv.expectedCost, realCost: inv.realCost, status: inv.status } };
+  }
+  render();
+}
+function closeInvoiceModal() { S.finance.invoiceModal.show = false; render(); }
+function setInvoiceField(field, val) { S.finance.invoiceModal.form[field] = val; render(); }
+function saveInvoice() {
+  const m = S.finance.invoiceModal;
+  const f = m.form;
+  if (!f.companyId || !f.shipmentNo || !f.invoiceNo || f.expectedCost === '' || f.realCost === '') return;
+  const payload = {
+    companyId: +f.companyId, shipmentNo: +f.shipmentNo, invoiceNo: f.invoiceNo,
+    expectedCost: +f.expectedCost, realCost: +f.realCost, status: f.status,
+  };
+  if (m.id) {
+    const idx = carrierInvoices.findIndex(x => x.id === m.id);
+    if (idx >= 0) carrierInvoices[idx] = { ...carrierInvoices[idx], ...payload };
+    toast('Fatura kaydı güncellendi.', 'success');
+  } else {
+    carrierInvoices.push({ id: newCarrierInvoiceId(), invoiceDate: new Date().toISOString(), ...payload });
+    toast('Yeni fatura kaydı oluşturuldu.', 'success');
+  }
+  S.finance.invoiceModal.show = false;
+  render();
+}
+function deleteInvoice(id) {
+  carrierInvoices = carrierInvoices.filter(x => x.id !== id);
+  toast('Fatura kaydı silindi.', 'info');
+  render();
+}
+
+function buildQuotaPanel() {
+  return `
+    <div class="grid grid-cols-3 gap-3">
+      ${carrierQuotas.map(q => {
+        const co = getCompany(q.companyId);
+        const pct = Math.min(100, Math.round((q.usedThisMonth / q.monthlyLimit) * 100));
+        const barColor = pct >= 90 ? '#fb3748' : pct >= 70 ? '#fa7319' : '#335cff';
+        return `
+          <div class="border border-neutral-100 rounded-xl p-4 bg-neutral-50/50">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-sm font-semibold text-neutral-800">${co ? co.name : t('common.unknown')}</p>
+              <button class="text-neutral-400 hover:text-primary transition-colors" onclick="openQuotaModal(${q.companyId})" title="Kota Limitini Düzenle">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </button>
+            </div>
+            <p class="text-xs text-neutral-400 mb-2">${q.usedThisMonth.toLocaleString('tr-TR')} / ${q.monthlyLimit.toLocaleString('tr-TR')} gönderi</p>
+            <div class="h-2 rounded-full bg-neutral-200 overflow-hidden">
+              <div class="h-full rounded-full" style="width:${pct}%;background:${barColor}"></div>
+            </div>
+            <p class="text-xs text-neutral-400 mt-1.5">Kalan kota: <span class="font-semibold text-neutral-700">${Math.max(0, q.monthlyLimit - q.usedThisMonth).toLocaleString('tr-TR')}</span></p>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function buildQuotaModal() {
+  const m = S.finance.quotaModal;
+  const co = getCompany(m.companyId);
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeQuotaModal()">
+      <div class="modal-box w-full max-w-sm p-6">
+        <h3 class="font-semibold text-neutral-950 mb-1">Kota Limitini Düzenle</h3>
+        <p class="text-sm text-neutral-500 mb-4">${co ? co.name : ''}</p>
+        <label class="form-label">Aylık Gönderi Limiti</label>
+        <input type="number" class="form-input" value="${m.monthlyLimit}" oninput="setQuotaLimitField(this.value)" />
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="secondary-btn" onclick="closeQuotaModal()">Vazgeç</button>
+          <button class="primary-btn" onclick="saveQuotaLimit()" ${m.monthlyLimit === '' ? 'disabled' : ''}>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Kaydet
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function openQuotaModal(companyId) {
+  const q = getCarrierQuota(companyId);
+  S.finance.quotaModal = { show: true, companyId, monthlyLimit: q ? q.monthlyLimit : '' };
+  render();
+}
+function closeQuotaModal() { S.finance.quotaModal.show = false; render(); }
+function setQuotaLimitField(val) { S.finance.quotaModal.monthlyLimit = val; render(); }
+function saveQuotaLimit() {
+  const m = S.finance.quotaModal;
+  if (m.monthlyLimit === '') return;
+  const q = getCarrierQuota(m.companyId);
+  if (q) q.monthlyLimit = +m.monthlyLimit;
+  S.finance.quotaModal.show = false;
+  toast('Kota limiti güncellendi.', 'success');
+  render();
+}
+
+// =========================================================
+// KARGO PERFORMANSI — hasarlı/başarılı teslimat, OTD, pickup time, cost farkı
+// =========================================================
+function computeCarrierPerformance() {
+  const byCompany = {};
+  SHIPMENTS.forEach(s => {
+    if (!byCompany[s.companyId]) byCompany[s.companyId] = { total: 0, delivered: 0, damaged: 0, onTime: 0, pickupSum: 0 };
+    const b = byCompany[s.companyId];
+    b.total++;
+    b.pickupSum += pickupTimeHoursFor(s.id);
+    if (s.status === 'delivered' || s.status === 'returned') {
+      b.delivered++;
+      if (isDamagedFor(s.id)) b.damaged++;
+      const planned = plannedDeliveryDate(s);
+      const actual = actualDeliveryDate(s);
+      if (actual && new Date(actual) <= new Date(planned)) b.onTime++;
+    }
+  });
+  return Object.keys(byCompany).map(cid => {
+    const b = byCompany[cid];
+    const co = getCompany(+cid);
+    const invoices = carrierInvoices.filter(i => i.companyId === +cid);
+    const costBalance = invoices.reduce((sum, i) => sum + (i.realCost - i.expectedCost), 0);
+    const totalExpected = invoices.reduce((sum, i) => sum + i.expectedCost, 0);
+    const costDiffPct = totalExpected ? (costBalance / totalExpected * 100) : 0;
+    return {
+      companyId: +cid,
+      companyName: co ? co.name : t('common.unknown'),
+      total: b.total,
+      successRate: b.total ? b.delivered / b.total : 0,
+      damagedRate: b.delivered ? b.damaged / b.delivered : 0,
+      otdRate: b.delivered ? b.onTime / b.delivered : 0,
+      avgPickupHours: b.total ? b.pickupSum / b.total : 0,
+      costBalance,
+      costDiffPct,
+    };
+  }).sort((a, b) => b.total - a.total);
+}
+
+function buildPerformancePage() {
+  const rows = computeCarrierPerformance();
+  const totalShipments = SHIPMENTS.length;
+  const totalDelivered = SHIPMENTS.filter(s => s.status === 'delivered' || s.status === 'returned').length;
+  const totalDamaged = SHIPMENTS.filter(s => isDamagedFor(s.id) && (s.status === 'delivered' || s.status === 'returned')).length;
+  const totalOnTime = SHIPMENTS.filter(s => {
+    if (s.status !== 'delivered' && s.status !== 'returned') return false;
+    const actual = actualDeliveryDate(s);
+    return actual && new Date(actual) <= new Date(plannedDeliveryDate(s));
+  }).length;
+  const overallSuccess = totalShipments ? (totalDelivered / totalShipments * 100) : 0;
+  const overallDamaged = totalDelivered ? (totalDamaged / totalDelivered * 100) : 0;
+  const overallOtd = totalDelivered ? (totalOnTime / totalDelivered * 100) : 0;
+  const overallPickup = totalShipments ? (SHIPMENTS.reduce((sum, s) => sum + pickupTimeHoursFor(s.id), 0) / totalShipments) : 0;
+  const overallCostBalance = carrierInvoices.reduce((sum, i) => sum + (i.realCost - i.expectedCost), 0);
+  const overallExpected = carrierInvoices.reduce((sum, i) => sum + i.expectedCost, 0);
+  const overallCostDiffPct = overallExpected ? (overallCostBalance / overallExpected * 100) : 0;
+
+  return `
+    <div class="grid grid-cols-5 gap-3 mb-6">
+      ${reportStatTile('Başarılı Teslimat Oranı', overallSuccess.toFixed(1), '%')}
+      ${reportStatTile('Hasarlı Teslimat Oranı', overallDamaged.toFixed(1), '%')}
+      ${reportStatTile('Zamanında Teslimat (OTD)', overallOtd.toFixed(1), '%')}
+      ${reportStatTile('Ort. Toplama Süresi', overallPickup.toFixed(1), ' saat')}
+      ${reportStatTile('Beklenen-Gerçek Fark', (overallCostDiffPct >= 0 ? '+' : '') + overallCostDiffPct.toFixed(1), '%')}
+    </div>
+
+    <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <div class="px-5 py-3.5 border-b border-neutral-100">
+        <p class="text-sm font-semibold text-neutral-950">Kargo Firması Bazlı Performans Skoru</p>
+      </div>
+      ${rows.length === 0 ? `<div class="py-10 text-center text-neutral-400 text-sm">Veri bulunmuyor.</div>` : `
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left border-b border-neutral-100">
+              <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kargo Firması</th>
+              <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Hacim</th>
+              <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Başarılı Teslimat</th>
+              <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Hasar Oranı</th>
+              <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">OTD</th>
+              <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Ort. Toplama</th>
+              <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Maliyet Farkı</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-100">
+            ${rows.map(row => `
+              <tr class="hover:bg-neutral-50/80">
+                <td class="px-5 py-3 font-medium text-neutral-700">${row.companyName}</td>
+                <td class="px-5 py-3 text-neutral-600">${row.total}</td>
+                <td class="px-5 py-3 text-[#178c4e] font-medium">%${(row.successRate * 100).toFixed(1)}</td>
+                <td class="px-5 py-3 font-medium ${row.damagedRate > 0.1 ? 'text-[#ad1f2b]' : 'text-neutral-600'}">%${(row.damagedRate * 100).toFixed(1)}</td>
+                <td class="px-5 py-3 font-medium ${row.otdRate < 0.8 ? 'text-[#c2570e]' : 'text-[#178c4e]'}">%${(row.otdRate * 100).toFixed(1)}</td>
+                <td class="px-5 py-3 text-neutral-600">${row.avgPickupHours.toFixed(1)} saat</td>
+                <td class="px-5 py-3 font-medium ${row.costDiffPct > 0 ? 'text-[#ad1f2b]' : row.costDiffPct < 0 ? 'text-[#178c4e]' : 'text-neutral-600'}">${row.costDiffPct >= 0 ? '+' : ''}%${row.costDiffPct.toFixed(1)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `}
+    </div>
+  `;
+}
+
+// =========================================================
 // RAPORLAMA VE ANALİTİK — 2.7 Raporlama ve Analitik
 // =========================================================
 const STATUS_CHART_COLORS = {
@@ -3205,6 +5254,21 @@ function shipmentCost(s) {
 }
 function shipmentDeliveryDays(s) {
   return 1 + (s.id % 4) * 0.5;
+}
+
+function getFilteredReportReturns() {
+  const r = S.reports;
+  return returns.filter(x => {
+    const day = x.requestDate.slice(0, 10);
+    if (r.dateFrom && day < r.dateFrom) return false;
+    if (r.dateTo && day > r.dateTo) return false;
+    if (r.companyId) {
+      const orig = getOriginalShipment(x.originalShipmentId);
+      const cid = x.companyId || (orig ? orig.companyId : null);
+      if (cid !== +r.companyId) return false;
+    }
+    return true;
+  });
 }
 
 function getFilteredReportShipments() {
@@ -3232,6 +5296,10 @@ function buildReportsPage() {
   const returnRate = total ? (returned / total * 100) : 0;
   const avgDays = total ? (list.reduce((sum, s) => sum + shipmentDeliveryDays(s), 0) / total) : 0;
   const totalCost = list.reduce((sum, s) => sum + shipmentCost(s), 0);
+  const returnCount = getFilteredReportReturns().length;
+  const deliveredList = list.filter(s => s.status === 'delivered' || s.status === 'returned');
+  const damagedCount = deliveredList.filter(s => isDamagedFor(s.id)).length;
+  const damagedRate = deliveredList.length ? (damagedCount / deliveredList.length * 100) : 0;
 
   const byCompany = {};
   list.forEach(s => { byCompany[s.companyId] = (byCompany[s.companyId] || 0) + 1; });
@@ -3279,11 +5347,13 @@ function buildReportsPage() {
       </div>
     </div>
 
-    <div class="grid grid-cols-5 gap-3 mb-6">
+    <div class="grid grid-cols-4 gap-3 mb-6">
       ${reportStatTile('Toplam Gönderi', total, '')}
       ${reportStatTile('Ort. Teslimat Süresi', avgDays.toFixed(1), ' gün')}
       ${reportStatTile('Teslimat Başarı Oranı', successRate.toFixed(1), '%')}
       ${reportStatTile('İade Oranı', returnRate.toFixed(1), '%')}
+      ${reportStatTile('İade Sayısı', returnCount, '')}
+      ${reportStatTile('Hasarlı Gönderi Oranı', damagedRate.toFixed(1), '%')}
       ${reportStatTile('Toplam Maliyet', '₺' + totalCost.toLocaleString('tr-TR'), '')}
     </div>
 
@@ -3741,6 +5811,132 @@ function buildTemplateModal() {
   `;
 }
 
+function buildBarcodeTemplatesPage() {
+  return `
+    <div class="flex items-center justify-between mb-6">
+      <p class="text-sm text-neutral-500">${barcodeTemplates.length} şablon tanımlı — kargo firmasına göre barkod etiket formatı ve zorunlu alanlar</p>
+      <button class="primary-btn" onclick="openBarcodeTemplateModal(null)">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Yeni Şablon Ekle
+      </button>
+    </div>
+
+    <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left border-b border-neutral-100">
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Şablon Adı</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kargo Firması</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Format</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Zorunlu Alanlar</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Durum</th>
+            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right">İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${barcodeTemplates.map((tpl, i) => buildBarcodeTemplateRow(tpl, i)).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    ${S.barcodeTemplates.editModal.show ? buildBarcodeTemplateModal() : ''}
+  `;
+}
+
+function buildBarcodeTemplateRow(tpl, i) {
+  const even = i % 2 === 0;
+  const co = tpl.companyId ? getCompany(tpl.companyId) : null;
+  return `
+    <tr class="${even ? 'bg-white' : 'bg-neutral-50/50'} hover:bg-primary-lighter/20 transition-colors">
+      <td class="px-5 py-3.5 font-medium text-neutral-700">${tpl.name}</td>
+      <td class="px-5 py-3.5 text-neutral-500">${co ? co.name : 'Tüm Firmalar'}</td>
+      <td class="px-5 py-3.5">
+        <span class="badge badge-info">${tpl.format.toUpperCase()}</span>
+      </td>
+      <td class="px-5 py-3.5 text-neutral-500 text-xs">${tpl.requiredFields.map(f => BARCODE_TEMPLATE_FIELDS[f]).join(', ')}</td>
+      <td class="px-5 py-3.5">
+        <span class="badge ${tpl.active ? 'badge-active' : 'badge-passive'}">
+          <span class="w-1.5 h-1.5 rounded-full ${tpl.active ? 'bg-[#1fc16b]' : 'bg-neutral-400'}"></span>
+          ${tpl.active ? 'Aktif' : 'Pasif'}
+        </span>
+      </td>
+      <td class="px-5 py-3.5">
+        <div class="flex items-center gap-1.5 justify-end">
+          <button class="action-btn btn-edit" onclick="openBarcodeTemplateModal(${tpl.id})">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Düzenle
+          </button>
+          <button class="action-btn ${tpl.active ? 'btn-passive' : 'btn-toggle'}" onclick="toggleBarcodeTemplateActive(${tpl.id})">
+            ${tpl.active
+              ? `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>`
+              : `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+            }
+            ${tpl.active ? 'Pasife Al' : 'Aktife Al'}
+          </button>
+          <button class="action-btn btn-delete" onclick="deleteBarcodeTemplate(${tpl.id})">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Sil
+          </button>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function buildBarcodeTemplateModal() {
+  const m = S.barcodeTemplates.editModal;
+  const f = m.form;
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeBarcodeTemplateModal()">
+      <div class="modal-box w-full max-w-lg flex flex-col" style="max-height:85vh">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100 flex-shrink-0">
+          <h3 class="font-semibold text-neutral-950">${m.id ? 'Şablonu Düzenle' : 'Yeni Şablon Ekle'}</h3>
+          <button class="text-neutral-400 hover:text-neutral-600 p-1 rounded-lg hover:bg-neutral-100 transition-colors" onclick="closeBarcodeTemplateModal()">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-4">
+          <div>
+            <label class="form-label">Şablon Adı <span class="text-[#fb3748]">*</span></label>
+            <input type="text" class="form-input" value="${f.name}" oninput="setBarcodeTemplateField('name', this.value)" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">Kargo Firması</label>
+              <select class="form-input" onchange="setBarcodeTemplateField('companyId', this.value)">
+                <option value="" ${!f.companyId ? 'selected' : ''}>Tüm Firmalar</option>
+                ${COMPANIES.map(c => `<option value="${c.id}" ${+f.companyId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Format</label>
+              <select class="form-input" onchange="setBarcodeTemplateField('format', this.value)">
+                ${BARCODE_FORMATS.map(bf => `<option value="${bf.key}" ${f.format === bf.key ? 'selected' : ''}>${bf.label}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="form-label">Zorunlu Alanlar <span class="text-[#fb3748]">*</span></label>
+            <div class="flex flex-wrap gap-1.5 mt-1">
+              ${Object.keys(BARCODE_TEMPLATE_FIELDS).map(key => `
+                <button type="button" class="filter-tab ${f.requiredFields.includes(key) ? 'active' : ''}" onclick="toggleBarcodeTemplateRequiredField('${key}')">${BARCODE_TEMPLATE_FIELDS[key]}</button>
+              `).join('')}
+            </div>
+            ${f.requiredFields.length === 0 ? `<p class="form-error mt-1.5">En az bir zorunlu alan seçilmelidir.</p>` : ''}
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-100 bg-neutral-50/50 flex-shrink-0">
+          <button class="secondary-btn" onclick="closeBarcodeTemplateModal()">Vazgeç</button>
+          <button class="primary-btn" onclick="saveBarcodeTemplate()" ${!f.name.trim() || f.requiredFields.length === 0 ? 'disabled' : ''}>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Kaydet
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function openTemplateModal(id) {
   if (id === null) {
     S.templates.editModal = { show: true, id: null, form: { name: '', type: 'sms', trigger: 'created', subject: '', body: '', active: true } };
@@ -3808,8 +6004,22 @@ function buildDashboardPage() {
   SHIPMENTS.forEach(s => { byStatus[s.status] = (byStatus[s.status] || 0) + 1; });
   const maxStatusCount = Math.max(1, ...Object.values(byStatus));
   const unhealthyCarriers = CARRIER_HEALTH.filter(h => h.status !== 'up');
+  const dr = S.dashboard;
 
   return `
+    <div class="bg-white rounded-xl border border-neutral-200 p-4 mb-6 flex items-end gap-3 flex-wrap" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <div>
+        <label class="form-label">Başlangıç</label>
+        <input type="date" class="form-input" value="${dr.dateFrom}" onchange="setDashboardFilter('dateFrom', this.value)" />
+      </div>
+      <div>
+        <label class="form-label">Bitiş</label>
+        <input type="date" class="form-input" value="${dr.dateTo}" onchange="setDashboardFilter('dateTo', this.value)" />
+      </div>
+      ${dr.dateFrom || dr.dateTo ? `<button class="text-xs text-primary hover:text-primary-darker font-medium mb-2.5" onclick="setDashboardFilter('dateFrom','');setDashboardFilter('dateTo','')">Filtreyi Temizle</button>` : ''}
+      <span class="text-xs text-neutral-400 mb-2.5">Aşağıdaki gönderi/iade widget'ları seçilen tarih aralığına göre hesaplanır.</span>
+    </div>
+
     <div class="grid grid-cols-5 gap-3 mb-6">
       ${reportStatTile('Toplam Gönderi', totalShipments, '')}
       ${reportStatTile('Teslimat Başarı Oranı', successRate, '%')}
@@ -3922,23 +6132,263 @@ function buildDashboardPage() {
       </div>
     </div>
 
-    <div class="flex items-center gap-3 mt-6">
-      <button class="secondary-btn" onclick="navigateTo('shipmentCreate')">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-        Yeni Gönderi Oluştur
-      </button>
-      <button class="secondary-btn" onclick="goToNewContract()">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-        Yeni Sözleşme
-      </button>
-      <button class="secondary-btn" onclick="goToNewReturn()">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-        Yeni İade Talebi
-      </button>
-      <button class="secondary-btn" onclick="navigateTo('reports')">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M8 17V10m5 7V6m5 11v-4"/></svg>
-        Raporları Gör
-      </button>
+    <div class="grid grid-cols-2 gap-6 mt-6">
+      ${dashboardReturnsBreakdownWidget()}
+      ${dashboardShipmentsBreakdownWidget()}
+    </div>
+
+    <div class="grid grid-cols-2 gap-6 mt-6">
+      ${dashboardShipmentsByCarrierWidget()}
+      ${dashboardReturnsByCarrierWidget()}
+    </div>
+
+    <div class="grid grid-cols-2 gap-6 mt-6">
+      ${dashboardCostBalanceWidget()}
+      ${dashboardOtdWidget()}
+    </div>
+
+    <div class="grid grid-cols-2 gap-6 mt-6">
+      ${dashboardQuotaWidget()}
+    </div>
+
+    <div class="mt-6">
+      ${dashboardPerformanceScoreWidget()}
+    </div>
+  `;
+}
+
+function setDashboardFilter(field, val) { S.dashboard[field] = val; render(); }
+
+function getDashboardShipments() {
+  const d = S.dashboard;
+  return SHIPMENTS.filter(s => {
+    const day = s.shipTime.slice(0, 10);
+    if (d.dateFrom && day < d.dateFrom) return false;
+    if (d.dateTo && day > d.dateTo) return false;
+    return true;
+  });
+}
+
+function getDashboardReturns() {
+  const d = S.dashboard;
+  return returns.filter(x => {
+    const day = x.requestDate.slice(0, 10);
+    if (d.dateFrom && day < d.dateFrom) return false;
+    if (d.dateTo && day > d.dateTo) return false;
+    return true;
+  });
+}
+
+function dashboardBarPanel(title, rows) {
+  if (rows.length === 0) {
+    return `
+      <div class="bg-white rounded-xl border border-neutral-200 p-5" style="box-shadow:0 1px 2px 0 #0a0d1408">
+        <p class="text-sm font-semibold text-neutral-950 mb-4">${title}</p>
+        <p class="text-xs text-neutral-400 text-center py-6">Bu aralıkta veri yok.</p>
+      </div>
+    `;
+  }
+  const max = Math.max(0.0001, ...rows.map(r => Math.abs(r.value)));
+  return `
+    <div class="bg-white rounded-xl border border-neutral-200 p-5" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <p class="text-sm font-semibold text-neutral-950 mb-4">${title}</p>
+      <div class="flex flex-col gap-3">
+        ${rows.map(r => `
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium text-neutral-600">${r.label}</span>
+              <span class="text-xs font-semibold ${r.colorClass || 'text-neutral-700'}">${r.display}</span>
+            </div>
+            <div class="w-full h-1.5 rounded-full bg-neutral-100 overflow-hidden">
+              <div class="h-full rounded-full ${r.barClass || 'bg-primary'}" style="width:${(Math.abs(r.value) / max * 100).toFixed(1)}%"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function dashboardReturnsBreakdownWidget() {
+  const list = getDashboardReturns();
+  const byStatus = {};
+  list.forEach(x => { byStatus[x.status] = (byStatus[x.status] || 0) + 1; });
+  const rows = Object.keys(byStatus).map(key => ({ label: RETURN_STATUS[key].label, value: byStatus[key], display: String(byStatus[key]) }));
+  return `
+    <div class="bg-white rounded-xl border border-neutral-200 p-5" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm font-semibold text-neutral-950">İade Talepleri (Tarih Aralığı)</p>
+        <span class="text-lg font-bold text-neutral-950">${list.length}</span>
+      </div>
+      ${rows.length === 0 ? `<p class="text-xs text-neutral-400 text-center py-6">Bu aralıkta veri yok.</p>` : `
+        <div class="flex flex-col gap-3">
+          ${rows.map(r => `
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-medium text-neutral-600">${r.label}</span>
+                <span class="text-xs font-semibold text-neutral-700">${r.display}</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-neutral-100 overflow-hidden">
+                <div class="h-full rounded-full bg-primary" style="width:${(r.value / list.length * 100).toFixed(1)}%"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function dashboardShipmentsBreakdownWidget() {
+  const list = getDashboardShipments();
+  const byStatus = {};
+  list.forEach(s => { byStatus[s.status] = (byStatus[s.status] || 0) + 1; });
+  const rows = Object.keys(byStatus).map(key => ({ label: statusLabel(key), value: byStatus[key], display: String(byStatus[key]) }));
+  return `
+    <div class="bg-white rounded-xl border border-neutral-200 p-5" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm font-semibold text-neutral-950">Gönderiler (Tarih Aralığı)</p>
+        <span class="text-lg font-bold text-neutral-950">${list.length}</span>
+      </div>
+      ${rows.length === 0 ? `<p class="text-xs text-neutral-400 text-center py-6">Bu aralıkta veri yok.</p>` : `
+        <div class="flex flex-col gap-3">
+          ${rows.map(r => `
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-medium text-neutral-600">${r.label}</span>
+                <span class="text-xs font-semibold text-neutral-700">${r.display}</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-neutral-100 overflow-hidden">
+                <div class="h-full rounded-full bg-primary" style="width:${(r.value / list.length * 100).toFixed(1)}%"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function dashboardShipmentsByCarrierWidget() {
+  const list = getDashboardShipments();
+  const byCompany = {};
+  list.forEach(s => { byCompany[s.companyId] = (byCompany[s.companyId] || 0) + 1; });
+  const rows = Object.keys(byCompany)
+    .map(id => ({ label: getCompany(+id) ? getCompany(+id).name : t('common.unknown'), value: byCompany[id], display: String(byCompany[id]) }))
+    .sort((a, b) => b.value - a.value);
+  return dashboardBarPanel(`Gönderi Hacmi — Kargo Firması (${list.length})`, rows);
+}
+
+function dashboardReturnsByCarrierWidget() {
+  const list = getDashboardReturns();
+  const byCompany = {};
+  list.forEach(x => {
+    const orig = getOriginalShipment(x.originalShipmentId);
+    const cid = x.companyId || (orig ? orig.companyId : null);
+    if (cid) byCompany[cid] = (byCompany[cid] || 0) + 1;
+  });
+  const rows = Object.keys(byCompany)
+    .map(id => ({ label: getCompany(+id) ? getCompany(+id).name : t('common.unknown'), value: byCompany[id], display: String(byCompany[id]) }))
+    .sort((a, b) => b.value - a.value);
+  return dashboardBarPanel(`İade Hacmi — Kargo Firması (${list.length})`, rows);
+}
+
+function dashboardOtdWidget() {
+  const list = getDashboardShipments().filter(s => s.status === 'delivered' || s.status === 'returned');
+  const byCompany = {};
+  list.forEach(s => {
+    if (!byCompany[s.companyId]) byCompany[s.companyId] = { delivered: 0, onTime: 0 };
+    byCompany[s.companyId].delivered++;
+    const actual = actualDeliveryDate(s);
+    if (actual && new Date(actual) <= new Date(plannedDeliveryDate(s))) byCompany[s.companyId].onTime++;
+  });
+  const rows = Object.keys(byCompany)
+    .map(id => {
+      const b = byCompany[id];
+      const pct = b.delivered ? (b.onTime / b.delivered * 100) : 0;
+      return { label: getCompany(+id) ? getCompany(+id).name : t('common.unknown'), value: pct, display: `%${pct.toFixed(1)}`, colorClass: pct < 80 ? 'text-[#c2570e]' : 'text-[#178c4e]', barClass: pct < 80 ? '' : 'bg-primary' };
+    })
+    .sort((a, b) => b.value - a.value);
+  return dashboardBarPanel('Zamanında Teslimat Oranı (OTD)', rows);
+}
+
+function dashboardCostBalanceWidget() {
+  const d = S.dashboard;
+  const list = carrierInvoices.filter(i => {
+    const day = i.invoiceDate.slice(0, 10);
+    if (d.dateFrom && day < d.dateFrom) return false;
+    if (d.dateTo && day > d.dateTo) return false;
+    return true;
+  });
+  const byCompany = {};
+  list.forEach(i => {
+    if (!byCompany[i.companyId]) byCompany[i.companyId] = { diff: 0, expected: 0 };
+    byCompany[i.companyId].diff += (i.realCost - i.expectedCost);
+    byCompany[i.companyId].expected += i.expectedCost;
+  });
+  const rows = Object.keys(byCompany)
+    .map(id => {
+      const b = byCompany[id];
+      const pct = b.expected ? (b.diff / b.expected * 100) : 0;
+      return {
+        label: getCompany(+id) ? getCompany(+id).name : t('common.unknown'),
+        value: pct,
+        display: `${pct >= 0 ? '+' : ''}%${pct.toFixed(1)}`,
+        colorClass: pct > 0 ? 'text-[#ad1f2b]' : pct < 0 ? 'text-[#178c4e]' : 'text-neutral-700',
+        barClass: pct > 0 ? '' : 'bg-primary',
+      };
+    })
+    .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+  return dashboardBarPanel('Beklenen-Gerçek Maliyet Farkı (Kargo Firması)', rows);
+}
+
+function dashboardQuotaWidget() {
+  const rows = carrierQuotas.map(q => {
+    const remaining = Math.max(0, q.monthlyLimit - q.usedThisMonth);
+    const pct = q.monthlyLimit ? (q.usedThisMonth / q.monthlyLimit * 100) : 0;
+    return {
+      label: getCompany(q.companyId) ? getCompany(q.companyId).name : t('common.unknown'),
+      value: pct,
+      display: `${remaining.toLocaleString('tr-TR')} kalan`,
+      colorClass: pct >= 90 ? 'text-[#ad1f2b]' : pct >= 70 ? 'text-[#c2570e]' : 'text-neutral-700',
+      barClass: pct >= 90 ? '' : pct >= 70 ? '' : 'bg-primary',
+    };
+  }).sort((a, b) => b.value - a.value);
+  return dashboardBarPanel('Kalan Kota — Kargo Firması', rows);
+}
+
+function dashboardPerformanceScoreWidget() {
+  const rows = computeCarrierPerformance();
+  return `
+    <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden" style="box-shadow:0 1px 2px 0 #0a0d1408">
+      <div class="flex items-center justify-between px-5 py-3.5 border-b border-neutral-100">
+        <p class="text-sm font-semibold text-neutral-950">Kargo Firması Performans Skoru</p>
+        <button class="text-xs text-primary hover:text-primary-darker font-medium" onclick="navigateTo('performance')">Detaylı Analiz →</button>
+      </div>
+      ${rows.length === 0 ? `<div class="py-10 text-center text-neutral-400 text-sm">Veri bulunmuyor.</div>` : `
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left border-b border-neutral-100">
+              <th class="px-5 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kargo Firması</th>
+              <th class="px-5 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Başarılı Teslimat</th>
+              <th class="px-5 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Hasar Oranı</th>
+              <th class="px-5 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">SLA Uyumu (OTD)</th>
+              <th class="px-5 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Maliyet Farkı</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-100">
+            ${rows.map(row => `
+              <tr class="hover:bg-neutral-50/80">
+                <td class="px-5 py-3 font-medium text-neutral-700">${row.companyName}</td>
+                <td class="px-5 py-3 text-[#178c4e] font-medium">%${(row.successRate * 100).toFixed(1)}</td>
+                <td class="px-5 py-3 font-medium ${row.damagedRate > 0.1 ? 'text-[#ad1f2b]' : 'text-neutral-600'}">%${(row.damagedRate * 100).toFixed(1)}</td>
+                <td class="px-5 py-3 font-medium ${row.otdRate < 0.8 ? 'text-[#c2570e]' : 'text-[#178c4e]'}">%${(row.otdRate * 100).toFixed(1)}</td>
+                <td class="px-5 py-3 font-medium ${row.costDiffPct > 0 ? 'text-[#ad1f2b]' : row.costDiffPct < 0 ? 'text-[#178c4e]' : 'text-neutral-600'}">${row.costDiffPct >= 0 ? '+' : ''}%${row.costDiffPct.toFixed(1)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `}
     </div>
   `;
 }
@@ -4278,6 +6728,24 @@ function buildApp() {
   if (S.page === 'templates') {
     return `<div class="max-w-6xl mx-auto px-4 py-8">${buildTemplatesPage()}</div>`;
   }
+  if (S.page === 'barcodeTemplates') {
+    return `<div class="max-w-6xl mx-auto px-4 py-8">${buildBarcodeTemplatesPage()}</div>`;
+  }
+  if (S.page === 'finance') {
+    return `<div class="max-w-6xl mx-auto px-4 py-8">${buildFinancePage()}</div>`;
+  }
+  if (S.page === 'performance') {
+    return `<div class="max-w-6xl mx-auto px-4 py-8">${buildPerformancePage()}</div>`;
+  }
+  if (S.page === 'statusMapping') {
+    return `<div class="max-w-6xl mx-auto px-4 py-8">${buildStatusMappingPage()}</div>`;
+  }
+  if (S.page === 'transfers') {
+    return `<div class="max-w-6xl mx-auto px-4 py-8">${S.transfers.view === 'detail' ? buildTransferDetail() : buildTransfersPage()}</div>`;
+  }
+  if (S.page === 'transferCreate') {
+    return `<div class="max-w-6xl mx-auto px-4 py-8">${buildTransferCreatePage()}</div>`;
+  }
   return `
     <div class="max-w-6xl mx-auto px-4 py-8">
       ${S.view === 'list' ? buildList() : buildWizard()}
@@ -4298,10 +6766,16 @@ function buildList() {
   return `
     <div class="flex items-center justify-between mb-6">
       <p class="text-sm text-neutral-500">${t('contracts.count', { n: contracts.length })}</p>
-      <button class="primary-btn" onclick="openWizard(null)">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-        ${t('contracts.new')}
-      </button>
+      <div class="flex items-center gap-2">
+        <button class="secondary-btn" onclick="exportContractsCsv()">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+          CSV Olarak İndir
+        </button>
+        <button class="primary-btn" onclick="openWizard(null)">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          ${t('contracts.new')}
+        </button>
+      </div>
     </div>
 
     <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden" style="box-shadow:0 1px 2px 0 #0a0d1408">
@@ -4370,7 +6844,12 @@ function buildContractRow(c, i) {
           <span class="font-medium text-neutral-700">${co ? co.name : t('common.unknown')}</span>
         </div>
       </td>
-      <td class="px-5 py-3.5 text-neutral-600">${c.name}</td>
+      <td class="px-5 py-3.5 text-neutral-600">
+        <div class="flex items-center gap-1.5">
+          ${c.name}
+          ${c.isDefault ? `<svg class="w-3.5 h-3.5 text-[#f0b429] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" title="Varsayılan Kargo Firması"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` : ''}
+        </div>
+      </td>
       <td class="px-5 py-3.5">${shippingIcons}</td>
       <td class="px-5 py-3.5 text-neutral-500 text-xs font-medium">${c.minDesi}–${c.maxDesi} desi</td>
       <td class="px-5 py-3.5">
@@ -4515,6 +6994,10 @@ function buildStep1() {
       </div>
 
       <div class="col-span-2">
+        ${buildToggle('isDefault', f.isDefault, 'Varsayılan Kargo Firması', 'Birden fazla uygun kargo firması bulunduğunda öncelikli tercih edilir')}
+      </div>
+
+      <div class="col-span-2">
         <div class="h-px bg-neutral-100 my-1"></div>
         <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-4 mb-4">${t('step1.desi_section')}</p>
         <div class="grid grid-cols-2 gap-5">
@@ -4561,11 +7044,53 @@ function buildStep1() {
         <div class="flex flex-col gap-3">
           ${buildToggle('orderShipping', f.orderShipping, t('step1.order_shipping_label'), t('step1.order_shipping_desc'))}
           ${buildToggle('returnShipping', f.returnShipping, t('step1.return_shipping_label'), t('step1.return_shipping_desc'))}
+          ${buildToggle('transferShipping', f.transferShipping, 'Transfer Gönderisi', 'Bu sözleşme depolar/mağazalar arası transfer gönderimlerinde kullanılsın')}
         </div>
+      </div>
+
+      <div class="col-span-2">
+        <div class="h-px bg-neutral-100 my-1"></div>
+        <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-4 mb-1">Ek Kurallar <span class="font-normal normal-case text-neutral-400">(isteğe bağlı — boş bırakılırsa kısıt uygulanmaz)</span></p>
+
+        <p class="text-xs font-medium text-neutral-500 mt-4 mb-2">Ürün Tipi Kısıtı</p>
+        <div class="flex flex-wrap gap-1.5">${buildMultiChipMap('productTypes', PRODUCT_TYPES, f.productTypes)}</div>
+
+        <p class="text-xs font-medium text-neutral-500 mt-4 mb-2">Müşteri Segmenti Kuralı</p>
+        <div class="flex flex-wrap gap-1.5">${buildMultiChipMap('customerSegments', CUSTOMER_SEGMENTS, f.customerSegments)}</div>
+
+        <p class="text-xs font-medium text-neutral-500 mt-4 mb-2">Paket Tipi Kuralı</p>
+        <div class="flex flex-wrap gap-1.5">${buildMultiChipMap('packageTypes', PACKAGE_TYPES, f.packageTypes)}</div>
+
+        <p class="text-xs font-medium text-neutral-500 mt-4 mb-2">Sipariş Kanalı Kuralı</p>
+        <div class="flex flex-wrap gap-1.5">${buildMultiChipList('channels', SHIPMENT_CHANNELS, f.channels)}</div>
+
+        <p class="text-xs font-medium text-neutral-500 mt-4 mb-2">Ödeme Tipi Kuralı</p>
+        <div class="flex flex-wrap gap-1.5">${buildMultiChipMap('paymentTypes', ORDER_PAYMENT_TYPES, f.paymentTypes)}</div>
       </div>
 
     </div>
   `;
+}
+
+function buildMultiChipMap(field, optionsMap, selected) {
+  return Object.keys(optionsMap).map(key => {
+    const active = selected.includes(key);
+    return `<button type="button" class="filter-tab ${active ? 'active' : ''}" onclick="toggleMultiSelectField('${field}', '${key}')">${optionsMap[key]}</button>`;
+  }).join('');
+}
+
+function buildMultiChipList(field, list, selected) {
+  return list.map(val => {
+    const active = selected.includes(val);
+    return `<button type="button" class="filter-tab ${active ? 'active' : ''}" onclick="toggleMultiSelectField('${field}', '${val}')">${val}</button>`;
+  }).join('');
+}
+
+function toggleMultiSelectField(field, key) {
+  const arr = S.f[field];
+  const idx = arr.indexOf(key);
+  if (idx >= 0) arr.splice(idx, 1); else arr.push(key);
+  render();
 }
 
 function buildToggle(field, val, label, desc) {
@@ -5054,10 +7579,11 @@ function openWizard(id) {
     S.editingId = null;
     S.step = 1;
     S.f = {
-      companyId: '', name: '',
+      companyId: '', name: '', isDefault: false,
       minDesi: '', maxDesi: '',
       minOrderAmount: '', maxOrderAmount: '',
-      orderShipping: true, returnShipping: true,
+      orderShipping: true, returnShipping: true, transferShipping: false,
+      productTypes: [], customerSegments: [], packageTypes: [], channels: [], paymentTypes: [],
       coveredRegions: [],
       search2: '', activeProvinceId2: '',
       credentials: [],
@@ -5069,12 +7595,19 @@ function openWizard(id) {
     S.f = {
       companyId: c.companyId,
       name: c.name,
+      isDefault: !!c.isDefault,
       minDesi: c.minDesi,
       maxDesi: c.maxDesi,
       minOrderAmount: c.minOrderAmount,
       maxOrderAmount: c.maxOrderAmount,
       orderShipping: c.orderShipping,
       returnShipping: c.returnShipping,
+      transferShipping: !!c.transferShipping,
+      productTypes: [...(c.productTypes || [])],
+      customerSegments: [...(c.customerSegments || [])],
+      packageTypes: [...(c.packageTypes || [])],
+      channels: [...(c.channels || [])],
+      paymentTypes: [...(c.paymentTypes || [])],
       coveredRegions: JSON.parse(JSON.stringify(c.coveredRegions)),
       search2: '', activeProvinceId2: '',
       credentials: JSON.parse(JSON.stringify(c.credentials)),
@@ -5112,6 +7645,30 @@ function deleteContract() {
   S.deleteModal.show = false;
   toast(t('toast.contract_deleted', { name: c.name }), 'info');
   render();
+}
+
+function exportContractsCsv() {
+  if (contracts.length === 0) { toast('Dışa aktarılacak sözleşme bulunamadı.', 'warning'); return; }
+  const headers = ['Firma', 'Sözleşme Adı', 'Varsayılan', 'Sipariş', 'İade', 'Transfer', 'Min Desi', 'Max Desi', 'Durum', 'Tarih'];
+  const rows = contracts.map(c => {
+    const co = getCompany(c.companyId);
+    return [
+      co ? co.name : '', c.name, c.isDefault ? 'Evet' : 'Hayır',
+      c.orderShipping ? 'Evet' : 'Hayır', c.returnShipping ? 'Evet' : 'Hayır', c.transferShipping ? 'Evet' : 'Hayır',
+      c.minDesi, c.maxDesi, c.status === 'active' ? 'Aktif' : 'Pasif', fmtDate(c.createdAt),
+    ];
+  });
+  const csv = [headers, ...rows].map(r => r.map(csvEscape).join(';')).join('\r\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `kargo_firmalari_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast(`${contracts.length} sözleşme CSV olarak indirildi.`, 'success');
 }
 
 // =========================================================
@@ -5407,6 +7964,13 @@ function saveContract() {
 function finalizeSave(success) {
   if (!success) return;
   const f = S.f;
+  const extraFields = {
+    isDefault: f.isDefault, transferShipping: f.transferShipping,
+    productTypes: f.productTypes, customerSegments: f.customerSegments,
+    packageTypes: f.packageTypes, channels: f.channels, paymentTypes: f.paymentTypes,
+  };
+  if (f.isDefault) contracts.forEach(c => { c.isDefault = false; });
+
   if (S.editingId !== null) {
     const idx = contracts.findIndex(c => c.id === S.editingId);
     contracts[idx] = {
@@ -5418,6 +7982,7 @@ function finalizeSave(success) {
       maxOrderAmount: f.maxOrderAmount !== '' ? +f.maxOrderAmount : '',
       coveredRegions: f.coveredRegions,
       credentials: f.credentials,
+      ...extraFields,
     };
     toast(t('toast.contract_updated', { name: f.name }), 'success');
   } else {
@@ -5435,6 +8000,7 @@ function finalizeSave(success) {
       maxOrderAmount: f.maxOrderAmount !== '' ? +f.maxOrderAmount : '',
       coveredRegions: f.coveredRegions,
       credentials: f.credentials,
+      ...extraFields,
     });
     toast(t('toast.contract_created', { name: f.name }), 'success');
   }
