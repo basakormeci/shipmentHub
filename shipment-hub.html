@@ -1280,6 +1280,8 @@ function t(key, vars) {
 let S = {
   lang: 'tr',
   langMenuOpen: false,
+  actionMenuOpen: null,
+  selectOpen: null,
   page: 'contracts',
   dashboard: { dateFrom: '', dateTo: '' },
   view: 'list',
@@ -1558,15 +1560,13 @@ function getHeaderInfo() {
     case 'dashboard': return { title: 'Gösterge Paneli', desc: 'Genel operasyon durumu ve öne çıkan metrikler' };
     case 'shipments':
       if (S.shipments.view === 'detail') {
-        const s = SHIPMENTS.find(x => x.id === S.shipments.detailId);
-        return { title: s ? `Gönderi #${s.shipmentNo}` : 'Gönderi Detay', desc: '' };
+        return { title: 'Gönderi Detay', desc: '' };
       }
       return { title: 'Gönderiler', desc: 'Tüm gönderileri görüntüleyin ve yönetin' };
     case 'shipmentCreate': return { title: 'Yeni Gönderi Oluştur', desc: 'Sipariş bilgilerini girerek yeni bir gönderi oluşturun' };
     case 'returns':
       if (S.returns.view === 'detail') {
-        const x = returns.find(r => r.id === S.returns.detailId);
-        return { title: x ? `İade #${x.returnNo}` : 'İade Detay', desc: '' };
+        return { title: 'İade Detay', desc: '' };
       }
       return { title: 'İade Yönetimi', desc: 'Gönderi iade taleplerini yönetin' };
     case 'returnCreate': return { title: 'Yeni İade Gönderisi Oluştur', desc: 'Orijinal gönderiyi seçerek iade talebi oluşturun' };
@@ -1584,8 +1584,7 @@ function getHeaderInfo() {
     case 'performance': return { title: 'Kargo Performansı', desc: 'Kargo firması bazlı teslimat ve maliyet performansı' };
     case 'transfers':
       if (S.transfers.view === 'detail') {
-        const x = transfers.find(tr => tr.id === S.transfers.detailId);
-        return { title: x ? `Transfer #${x.transferNo}` : 'Transfer Detay', desc: '' };
+        return { title: 'Transfer Detay', desc: '' };
       }
       return { title: 'Transfer', desc: 'Node/depo/mağaza arası transfer gönderilerini yönetin' };
     case 'transferCreate': return { title: 'Yeni Transfer Oluştur', desc: 'Kaynak ve hedef node bilgilerini girerek transfer gönderisi oluşturun' };
@@ -1640,6 +1639,76 @@ function buildTopHeader() {
 function toggleLangMenu() { S.langMenuOpen = !S.langMenuOpen; render(); }
 function closeLangMenu()  { S.langMenuOpen = false; render(); }
 function setLang(lang) { S.lang = lang; S.langMenuOpen = false; render(); }
+
+// =========================================================
+// GENEL AKSİYON DROPDOWN MENÜSÜ (tasarım dili: dil seçici ile aynı)
+// =========================================================
+function toggleActionMenu(key) { S.actionMenuOpen = S.actionMenuOpen === key ? null : key; render(); }
+function closeActionMenu() { S.actionMenuOpen = null; render(); }
+
+function buildActionMenu(menuKey, items) {
+  const isOpen = S.actionMenuOpen === menuKey;
+  return `
+    <div class="relative inline-block">
+      <button class="secondary-btn" onclick="event.stopPropagation(); toggleActionMenu('${menuKey}')">
+        Diğer İşlemler
+        <svg class="w-3.5 h-3.5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+      </button>
+      ${isOpen ? `
+        <div class="fixed inset-0 z-10" onclick="closeActionMenu()"></div>
+        <div class="absolute right-0 mt-1.5 w-56 bg-white border border-neutral-200 rounded-xl shadow-lg py-1.5 z-20" style="box-shadow:0 16px 32px -12px #0e121b1a">
+          ${items.map(it => it.divider ? `<div class="my-1.5 border-t border-neutral-100"></div>` : `
+            <button onclick="closeActionMenu(); ${it.onclick}" ${it.disabled ? 'disabled' : ''} class="w-full text-left px-3.5 py-2 text-[13px] flex items-center gap-2.5 transition-colors ${it.danger ? 'text-[#ad1f2b] hover:bg-[#fff5f5]' : 'text-neutral-600 hover:bg-neutral-50'} ${it.disabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">
+              <svg class="w-4 h-4 flex-shrink-0 ${it.danger ? 'text-[#ad1f2b]' : 'text-neutral-400'}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">${it.icon}</svg>
+              ${it.label}
+            </button>
+          `).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// =========================================================
+// GENEL CUSTOM SELECT (native <select> yerine, aksiyon menüsüyle aynı tasarım dili)
+// =========================================================
+function toggleCustomSelect(key) { S.selectOpen = S.selectOpen === key ? null : key; render(); }
+function closeCustomSelect() { S.selectOpen = null; render(); }
+
+function buildCustomSelect(key, items, selectedValue, onChangeJS, opts) {
+  opts = opts || {};
+  const isOpen = S.selectOpen === key;
+  const selectedItem = items.find(it => String(it.value) === String(selectedValue));
+  const label = selectedItem ? selectedItem.label : (opts.placeholder || '');
+  const disabled = !!opts.disabled;
+  const hasError = !!opts.error;
+  return `
+    <div class="relative" ${opts.width ? `style="width:${opts.width}"` : ''}>
+      <button type="button" class="form-input ${hasError ? 'error' : ''} flex items-center justify-between gap-2 text-left" ${disabled ? 'disabled' : ''}
+        style="${disabled ? 'opacity:.5;cursor:not-allowed;' : 'cursor:pointer;'}${isOpen ? 'border-color:#335cff;box-shadow:0 0 0 3px #476cff1a;' : ''}"
+        onclick="event.stopPropagation(); toggleCustomSelect('${key}')">
+        <span class="truncate ${selectedItem ? '' : 'text-neutral-400'}">${label}</span>
+        <svg class="w-3.5 h-3.5 text-neutral-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+      </button>
+      ${isOpen ? `
+        <div class="fixed inset-0 z-10" onclick="closeCustomSelect()"></div>
+        <div class="absolute left-0 right-0 mt-1.5 bg-white border border-neutral-200 rounded-xl shadow-lg py-1.5 z-20 max-h-64 overflow-y-auto" style="box-shadow:0 16px 32px -12px #0e121b1a">
+          ${items.length === 0 ? `<div class="px-3.5 py-2 text-[13px] text-neutral-400">Seçenek yok</div>` : items.map(it => {
+            const isSelected = String(it.value) === String(selectedValue);
+            const valueStr = String(it.value).replace(/'/g, "\\'");
+            const onclickJs = onChangeJS.split('__VALUE__').join(`'${valueStr}'`);
+            return `
+              <button type="button" onclick="closeCustomSelect(); ${onclickJs}" class="w-full text-left px-3.5 py-2 text-[13px] flex items-center justify-between gap-2.5 hover:bg-neutral-50 transition-colors ${isSelected ? 'text-primary font-semibold' : 'text-neutral-600'}">
+                <span class="truncate">${it.label}</span>
+                ${isSelected ? `<svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>` : ''}
+              </button>
+            `;
+          }).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
 
 function navigateTo(page) {
   S.page = page;
@@ -2022,9 +2091,7 @@ function buildShipmentsPage() {
       </div>
 
       <div class="flex items-center gap-3 px-5 py-3 border-b border-neutral-100 flex-wrap">
-        <select class="form-input" style="width:190px" onchange="setShipmentSearchField(this.value)">
-          ${SHIPMENT_SEARCH_FIELDS.map(f => `<option value="${f.key}" ${sh.searchField === f.key ? 'selected' : ''}>${t('search.' + f.key)}</option>`).join('')}
-        </select>
+        ${buildCustomSelect('shipmentsSearchField', SHIPMENT_SEARCH_FIELDS.map(f => ({ value: f.key, label: t('search.' + f.key) })), sh.searchField, 'setShipmentSearchField(__VALUE__)', { width: '190px' })}
         <div class="relative flex-1" style="min-width:220px">
           <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           <input type="text" class="form-input pl-9" placeholder="${t('shipments.search_placeholder')}" value="${sh.search}" oninput="setShipmentSearch(this.value)" />
@@ -2045,18 +2112,11 @@ function buildShipmentsPage() {
         <div class="grid grid-cols-3 gap-4 px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
           <div>
             <label class="form-label">${t('shipments.supplier')}</label>
-            <select class="form-input" onchange="setShipmentFilter('filterSupplierId', this.value)">
-              <option value="">${t('common.all')}</option>
-              ${COMPANIES.map(c => `<option value="${c.id}" ${sh.filterSupplierId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-            </select>
+            ${buildCustomSelect('shipmentsFilterSupplier', [{ value: '', label: t('common.all') }, ...COMPANIES.map(c => ({ value: c.id, label: c.name }))], sh.filterSupplierId, "setShipmentFilter('filterSupplierId', __VALUE__)")}
           </div>
           <div>
             <label class="form-label">${t('shipments.cargo_type')}</label>
-            <select class="form-input" onchange="setShipmentFilter('filterCargoType', this.value)">
-              <option value="">${t('common.all')}</option>
-              <option value="order"  ${sh.filterCargoType === 'order'  ? 'selected' : ''}>${cargoTypeLabel('order')}</option>
-              <option value="return" ${sh.filterCargoType === 'return' ? 'selected' : ''}>${cargoTypeLabel('return')}</option>
-            </select>
+            ${buildCustomSelect('shipmentsFilterCargoType', [{ value: '', label: t('common.all') }, { value: 'order', label: cargoTypeLabel('order') }, { value: 'return', label: cargoTypeLabel('return') }], sh.filterCargoType, "setShipmentFilter('filterCargoType', __VALUE__)")}
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
@@ -2138,14 +2198,14 @@ function buildShipmentRow(s, i, activeCols) {
       <td class="px-4 py-3"><input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleShipmentSelect(${s.id}, this.checked)" /></td>
       ${activeCols.map(c => `<td class="px-4 py-3 whitespace-nowrap">${renderShipmentCell(c.key, s)}</td>`).join('')}
       <td class="px-4 py-3 sticky right-0" style="background:${stickyBg};box-shadow:-4px 0 6px -2px rgba(0,0,0,0.06)">
-        <div class="flex justify-end gap-1.5">
-          <button class="w-8 h-8 rounded-lg bg-primary-lighter hover:bg-primary-light text-primary flex items-center justify-center transition-colors flex-shrink-0" onclick="openShipmentDetail(${s.id})" title="${t('shipments.detail_tooltip')}">
+        <div class="flex justify-end gap-1">
+          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0" onclick="openShipmentDetail(${s.id})" title="${t('shipments.detail_tooltip')}">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
-          <button class="w-8 h-8 rounded-lg bg-[#e3f7ec] hover:bg-[#c9f0da] text-[#178c4e] flex items-center justify-center transition-colors flex-shrink-0" onclick="singleBarcode(${s.id})" title="${t('shipments.barcode_tooltip')}">
+          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0" onclick="singleBarcode(${s.id})" title="${t('shipments.barcode_tooltip')}">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 5v14M8 5v14M11 5v14M15 5v14M18 5v14M21 5v14"/></svg>
           </button>
-          <button class="w-8 h-8 rounded-lg bg-[#ffebec] hover:bg-[#ffd7da] text-[#ad1f2b] flex items-center justify-center transition-colors flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#ffebec]" onclick="confirmCancelShipment(${s.id})" title="${t('shipments.cancel_tooltip')}" ${s.status === 'cancelled' ? 'disabled' : ''}>
+          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[#ad1f2b] hover:bg-[#ffebec] transition-colors flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400" onclick="confirmCancelShipment(${s.id})" title="${t('shipments.cancel_tooltip')}" ${s.status === 'cancelled' ? 'disabled' : ''}>
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
@@ -2332,40 +2392,28 @@ function buildShipmentDetail() {
   ];
 
   return `
-    <div class="flex items-center gap-2 text-xs text-neutral-400 mb-2">
-      <a class="hover:text-neutral-600 cursor-pointer" onclick="backToShipmentsList()">${t('shipmentDetail.breadcrumb')}</a>
-      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
-      <span class="text-neutral-600 font-medium">${t('shipmentDetail.title', { no: s.shipmentNo })}</span>
-    </div>
-
-    <div class="flex items-center justify-between flex-wrap gap-3 mb-1">
-      <div class="flex items-center gap-3">
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
+      <div class="flex items-center gap-2 text-xs text-neutral-400">
+        <a class="hover:text-neutral-600 cursor-pointer" onclick="backToShipmentsList()">${t('shipmentDetail.breadcrumb')}</a>
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        <span class="text-neutral-600 font-medium">${t('shipmentDetail.title', { no: s.shipmentNo })}</span>
+      </div>
+      <div class="flex items-center gap-2">
         <button class="secondary-btn py-2 px-3" onclick="backToShipmentsList()">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
           ${t('shipmentDetail.back')}
-        </button>
-      </div>
-      <div class="flex items-center gap-2">
-        <button class="secondary-btn" onclick="openStatusUpdateModal(${s.id})">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4.5 9a8 8 0 0113.9-3.4L20 9M4 15l1.6 3.4A8 8 0 0019.5 15"/></svg>
-          ${t('shipmentDetail.status_update')}
         </button>
         <button class="secondary-btn" onclick="singleBarcode(${s.id})">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4a1 1 0 011-1h10a1 1 0 011 1v5M6 18h12M6 14h12v7H6v-7zM6 14a2 2 0 01-2-2v-3a2 2 0 012-2h12a2 2 0 012 2v3a2 2 0 01-2 2"/></svg>
           ${t('shipmentDetail.print_label')}
         </button>
-        <button class="secondary-btn" onclick="openShipmentEditModal(${s.id})" ${['delivered', 'cancelled', 'returned', 'recalled'].includes(s.status) ? 'disabled' : ''}>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-          Düzenle
-        </button>
-        <button class="secondary-btn" style="color:#c2570e;border-color:#ffddb0" onclick="confirmRecallShipment(${s.id})" ${s.status !== 'in_transit' ? 'disabled' : ''}>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-          Geri Çağır
-        </button>
-        <button class="secondary-btn" style="color:#ad1f2b;border-color:#ffc0c5" onclick="confirmCancelShipment(${s.id})" ${s.status === 'cancelled' ? 'disabled' : ''}>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-          ${t('shipmentDetail.cancel_shipment')}
-        </button>
+        ${buildActionMenu('shipmentDetail', [
+          { label: t('shipmentDetail.status_update'), icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4.5 9a8 8 0 0113.9-3.4L20 9M4 15l1.6 3.4A8 8 0 0019.5 15"/>', onclick: `openStatusUpdateModal(${s.id})` },
+          { label: 'Düzenle', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>', onclick: `openShipmentEditModal(${s.id})`, disabled: ['delivered', 'cancelled', 'returned', 'recalled'].includes(s.status) },
+          { label: 'Geri Çağır', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>', onclick: `confirmRecallShipment(${s.id})`, disabled: s.status !== 'in_transit' },
+          { divider: true },
+          { label: t('shipmentDetail.cancel_shipment'), icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>', onclick: `confirmCancelShipment(${s.id})`, disabled: s.status === 'cancelled', danger: true },
+        ])}
       </div>
     </div>
 
@@ -2469,9 +2517,7 @@ function buildStatusUpdateModal() {
         <p class="text-sm text-neutral-500 mb-4">
           ${t('statusModal.desc', { no: `<strong class="text-neutral-700">#${s ? s.shipmentNo : ''}</strong>` })}
         </p>
-        <select class="form-input" onchange="setStatusModalValue(this.value)">
-          ${options.map(k => `<option value="${k}" ${sm.value === k ? 'selected' : ''}>${statusLabel(k)}</option>`).join('')}
-        </select>
+        ${buildCustomSelect('statusModal', options.map(k => ({ value: k, label: statusLabel(k) })), sm.value, 'setStatusModalValue(__VALUE__)')}
         <div class="flex justify-end gap-3 mt-6">
           <button class="secondary-btn" onclick="closeStatusUpdateModal()">${t('common.cancel')}</button>
           <button class="primary-btn" onclick="applyStatusUpdate()">
@@ -2815,14 +2861,14 @@ function buildReturnRow(x, i) {
       <td class="px-5 py-3.5 text-neutral-500 text-[13px]">${fmtDateTimeStr(x.requestDate)}</td>
       <td class="px-5 py-3.5"><span class="badge ${st.badge}">${st.label}</span></td>
       <td class="px-5 py-3.5">
-        <div class="flex items-center gap-1.5 justify-end">
-          <button class="w-8 h-8 rounded-lg bg-primary-lighter hover:bg-primary-light text-primary flex items-center justify-center transition-colors flex-shrink-0" onclick="openReturnDetail(${x.id})" title="Detay">
+        <div class="flex items-center gap-1 justify-end">
+          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0" onclick="openReturnDetail(${x.id})" title="Detay">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
-          <button class="w-8 h-8 rounded-lg bg-[#e3f7ec] hover:bg-[#c9f0da] text-[#178c4e] flex items-center justify-center transition-colors flex-shrink-0" onclick="returnBarcode(${x.id})" title="Barkod Al">
+          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0" onclick="returnBarcode(${x.id})" title="Barkod Al">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 5v14M8 5v14M11 5v14M15 5v14M18 5v14M21 5v14"/></svg>
           </button>
-          <button class="w-8 h-8 rounded-lg bg-[#ffebec] hover:bg-[#ffd7da] text-[#ad1f2b] flex items-center justify-center transition-colors flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed" onclick="confirmCancelReturn(${x.id})" title="İptal Et" ${x.status === 'cancelled' || x.status === 'completed' ? 'disabled' : ''}>
+          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[#ad1f2b] hover:bg-[#ffebec] transition-colors flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400" onclick="confirmCancelReturn(${x.id})" title="İptal Et" ${x.status === 'cancelled' || x.status === 'completed' ? 'disabled' : ''}>
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
@@ -2887,44 +2933,29 @@ function buildReturnDetail() {
   }
 
   return `
-    <div class="flex items-center gap-2 text-xs text-neutral-400 mb-2">
-      <a class="hover:text-neutral-600 cursor-pointer" onclick="backToReturnsList()">İade Yönetimi</a>
-      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
-      <span class="text-neutral-600 font-medium">İade #${x.returnNo}</span>
-    </div>
-
-    <div class="flex items-center justify-between flex-wrap gap-3 mb-1">
-      <div class="flex items-center gap-3">
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
+      <div class="flex items-center gap-2 text-xs text-neutral-400">
+        <a class="hover:text-neutral-600 cursor-pointer" onclick="backToReturnsList()">İade Yönetimi</a>
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        <span class="text-neutral-600 font-medium">İade #${x.returnNo}</span>
+      </div>
+      <div class="flex items-center gap-2">
         <button class="secondary-btn py-2 px-3" onclick="backToReturnsList()">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
           Geri
-        </button>
-      </div>
-      <div class="flex items-center gap-2">
-        <button class="secondary-btn" onclick="openReturnStatusModal(${x.id})">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4.5 9a8 8 0 0113.9-3.4L20 9M4 15l1.6 3.4A8 8 0 0019.5 15"/></svg>
-          Statü Güncelleme
         </button>
         <button class="secondary-btn" onclick="returnBarcode(${x.id})">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 5v14M8 5v14M11 5v14M15 5v14M18 5v14M21 5v14"/></svg>
           İade Barkodu Yazdır
         </button>
-        <button class="secondary-btn" onclick="openReturnCarrierModal(${x.id})" ${x.status === 'cancelled' || x.status === 'completed' || x.status === 'recalled' ? 'disabled' : ''}>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
-          Kargo Firması Güncelle
-        </button>
-        <button class="secondary-btn" onclick="openReturnAddressModal(${x.id})" ${x.status === 'cancelled' || x.status === 'completed' || x.status === 'recalled' ? 'disabled' : ''}>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/></svg>
-          Adres Güncelle
-        </button>
-        <button class="secondary-btn" style="color:#c2570e;border-color:#ffddb0" onclick="confirmRecallReturn(${x.id})" ${x.status !== 'picked_up' ? 'disabled' : ''}>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-          Geri Çağır
-        </button>
-        <button class="secondary-btn" style="color:#ad1f2b;border-color:#ffc0c5" onclick="confirmCancelReturn(${x.id})" ${x.status === 'cancelled' || x.status === 'completed' ? 'disabled' : ''}>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-          İptal Et
-        </button>
+        ${buildActionMenu('returnDetail', [
+          { label: 'Statü Güncelleme', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4.5 9a8 8 0 0113.9-3.4L20 9M4 15l1.6 3.4A8 8 0 0019.5 15"/>', onclick: `openReturnStatusModal(${x.id})` },
+          { label: 'Kargo Firması Güncelle', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>', onclick: `openReturnCarrierModal(${x.id})`, disabled: x.status === 'cancelled' || x.status === 'completed' || x.status === 'recalled' },
+          { label: 'Adres Güncelle', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/>', onclick: `openReturnAddressModal(${x.id})`, disabled: x.status === 'cancelled' || x.status === 'completed' || x.status === 'recalled' },
+          { label: 'Geri Çağır', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>', onclick: `confirmRecallReturn(${x.id})`, disabled: x.status !== 'picked_up' },
+          { divider: true },
+          { label: 'İptal Et', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>', onclick: `confirmCancelReturn(${x.id})`, disabled: x.status === 'cancelled' || x.status === 'completed', danger: true },
+        ])}
       </div>
     </div>
 
@@ -2984,9 +3015,7 @@ function buildReturnCarrierModal() {
         <p class="text-sm text-neutral-500 mb-4">
           <strong class="text-neutral-700">İade #${x ? x.returnNo : ''}</strong> için yeni kurye firmasını seçin.
         </p>
-        <select class="form-input" onchange="setReturnCarrierValue(this.value)">
-          ${COMPANIES.map(c => `<option value="${c.id}" ${+m.companyId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-        </select>
+        ${buildCustomSelect('returnCarrierModal', COMPANIES.map(c => ({ value: c.id, label: c.name })), m.companyId, 'setReturnCarrierValue(__VALUE__)')}
         <div class="flex justify-end gap-3 mt-6">
           <button class="secondary-btn" onclick="closeReturnCarrierModal()">Vazgeç</button>
           <button class="primary-btn" onclick="applyReturnCarrierUpdate()">
@@ -3042,9 +3071,7 @@ function buildReturnStatusModal() {
         <p class="text-sm text-neutral-500 mb-4">
           <strong class="text-neutral-700">İade #${x ? x.returnNo : ''}</strong> talebinin yeni statüsünü seçin.
         </p>
-        <select class="form-input" onchange="setReturnStatusValue(this.value)">
-          ${options.map(k => `<option value="${k}" ${sm.value === k ? 'selected' : ''}>${RETURN_STATUS[k].label}</option>`).join('')}
-        </select>
+        ${buildCustomSelect('returnStatusModal', options.map(k => ({ value: k, label: RETURN_STATUS[k].label })), sm.value, 'setReturnStatusValue(__VALUE__)')}
         <div class="flex justify-end gap-3 mt-6">
           <button class="secondary-btn" onclick="closeReturnStatusModal()">Vazgeç</button>
           <button class="primary-btn" onclick="applyReturnStatusUpdate()">
@@ -3535,10 +3562,7 @@ function buildRoutingRulesTab() {
         </div>
         <div>
           <label class="form-label">İl</label>
-          <select class="form-input" onchange="setSimulatorField('provinceId', this.value)">
-            <option value="">İl seçin...</option>
-            ${PROVINCES.map(p => `<option value="${p.id}" ${sim.provinceId == p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
-          </select>
+          ${buildCustomSelect('routingSimulatorProvince', [{ value: '', label: 'İl seçin...' }, ...PROVINCES.map(p => ({ value: p.id, label: p.name }))], sim.provinceId, "setSimulatorField('provinceId', __VALUE__)", { placeholder: 'İl seçin...' })}
         </div>
         <div>
           <label class="form-label">Sipariş Tutarı</label>
@@ -3832,17 +3856,11 @@ function buildRoutingRuleModal() {
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="form-label">Birincil Kargo Firması <span class="text-[#fb3748]">*</span></label>
-                <select class="form-input" onchange="setRoutingRuleField('primaryCompanyId', this.value)">
-                  <option value="">Firma seçin...</option>
-                  ${COMPANIES.map(c => `<option value="${c.id}" ${f.primaryCompanyId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-                </select>
+                ${buildCustomSelect('routingRulePrimary', [{ value: '', label: 'Firma seçin...' }, ...COMPANIES.map(c => ({ value: c.id, label: c.name }))], f.primaryCompanyId, "setRoutingRuleField('primaryCompanyId', __VALUE__)", { placeholder: 'Firma seçin...' })}
               </div>
               <div>
                 <label class="form-label">Yedek Kargo Firması (Failover)</label>
-                <select class="form-input" onchange="setRoutingRuleField('failoverCompanyId', this.value)">
-                  <option value="">Yok</option>
-                  ${COMPANIES.map(c => `<option value="${c.id}" ${f.failoverCompanyId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-                </select>
+                ${buildCustomSelect('routingRuleFailover', [{ value: '', label: 'Yok' }, ...COMPANIES.map(c => ({ value: c.id, label: c.name }))], f.failoverCompanyId, "setRoutingRuleField('failoverCompanyId', __VALUE__)", { placeholder: 'Yok' })}
               </div>
             </div>
           </div>
@@ -4290,36 +4308,24 @@ function buildTransferDetail() {
   }
 
   return `
-    <div class="flex items-center gap-2 text-xs text-neutral-400 mb-2">
-      <a class="hover:text-neutral-600 cursor-pointer" onclick="backToTransfersList()">Transfer</a>
-      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
-      <span class="text-neutral-600 font-medium">Transfer #${x.transferNo}</span>
-    </div>
-
-    <div class="flex items-center justify-between flex-wrap gap-3 mb-1">
-      <div class="flex items-center gap-3">
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
+      <div class="flex items-center gap-2 text-xs text-neutral-400">
+        <a class="hover:text-neutral-600 cursor-pointer" onclick="backToTransfersList()">Transfer</a>
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        <span class="text-neutral-600 font-medium">Transfer #${x.transferNo}</span>
+      </div>
+      <div class="flex items-center gap-2">
         <button class="secondary-btn py-2 px-3" onclick="backToTransfersList()">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
           Geri
         </button>
-      </div>
-      <div class="flex items-center gap-2">
-        <button class="secondary-btn" onclick="openTransferNodeModal(${x.id})" ${x.status === 'cancelled' || x.status === 'delivered' || x.status === 'recalled' ? 'disabled' : ''}>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/></svg>
-          Adres (Node) Güncelle
-        </button>
-        <button class="secondary-btn" onclick="openTransferCarrierModal(${x.id})" ${x.status === 'cancelled' || x.status === 'delivered' || x.status === 'recalled' ? 'disabled' : ''}>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
-          Kargo Firması Güncelle
-        </button>
-        <button class="secondary-btn" style="color:#c2570e;border-color:#ffddb0" onclick="confirmRecallTransfer(${x.id})" ${x.status !== 'in_transit' ? 'disabled' : ''}>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-          Geri Çağır
-        </button>
-        <button class="secondary-btn" style="color:#ad1f2b;border-color:#ffc0c5" onclick="confirmCancelTransfer(${x.id})" ${x.status === 'cancelled' || x.status === 'delivered' ? 'disabled' : ''}>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-          İptal Et
-        </button>
+        ${buildActionMenu('transferDetail', [
+          { label: 'Adres (Node) Güncelle', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/>', onclick: `openTransferNodeModal(${x.id})`, disabled: x.status === 'cancelled' || x.status === 'delivered' || x.status === 'recalled' },
+          { label: 'Kargo Firması Güncelle', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>', onclick: `openTransferCarrierModal(${x.id})`, disabled: x.status === 'cancelled' || x.status === 'delivered' || x.status === 'recalled' },
+          { label: 'Geri Çağır', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>', onclick: `confirmRecallTransfer(${x.id})`, disabled: x.status !== 'in_transit' },
+          { divider: true },
+          { label: 'İptal Et', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>', onclick: `confirmCancelTransfer(${x.id})`, disabled: x.status === 'cancelled' || x.status === 'delivered', danger: true },
+        ])}
       </div>
     </div>
 
@@ -4406,9 +4412,7 @@ function buildTransferCarrierModal() {
         <p class="text-sm text-neutral-500 mb-4">
           <strong class="text-neutral-700">Transfer #${x ? x.transferNo : ''}</strong> için yeni taşıyıcıyı seçin.
         </p>
-        <select class="form-input" onchange="setTransferCarrierValue(this.value)">
-          ${COMPANIES.map(c => `<option value="${c.id}" ${+m.companyId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-        </select>
+        ${buildCustomSelect('transferCarrierModal', COMPANIES.map(c => ({ value: c.id, label: c.name })), m.companyId, 'setTransferCarrierValue(__VALUE__)')}
         <div class="flex justify-end gap-3 mt-6">
           <button class="secondary-btn" onclick="closeTransferCarrierModal()">Vazgeç</button>
           <button class="primary-btn" onclick="applyTransferCarrierUpdate()">
@@ -4434,15 +4438,11 @@ function buildTransferNodeModal() {
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="form-label">Kaynak Node</label>
-            <select class="form-input" onchange="setTransferNodeField('fromNodeId', this.value)">
-              ${NODES.map(n => `<option value="${n.id}" ${+m.fromNodeId === n.id ? 'selected' : ''}>${n.name}</option>`).join('')}
-            </select>
+            ${buildCustomSelect('transferNodeFrom', NODES.map(n => ({ value: n.id, label: n.name })), m.fromNodeId, "setTransferNodeField('fromNodeId', __VALUE__)")}
           </div>
           <div>
             <label class="form-label">Hedef Node</label>
-            <select class="form-input" onchange="setTransferNodeField('toNodeId', this.value)">
-              ${NODES.map(n => `<option value="${n.id}" ${+m.toNodeId === n.id ? 'selected' : ''}>${n.name}</option>`).join('')}
-            </select>
+            ${buildCustomSelect('transferNodeTo', NODES.map(n => ({ value: n.id, label: n.name })), m.toNodeId, "setTransferNodeField('toNodeId', __VALUE__)")}
           </div>
         </div>
         ${m.fromNodeId && m.toNodeId && +m.fromNodeId === +m.toNodeId ? `<p class="form-error mt-2">Kaynak ve hedef node aynı olamaz.</p>` : ''}
@@ -4522,26 +4522,17 @@ function buildTransferCreatePage() {
       <div class="grid grid-cols-2 gap-5">
         <div>
           <label class="form-label">Kaynak Node <span class="text-[#fb3748]">*</span></label>
-          <select class="form-input ${e.fromNodeId ? 'error' : ''}" onchange="setTransferCreateField('fromNodeId', this.value)">
-            <option value="">Node seçin...</option>
-            ${NODES.map(n => `<option value="${n.id}" ${f.fromNodeId == n.id ? 'selected' : ''}>${n.name}</option>`).join('')}
-          </select>
+          ${buildCustomSelect('transferCreateFrom', [{ value: '', label: 'Node seçin...' }, ...NODES.map(n => ({ value: n.id, label: n.name }))], f.fromNodeId, "setTransferCreateField('fromNodeId', __VALUE__)", { placeholder: 'Node seçin...', error: !!e.fromNodeId })}
           ${e.fromNodeId ? `<p class="form-error">${e.fromNodeId}</p>` : ''}
         </div>
         <div>
           <label class="form-label">Hedef Node <span class="text-[#fb3748]">*</span></label>
-          <select class="form-input ${e.toNodeId ? 'error' : ''}" onchange="setTransferCreateField('toNodeId', this.value)">
-            <option value="">Node seçin...</option>
-            ${NODES.map(n => `<option value="${n.id}" ${f.toNodeId == n.id ? 'selected' : ''}>${n.name}</option>`).join('')}
-          </select>
+          ${buildCustomSelect('transferCreateTo', [{ value: '', label: 'Node seçin...' }, ...NODES.map(n => ({ value: n.id, label: n.name }))], f.toNodeId, "setTransferCreateField('toNodeId', __VALUE__)", { placeholder: 'Node seçin...', error: !!e.toNodeId })}
           ${e.toNodeId ? `<p class="form-error">${e.toNodeId}</p>` : ''}
         </div>
         <div>
           <label class="form-label">Kargo Firması <span class="text-[#fb3748]">*</span></label>
-          <select class="form-input ${e.companyId ? 'error' : ''}" onchange="setTransferCreateField('companyId', this.value)">
-            <option value="">Firma seçin...</option>
-            ${COMPANIES.map(c => `<option value="${c.id}" ${f.companyId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-          </select>
+          ${buildCustomSelect('transferCreateCompany', [{ value: '', label: 'Firma seçin...' }, ...COMPANIES.map(c => ({ value: c.id, label: c.name }))], f.companyId, "setTransferCreateField('companyId', __VALUE__)", { placeholder: 'Firma seçin...', error: !!e.companyId })}
           ${e.companyId ? `<p class="form-error">${e.companyId}</p>` : ''}
         </div>
         <div>
@@ -4703,9 +4694,7 @@ function buildPricingModal() {
         <div class="flex flex-col gap-4">
           <div>
             <label class="form-label">Kargo Firması</label>
-            <select class="form-input" onchange="setPricingField('companyId', this.value)">
-              ${COMPANIES.map(c => `<option value="${c.id}" ${+f.companyId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-            </select>
+            ${buildCustomSelect('financePricingCompany', COMPANIES.map(c => ({ value: c.id, label: c.name })), f.companyId, "setPricingField('companyId', __VALUE__)")}
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -4833,9 +4822,7 @@ function buildInvoiceModal() {
         <div class="flex flex-col gap-4">
           <div>
             <label class="form-label">Kargo Firması</label>
-            <select class="form-input" onchange="setInvoiceField('companyId', this.value)">
-              ${COMPANIES.map(c => `<option value="${c.id}" ${+f.companyId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-            </select>
+            ${buildCustomSelect('financeInvoiceCompany', COMPANIES.map(c => ({ value: c.id, label: c.name })), f.companyId, "setInvoiceField('companyId', __VALUE__)")}
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -4859,9 +4846,7 @@ function buildInvoiceModal() {
           </div>
           <div>
             <label class="form-label">Durum</label>
-            <select class="form-input" onchange="setInvoiceField('status', this.value)">
-              ${Object.keys(INVOICE_STATUS).map(k => `<option value="${k}" ${f.status === k ? 'selected' : ''}>${INVOICE_STATUS[k].label}</option>`).join('')}
-            </select>
+            ${buildCustomSelect('financeInvoiceStatus', Object.keys(INVOICE_STATUS).map(k => ({ value: k, label: INVOICE_STATUS[k].label })), f.status, "setInvoiceField('status', __VALUE__)")}
           </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
@@ -5176,17 +5161,11 @@ function buildReportsPage() {
       </div>
       <div style="min-width:180px">
         <label class="form-label">Kargo Firması</label>
-        <select class="form-input" onchange="setReportFilter('companyId', this.value)">
-          <option value="">Tümü</option>
-          ${COMPANIES.map(c => `<option value="${c.id}" ${r.companyId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-        </select>
+        ${buildCustomSelect('reportsCompany', [{ value: '', label: 'Tümü' }, ...COMPANIES.map(c => ({ value: c.id, label: c.name }))], r.companyId, "setReportFilter('companyId', __VALUE__)")}
       </div>
       <div style="min-width:160px">
         <label class="form-label">Bölge</label>
-        <select class="form-input" onchange="setReportFilter('provinceId', this.value)">
-          <option value="">Tümü</option>
-          ${PROVINCES.map(p => `<option value="${p.id}" ${r.provinceId == p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
-        </select>
+        ${buildCustomSelect('reportsProvince', [{ value: '', label: 'Tümü' }, ...PROVINCES.map(p => ({ value: p.id, label: p.name }))], r.provinceId, "setReportFilter('provinceId', __VALUE__)")}
       </div>
     </div>
 
@@ -5409,9 +5388,7 @@ function buildUserModal() {
           </div>
           <div>
             <label class="form-label">Rol</label>
-            <select class="form-input" onchange="setUserModalField('role', this.value)">
-              ${Object.keys(USER_ROLES).map(k => `<option value="${k}" ${m.role === k ? 'selected' : ''}>${USER_ROLES[k].label}</option>`).join('')}
-            </select>
+            ${buildCustomSelect('userModalRole', Object.keys(USER_ROLES).map(k => ({ value: k, label: USER_ROLES[k].label })), m.role, "setUserModalField('role', __VALUE__)")}
           </div>
           <div class="flex items-center justify-between p-4 rounded-xl border border-neutral-100 bg-neutral-50/50">
             <p class="text-sm font-medium text-neutral-950">Aktif Kullanıcı</p>
@@ -5612,16 +5589,11 @@ function buildTemplateModal() {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="form-label">Tip</label>
-              <select class="form-input" onchange="setTemplateField('type', this.value)">
-                <option value="sms" ${f.type === 'sms' ? 'selected' : ''}>SMS</option>
-                <option value="email" ${f.type === 'email' ? 'selected' : ''}>Email</option>
-              </select>
+              ${buildCustomSelect('templateType', [{ value: 'sms', label: 'SMS' }, { value: 'email', label: 'Email' }], f.type, "setTemplateField('type', __VALUE__)")}
             </div>
             <div>
               <label class="form-label">Tetikleyici Olay</label>
-              <select class="form-input" onchange="setTemplateField('trigger', this.value)">
-                ${Object.keys(TEMPLATE_TRIGGERS).map(k => `<option value="${k}" ${f.trigger === k ? 'selected' : ''}>${TEMPLATE_TRIGGERS[k]}</option>`).join('')}
-              </select>
+              ${buildCustomSelect('templateTrigger', Object.keys(TEMPLATE_TRIGGERS).map(k => ({ value: k, label: TEMPLATE_TRIGGERS[k] })), f.trigger, "setTemplateField('trigger', __VALUE__)")}
             </div>
           </div>
           ${f.type === 'email' ? `
@@ -5746,16 +5718,11 @@ function buildBarcodeTemplateModal() {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="form-label">Kargo Firması</label>
-              <select class="form-input" onchange="setBarcodeTemplateField('companyId', this.value)">
-                <option value="" ${!f.companyId ? 'selected' : ''}>Tüm Firmalar</option>
-                ${COMPANIES.map(c => `<option value="${c.id}" ${+f.companyId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-              </select>
+              ${buildCustomSelect('barcodeTemplateCompany', [{ value: '', label: 'Tüm Firmalar' }, ...COMPANIES.map(c => ({ value: c.id, label: c.name }))], f.companyId, "setBarcodeTemplateField('companyId', __VALUE__)", { placeholder: 'Tüm Firmalar' })}
             </div>
             <div>
               <label class="form-label">Format</label>
-              <select class="form-input" onchange="setBarcodeTemplateField('format', this.value)">
-                ${BARCODE_FORMATS.map(bf => `<option value="${bf.key}" ${f.format === bf.key ? 'selected' : ''}>${bf.label}</option>`).join('')}
-              </select>
+              ${buildCustomSelect('barcodeTemplateFormat', BARCODE_FORMATS.map(bf => ({ value: bf.key, label: bf.label })), f.format, "setBarcodeTemplateField('format', __VALUE__)")}
             </div>
           </div>
           <div>
@@ -6289,9 +6256,7 @@ function buildShipmentCreatePage() {
             </div>
             <div>
               <label class="form-label">Kanal</label>
-              <select class="form-input" onchange="setShipmentCreateField('channel', this.value)">
-                ${SHIPMENT_CHANNELS.map(c => `<option ${f.channel === c ? 'selected' : ''}>${c}</option>`).join('')}
-              </select>
+              ${buildCustomSelect('shipmentCreateChannel', SHIPMENT_CHANNELS.map(c => ({ value: c, label: c })), f.channel, "setShipmentCreateField('channel', __VALUE__)")}
             </div>
           </div>
         </div>
@@ -6302,18 +6267,12 @@ function buildShipmentCreatePage() {
           <div class="grid grid-cols-2 gap-5">
             <div>
               <label class="form-label">Kargo Firması <span class="text-[#fb3748]">*</span></label>
-              <select class="form-input ${e.companyId ? 'error' : ''}" onchange="setShipmentCreateField('companyId', this.value)">
-                <option value="">Firma seçin...</option>
-                ${COMPANIES.map(c => `<option value="${c.id}" ${f.companyId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-              </select>
+              ${buildCustomSelect('shipmentCreateCompany', [{ value: '', label: 'Firma seçin...' }, ...COMPANIES.map(c => ({ value: c.id, label: c.name }))], f.companyId, "setShipmentCreateField('companyId', __VALUE__)", { placeholder: 'Firma seçin...', error: !!e.companyId })}
               ${e.companyId ? `<p class="form-error">${e.companyId}</p>` : ''}
             </div>
             <div>
               <label class="form-label">Sevk Yeri (Depo) <span class="text-[#fb3748]">*</span></label>
-              <select class="form-input ${e.shipFrom ? 'error' : ''}" onchange="setShipmentCreateField('shipFrom', this.value)">
-                <option value="">Depo seçin...</option>
-                ${NODES.map(n => `<option value="${n.name}" ${f.shipFrom === n.name ? 'selected' : ''}>${n.name}</option>`).join('')}
-              </select>
+              ${buildCustomSelect('shipmentCreateFrom', [{ value: '', label: 'Depo seçin...' }, ...NODES.map(n => ({ value: n.name, label: n.name }))], f.shipFrom, "setShipmentCreateField('shipFrom', __VALUE__)", { placeholder: 'Depo seçin...', error: !!e.shipFrom })}
               ${e.shipFrom ? `<p class="form-error">${e.shipFrom}</p>` : ''}
             </div>
             <div>
@@ -6329,18 +6288,12 @@ function buildShipmentCreatePage() {
           <div class="grid grid-cols-2 gap-5">
             <div>
               <label class="form-label">İl <span class="text-[#fb3748]">*</span></label>
-              <select class="form-input ${e.provinceId ? 'error' : ''}" onchange="setShipmentCreateProvince(this.value)">
-                <option value="">İl seçin...</option>
-                ${PROVINCES.map(p => `<option value="${p.id}" ${f.provinceId == p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
-              </select>
+              ${buildCustomSelect('shipmentCreateProvince', [{ value: '', label: 'İl seçin...' }, ...PROVINCES.map(p => ({ value: p.id, label: p.name }))], f.provinceId, 'setShipmentCreateProvince(__VALUE__)', { placeholder: 'İl seçin...', error: !!e.provinceId })}
               ${e.provinceId ? `<p class="form-error">${e.provinceId}</p>` : ''}
             </div>
             <div>
               <label class="form-label">İlçe <span class="text-[#fb3748]">*</span></label>
-              <select class="form-input ${e.district ? 'error' : ''}" onchange="setShipmentCreateField('district', this.value)" ${!province ? 'disabled' : ''}>
-                <option value="">İlçe seçin...</option>
-                ${province ? province.districts.map(d => `<option ${f.district === d ? 'selected' : ''}>${d}</option>`).join('') : ''}
-              </select>
+              ${buildCustomSelect('shipmentCreateDistrict', [{ value: '', label: 'İlçe seçin...' }, ...(province ? province.districts.map(d => ({ value: d, label: d })) : [])], f.district, "setShipmentCreateField('district', __VALUE__)", { placeholder: 'İlçe seçin...', error: !!e.district, disabled: !province })}
               ${e.district ? `<p class="form-error">${e.district}</p>` : ''}
             </div>
           </div>
@@ -6452,10 +6405,7 @@ function buildReturnCreatePage() {
       <div class="flex flex-col gap-5">
         <div>
           <label class="form-label">Orijinal Gönderi <span class="text-[#fb3748]">*</span></label>
-          <select class="form-input ${e.originalShipmentId ? 'error' : ''}" onchange="setReturnCreateField('originalShipmentId', this.value)">
-            <option value="">Gönderi seçin...</option>
-            ${SHIPMENTS.map(s => `<option value="${s.id}" ${f.originalShipmentId == s.id ? 'selected' : ''}>#${s.shipmentNo} — ${s.customerName} (${getCompany(s.companyId)?.name || ''})</option>`).join('')}
-          </select>
+          ${buildCustomSelect('returnCreateOriginalShipment', [{ value: '', label: 'Gönderi seçin...' }, ...SHIPMENTS.map(s => ({ value: s.id, label: `#${s.shipmentNo} — ${s.customerName} (${getCompany(s.companyId)?.name || ''})` }))], f.originalShipmentId, "setReturnCreateField('originalShipmentId', __VALUE__)", { placeholder: 'Gönderi seçin...', error: !!e.originalShipmentId })}
           ${e.originalShipmentId ? `<p class="form-error">${e.originalShipmentId}</p>` : ''}
         </div>
 
@@ -6470,9 +6420,7 @@ function buildReturnCreatePage() {
 
         <div>
           <label class="form-label">İade Nedeni</label>
-          <select class="form-input" onchange="setReturnCreateField('reason', this.value)">
-            ${Object.keys(RETURN_REASONS).map(k => `<option value="${k}" ${f.reason === k ? 'selected' : ''}>${RETURN_REASONS[k]}</option>`).join('')}
-          </select>
+          ${buildCustomSelect('returnCreateReason', Object.keys(RETURN_REASONS).map(k => ({ value: k, label: RETURN_REASONS[k] })), f.reason, "setReturnCreateField('reason', __VALUE__)")}
         </div>
 
         <div class="flex items-center justify-between p-4 rounded-xl border border-neutral-100 bg-neutral-50/50">
@@ -6826,10 +6774,7 @@ function buildStep1() {
 
       <div class="col-span-2">
         <label class="form-label">${t('step1.company_label')} <span class="text-[#fb3748]">*</span></label>
-        <select class="form-input ${e.companyId?'error':''}" onchange="setField('companyId', this.value)">
-          <option value="">${t('step1.company_placeholder')}</option>
-          ${COMPANIES.map(c => `<option value="${c.id}" ${f.companyId==c.id?'selected':''}>${c.name}</option>`).join('')}
-        </select>
+        ${buildCustomSelect('contractWizardCompany', [{ value: '', label: t('step1.company_placeholder') }, ...COMPANIES.map(c => ({ value: c.id, label: c.name }))], f.companyId, "setField('companyId', __VALUE__)", { placeholder: t('step1.company_placeholder'), error: !!e.companyId })}
         ${e.companyId ? `<p class="form-error">${e.companyId}</p>` : ''}
       </div>
 
