@@ -564,21 +564,6 @@ let carrierQuotas = [
 function getCarrierQuota(companyId) { return carrierQuotas.find(q => q.companyId === companyId); }
 
 // =========================================================
-// STATUS MAPLEME — Kargo firması statü → standart statü eşleme
-// =========================================================
-let statusMappings = [
-  { id: 1, companyId: 1, carrierStatus: 'Depoda Hazırlanıyor', standardStatus: 'preparing' },
-  { id: 2, companyId: 1, carrierStatus: 'Dağıtıma Çıktı',       standardStatus: 'in_transit' },
-  { id: 3, companyId: 1, carrierStatus: 'Teslim Edildi',        standardStatus: 'delivered' },
-  { id: 4, companyId: 2, carrierStatus: 'Picked Up',            standardStatus: 'in_transit' },
-  { id: 5, companyId: 2, carrierStatus: 'Delivered',            standardStatus: 'delivered' },
-  { id: 6, companyId: 6, carrierStatus: 'In Transit',           standardStatus: 'in_transit' },
-  { id: 7, companyId: 6, carrierStatus: 'Delivered - Signed',   standardStatus: 'delivered' },
-];
-
-function newStatusMappingId() { return Math.max(0, ...statusMappings.map(m => m.id)) + 1; }
-
-// =========================================================
 // ENTEGRASYON & İZLEME — 2.15 Loglama / 2.2.5 Webhook / 2.14 Hata Yönetimi
 // =========================================================
 const CARRIER_HEALTH = [
@@ -781,7 +766,6 @@ const I18N = {
     'sidebar.nav_barcode_templates': 'Barkod Şablonları',
     'sidebar.nav_finance': 'Finans',
     'sidebar.nav_performance': 'Kargo Performansı',
-    'sidebar.nav_status_mapping': 'Statü Mapleme',
     'sidebar.nav_transfers': 'Transfer',
     'sidebar.settings': 'Ayarlar',
     'sidebar.role_admin': 'Admin',
@@ -1047,7 +1031,6 @@ const I18N = {
     'sidebar.nav_barcode_templates': 'Barkod Şablonları',
     'sidebar.nav_finance': 'Finans',
     'sidebar.nav_performance': 'Kargo Performansı',
-    'sidebar.nav_status_mapping': 'Statü Mapleme',
     'sidebar.nav_transfers': 'Transfer',
     'sidebar.settings': 'Settings',
     'sidebar.role_admin': 'Admin',
@@ -1417,10 +1400,6 @@ let S = {
     quotaModal: { show: false, companyId: null, monthlyLimit: '' },
   },
 
-  statusMapping: {
-    editModal: { show: false, id: null, form: null },
-  },
-
   shipmentCreate: {
     orderNo: '', companyId: '', cargoType: 'order', customerName: '',
     shipFrom: '', provinceId: '', district: '', referenceId: '', packageNo: '',
@@ -1530,7 +1509,6 @@ function buildSidebar() {
       <p class="nav-section-label">Otomasyon</p>
       ${sidebarNavItem('routing', `<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>`, 'sidebar.nav_routing')}
       ${sidebarNavItem('monitoring', `<path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"/>`, 'sidebar.nav_monitoring')}
-      ${sidebarNavItem('statusMapping', `<path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/>`, 'sidebar.nav_status_mapping')}
 
       <p class="nav-section-label">Finans</p>
       ${sidebarNavItem('finance', `<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15" stroke-linecap="round"/>`, 'sidebar.nav_finance')}
@@ -1565,7 +1543,6 @@ const PAGE_ICONS = {
   nodes: `<rect x="2" y="3" width="20" height="5" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12" stroke-linecap="round"/>`,
   routing: `<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>`,
   monitoring: `<path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"/>`,
-  statusMapping: `<path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/>`,
   transfers: `<path stroke-linecap="round" stroke-linejoin="round" d="M8 7h13M8 7l4-4M8 7l4 4M16 17H3m13 0l-4 4m4-4l-4-4"/>`,
   transferCreate: `<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>`,
   reports: `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M8 17V10m5 7V6m5 11v-4"/>`,
@@ -1605,7 +1582,6 @@ function getHeaderInfo() {
     case 'barcodeTemplates': return { title: 'Barkod Şablonları', desc: 'Kargo firmasına göre barkod etiket şablonlarını yönetin' };
     case 'finance': return { title: 'Finans', desc: 'Fiyatlandırma, fatura işlemleri ve kota bilgileri' };
     case 'performance': return { title: 'Kargo Performansı', desc: 'Kargo firması bazlı teslimat ve maliyet performansı' };
-    case 'statusMapping': return { title: 'Statü Mapleme', desc: 'Kargo firması statülerini standart statülere eşleyin' };
     case 'transfers':
       if (S.transfers.view === 'detail') {
         const x = transfers.find(tr => tr.id === S.transfers.detailId);
@@ -4630,139 +4606,6 @@ function submitTransferCreate() {
 }
 
 // =========================================================
-// STATÜ MAPLEME SAYFASI
-// =========================================================
-function buildStatusMappingPage() {
-  return `
-    <div class="flex items-center justify-between mb-6">
-      <p class="text-sm text-neutral-500">${statusMappings.length} eşleme tanımlı — kargo firması statüleri ile standart statüler arasında ilişki</p>
-      <button class="primary-btn" onclick="openStatusMappingModal(null)">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-        Yeni Eşleme Ekle
-      </button>
-    </div>
-
-    <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden" style="box-shadow:0 1px 2px 0 #0a0d1408">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="text-left border-b border-neutral-100">
-            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kargo Firması</th>
-            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Firma Statüsü</th>
-            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider"></th>
-            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Standart Statü</th>
-            <th class="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right">İşlemler</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${statusMappings.map((m, i) => buildStatusMappingRow(m, i)).join('')}
-        </tbody>
-      </table>
-    </div>
-
-    ${S.statusMapping.editModal.show ? buildStatusMappingModal() : ''}
-  `;
-}
-
-function buildStatusMappingRow(m, i) {
-  const even = i % 2 === 0;
-  const co = getCompany(m.companyId);
-  const st = SHIPMENT_STATUS[m.standardStatus];
-  return `
-    <tr class="${even ? 'bg-white' : 'bg-neutral-50/50'} hover:bg-primary-lighter/20 transition-colors">
-      <td class="px-5 py-3.5 font-medium text-neutral-700">${co ? co.name : t('common.unknown')}</td>
-      <td class="px-5 py-3.5 text-neutral-500 font-mono text-xs">${m.carrierStatus}</td>
-      <td class="px-5 py-3.5 text-neutral-300">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-      </td>
-      <td class="px-5 py-3.5"><span class="badge ${st.badge}">${statusLabel(m.standardStatus)}</span></td>
-      <td class="px-5 py-3.5">
-        <div class="flex items-center gap-1.5 justify-end">
-          <button class="action-btn btn-edit" onclick="openStatusMappingModal(${m.id})">
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-            Düzenle
-          </button>
-          <button class="action-btn btn-delete" onclick="deleteStatusMapping(${m.id})">
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            Sil
-          </button>
-        </div>
-      </td>
-    </tr>
-  `;
-}
-
-function buildStatusMappingModal() {
-  const m = S.statusMapping.editModal;
-  const f = m.form;
-  return `
-    <div class="overlay" onclick="if(event.target===this)closeStatusMappingModal()">
-      <div class="modal-box w-full max-w-md p-6">
-        <h3 class="font-semibold text-neutral-950 mb-4">${m.id ? 'Eşlemeyi Düzenle' : 'Yeni Eşleme Ekle'}</h3>
-        <div class="flex flex-col gap-4">
-          <div>
-            <label class="form-label">Kargo Firması</label>
-            <select class="form-input" onchange="setStatusMappingField('companyId', this.value)">
-              ${COMPANIES.map(c => `<option value="${c.id}" ${+f.companyId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-            </select>
-          </div>
-          <div>
-            <label class="form-label">Kargo Firması Statüsü <span class="text-[#fb3748]">*</span></label>
-            <input type="text" class="form-input" value="${f.carrierStatus}" placeholder="Örn. Dağıtıma Çıktı" oninput="setStatusMappingField('carrierStatus', this.value)" />
-          </div>
-          <div>
-            <label class="form-label">Standart Statü</label>
-            <select class="form-input" onchange="setStatusMappingField('standardStatus', this.value)">
-              ${Object.keys(SHIPMENT_STATUS).map(k => `<option value="${k}" ${f.standardStatus === k ? 'selected' : ''}>${statusLabel(k)}</option>`).join('')}
-            </select>
-          </div>
-        </div>
-        <div class="flex justify-end gap-3 mt-6">
-          <button class="secondary-btn" onclick="closeStatusMappingModal()">Vazgeç</button>
-          <button class="primary-btn" onclick="saveStatusMapping()" ${!f.carrierStatus.trim() ? 'disabled' : ''}>
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-            Kaydet
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function openStatusMappingModal(id) {
-  if (id === null) {
-    S.statusMapping.editModal = { show: true, id: null, form: { companyId: COMPANIES[0].id, carrierStatus: '', standardStatus: 'preparing' } };
-  } else {
-    const m = statusMappings.find(x => x.id === id);
-    if (!m) return;
-    S.statusMapping.editModal = { show: true, id, form: { companyId: m.companyId, carrierStatus: m.carrierStatus, standardStatus: m.standardStatus } };
-  }
-  render();
-}
-function closeStatusMappingModal() { S.statusMapping.editModal.show = false; render(); }
-function setStatusMappingField(field, val) { S.statusMapping.editModal.form[field] = val; render(); }
-function saveStatusMapping() {
-  const m = S.statusMapping.editModal;
-  const f = m.form;
-  if (!f.carrierStatus.trim()) return;
-  const payload = { companyId: +f.companyId, carrierStatus: f.carrierStatus.trim(), standardStatus: f.standardStatus };
-  if (m.id) {
-    const idx = statusMappings.findIndex(x => x.id === m.id);
-    if (idx >= 0) statusMappings[idx] = { ...statusMappings[idx], ...payload };
-    toast('Eşleme güncellendi.', 'success');
-  } else {
-    statusMappings.push({ id: newStatusMappingId(), ...payload });
-    toast('Yeni eşleme oluşturuldu.', 'success');
-  }
-  S.statusMapping.editModal.show = false;
-  render();
-}
-function deleteStatusMapping(id) {
-  statusMappings = statusMappings.filter(x => x.id !== id);
-  toast('Eşleme silindi.', 'info');
-  render();
-}
-
-// =========================================================
 // FİNANS SAYFASI — Fiyatlandırma / Fatura / Kota
 // =========================================================
 function buildFinancePage() {
@@ -6736,9 +6579,6 @@ function buildApp() {
   }
   if (S.page === 'performance') {
     return `<div class="max-w-6xl mx-auto px-4 py-8">${buildPerformancePage()}</div>`;
-  }
-  if (S.page === 'statusMapping') {
-    return `<div class="max-w-6xl mx-auto px-4 py-8">${buildStatusMappingPage()}</div>`;
   }
   if (S.page === 'transfers') {
     return `<div class="max-w-6xl mx-auto px-4 py-8">${S.transfers.view === 'detail' ? buildTransferDetail() : buildTransfersPage()}</div>`;
