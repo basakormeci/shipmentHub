@@ -196,7 +196,7 @@ export function TemplatesPage() {
   const [createOpen, setCreateOpen] = useState(false)
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="page-container">
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-neutral-500">
           {templates.length} şablon tanımlı — SMS ve e-posta bildirimleri için parametrik metinler

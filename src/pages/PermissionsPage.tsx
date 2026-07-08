@@ -9,7 +9,7 @@ export function PermissionsPage() {
   const roles = Object.keys(USER_ROLES) as UserRole[]
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="page-container">
       <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
         <div className="px-5 py-3.5 border-b border-neutral-100">
           <p className="text-sm font-semibold text-neutral-950">Rol Bazlı Yetki Matrisi</p>

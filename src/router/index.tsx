@@ -26,6 +26,7 @@ import { TransferCreatePage } from '../pages/transfers/TransferCreatePage'
 import { TransferDetailPage } from '../pages/transfers/TransferDetailPage'
 import { ContractsPage } from '../pages/contracts/ContractsPage'
 import { ContractWizardPage } from '../pages/contracts/ContractWizardPage'
+import { ProfilePage } from '../pages/ProfilePage'
 
 export const router = createBrowserRouter([
   {
@@ -92,6 +93,7 @@ export const router = createBrowserRouter([
       { path: 'permissions', element: <PermissionsPage /> },
       { path: 'templates', element: <TemplatesPage /> },
       { path: 'barcode-templates', element: <BarcodeTemplatesPage /> },
+      { path: 'profile', element: <ProfilePage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

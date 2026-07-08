@@ -155,7 +155,7 @@ export function ContractsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="page-container">
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-neutral-500">{t('contracts.count', { n: contracts.length })}</p>
         <div className="flex items-center gap-2">

@@ -199,7 +199,7 @@ export function TransferDetailPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="page-container">
       <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
         <div className="flex items-center gap-2 text-xs text-neutral-400">
           <Link to="/transfers" className="hover:text-neutral-600">

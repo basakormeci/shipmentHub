@@ -54,7 +54,7 @@ export function ReturnCreatePage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="page-container">
       <div className="bg-white rounded-lg border border-neutral-200 p-6 max-w-2xl">
         <div className="flex flex-col gap-5">
           <div>

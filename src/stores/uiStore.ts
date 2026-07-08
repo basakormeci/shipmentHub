@@ -4,6 +4,8 @@ import type { Lang } from '../data/seed'
 import type { ShipmentColumnKey, ShipmentSearchField } from '../lib/shipments'
 import type { ContractForm, ReturnStatus, ShipmentStatus, TransferStatus } from '../data/catalog'
 import { emptyContractForm, type ContractFilterStatus } from '../lib/contracts'
+import type { ReturnColumnKey, ReturnSearchField } from '../lib/returns'
+import type { TransferColumnKey, TransferSearchField } from '../lib/transfers'
 
 interface UiState {
   lang: Lang
@@ -28,9 +30,20 @@ interface UiState {
   shipmentsPage: number
   shipmentsVisibleColumns: Partial<Record<ShipmentColumnKey, boolean>>
   returnsSearch: string
+  returnsSearchField: ReturnSearchField
   returnsFilterStatus: ReturnStatus | 'all'
+  returnsFilterCompanyId: string
+  returnsFilterReason: string
+  returnsDateFrom: string
+  returnsDateTo: string
+  returnsVisibleColumns: Partial<Record<ReturnColumnKey, boolean>>
   transfersSearch: string
+  transfersSearchField: TransferSearchField
   transfersFilterStatus: TransferStatus | 'all'
+  transfersFilterCompanyId: string
+  transfersDateFrom: string
+  transfersDateTo: string
+  transfersVisibleColumns: Partial<Record<TransferColumnKey, boolean>>
   contractsFilterStatus: ContractFilterStatus
   contractWizard: { step: number; editingId: number | null; f: ContractForm }
   setLang: (lang: Lang) => void
@@ -60,9 +73,36 @@ interface UiState {
     >,
   ) => void
   resetShipmentsFilters: () => void
-  setReturnsFilter: (patch: Partial<Pick<UiState, 'returnsSearch' | 'returnsFilterStatus'>>) => void
+  setReturnsFilter: (
+    patch: Partial<
+      Pick<
+        UiState,
+        | 'returnsSearch'
+        | 'returnsSearchField'
+        | 'returnsFilterStatus'
+        | 'returnsFilterCompanyId'
+        | 'returnsFilterReason'
+        | 'returnsDateFrom'
+        | 'returnsDateTo'
+        | 'returnsVisibleColumns'
+      >
+    >,
+  ) => void
   resetReturnsFilters: () => void
-  setTransfersFilter: (patch: Partial<Pick<UiState, 'transfersSearch' | 'transfersFilterStatus'>>) => void
+  setTransfersFilter: (
+    patch: Partial<
+      Pick<
+        UiState,
+        | 'transfersSearch'
+        | 'transfersSearchField'
+        | 'transfersFilterStatus'
+        | 'transfersFilterCompanyId'
+        | 'transfersDateFrom'
+        | 'transfersDateTo'
+        | 'transfersVisibleColumns'
+      >
+    >,
+  ) => void
   resetTransfersFilters: () => void
   setContractsFilterStatus: (status: ContractFilterStatus) => void
   setContractWizard: (patch: Partial<{ step: number; editingId: number | null; f: ContractForm }>) => void
@@ -94,9 +134,20 @@ export const useUiStore = create<UiState>()(
       shipmentsPage: 1,
       shipmentsVisibleColumns: {},
       returnsSearch: '',
+      returnsSearchField: 'returnNo',
       returnsFilterStatus: 'all',
+      returnsFilterCompanyId: '',
+      returnsFilterReason: '',
+      returnsDateFrom: '',
+      returnsDateTo: '',
+      returnsVisibleColumns: {},
       transfersSearch: '',
+      transfersSearchField: 'transferNo',
       transfersFilterStatus: 'all',
+      transfersFilterCompanyId: '',
+      transfersDateFrom: '',
+      transfersDateTo: '',
+      transfersVisibleColumns: {},
       contractsFilterStatus: 'all',
       contractWizard: { step: 1, editingId: null, f: emptyContractForm() },
       setLang: (lang) => set({ lang, langMenuOpen: false }),
@@ -124,9 +175,24 @@ export const useUiStore = create<UiState>()(
           shipmentsPage: 1,
         }),
       setReturnsFilter: (patch) => set(patch),
-      resetReturnsFilters: () => set({ returnsSearch: '', returnsFilterStatus: 'all' }),
+      resetReturnsFilters: () =>
+        set({
+          returnsSearch: '',
+          returnsFilterStatus: 'all',
+          returnsFilterCompanyId: '',
+          returnsFilterReason: '',
+          returnsDateFrom: '',
+          returnsDateTo: '',
+        }),
       setTransfersFilter: (patch) => set(patch),
-      resetTransfersFilters: () => set({ transfersSearch: '', transfersFilterStatus: 'all' }),
+      resetTransfersFilters: () =>
+        set({
+          transfersSearch: '',
+          transfersFilterStatus: 'all',
+          transfersFilterCompanyId: '',
+          transfersDateFrom: '',
+          transfersDateTo: '',
+        }),
       setContractsFilterStatus: (status) => set({ contractsFilterStatus: status }),
       setContractWizard: (patch) =>
         set({ contractWizard: { ...get().contractWizard, ...patch } }),
@@ -157,9 +223,20 @@ export const useUiStore = create<UiState>()(
         shipmentsPage: s.shipmentsPage,
         shipmentsVisibleColumns: s.shipmentsVisibleColumns,
         returnsSearch: s.returnsSearch,
+        returnsSearchField: s.returnsSearchField,
         returnsFilterStatus: s.returnsFilterStatus,
+        returnsFilterCompanyId: s.returnsFilterCompanyId,
+        returnsFilterReason: s.returnsFilterReason,
+        returnsDateFrom: s.returnsDateFrom,
+        returnsDateTo: s.returnsDateTo,
+        returnsVisibleColumns: s.returnsVisibleColumns,
         transfersSearch: s.transfersSearch,
+        transfersSearchField: s.transfersSearchField,
         transfersFilterStatus: s.transfersFilterStatus,
+        transfersFilterCompanyId: s.transfersFilterCompanyId,
+        transfersDateFrom: s.transfersDateFrom,
+        transfersDateTo: s.transfersDateTo,
+        transfersVisibleColumns: s.transfersVisibleColumns,
         contractsFilterStatus: s.contractsFilterStatus,
         contractWizard: s.contractWizard,
       }),

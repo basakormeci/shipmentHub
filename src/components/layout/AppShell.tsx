@@ -1,8 +1,10 @@
 import { Outlet, useLocation } from 'react-router-dom'
+import { useState } from 'react'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { PAGE_META } from './navConfig'
 import { useT } from '../../hooks/useT'
+import { useHeaderSlotStore } from '../../stores/headerSlotStore'
 
 function resolveMetaKey(pathname: string): string {
   if (pathname === '/' || pathname.startsWith('/dashboard')) return 'dashboard'
@@ -28,6 +30,7 @@ function resolveMetaKey(pathname: string): string {
   if (pathname.startsWith('/permissions')) return 'permissions'
   if (pathname.startsWith('/templates')) return 'templates'
   if (pathname.startsWith('/barcode-templates')) return 'barcode-templates'
+  if (pathname.startsWith('/profile')) return 'profile'
   return 'not-found'
 }
 
@@ -35,12 +38,21 @@ export function AppShell() {
   const t = useT()
   const { pathname } = useLocation()
   const meta = PAGE_META[resolveMetaKey(pathname)] ?? PAGE_META['not-found']
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const headerSubtitle = useHeaderSlotStore((s) => s.subtitle)
+  const headerActions = useHeaderSlotStore((s) => s.actions)
 
   return (
     <div className="flex min-h-screen bg-neutral-50">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main className="flex-1 min-w-0 flex flex-col">
-        <Topbar title={t(meta.titleKey)} desc={meta.descKey ? t(meta.descKey) : undefined} icon={meta.icon} />
+        <Topbar
+          title={t(meta.titleKey)}
+          desc={headerSubtitle ?? (meta.descKey ? t(meta.descKey) : undefined)}
+          actions={headerActions}
+          icon={meta.icon}
+          onMenuClick={() => setSidebarOpen(true)}
+        />
         <div className="flex-1">
           <Outlet />
         </div>

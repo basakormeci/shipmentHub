@@ -67,7 +67,7 @@ export function ReportsPage() {
   const damagedRate = deliveredList.length ? (damagedCount / deliveredList.length) * 100 : 0
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="page-container">
       <div className="bg-white rounded-lg border border-neutral-200 p-4 mb-6 flex items-end gap-3 flex-wrap">
         <div>
           <label className="form-label">Başlangıç</label>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { COMPANIES, SHIPMENT_STATUS, getCompany, type Shipment, type ShipmentStatus } from '../../data/catalog'
 import { useDataStore } from '../../stores/dataStore'
@@ -18,6 +18,8 @@ import {
   type ShipmentSearchField,
 } from '../../lib/shipments'
 import { CancelShipmentModal, ColumnPanelModal, BarcodePrintModal } from './ShipmentModals'
+import { SearchInput } from '../../components/ui/SearchInput'
+import { useHeaderSlotStore } from '../../stores/headerSlotStore'
 
 function CargoTypeChip({ type, label }: { type: 'order' | 'return'; label: string }) {
   if (type === 'order') {
@@ -204,11 +206,14 @@ export function ShipmentsPage() {
     setCancelId(null)
   }
 
-  return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <p className="text-sm text-neutral-500">{t('shipments.count', { n: list.length })}</p>
-        <div className="flex items-center gap-2">
+  const setHeaderSlot = useHeaderSlotStore((s) => s.setHeaderSlot)
+  const clearHeaderSlot = useHeaderSlotStore((s) => s.clearHeaderSlot)
+
+  useLayoutEffect(() => {
+    setHeaderSlot({
+      subtitle: t('shipments.count', { n: list.length }),
+      actions: (
+        <>
           <button className="secondary-btn" type="button" onClick={() => navigate('/shipments/new')}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -228,9 +233,14 @@ export function ShipmentsPage() {
             {t('shipments.barcode_bulk')}
             {selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
           </button>
-        </div>
-      </div>
+        </>
+      ),
+    })
+    return () => clearHeaderSlot()
+  })
 
+  return (
+    <div className="page-container">
       <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
         <div className="flex items-center gap-1.5 px-5 py-3 border-b border-neutral-100 flex-wrap">
           {getStatusTabs().map((tab) => {
@@ -262,24 +272,13 @@ export function ShipmentsPage() {
               </option>
             ))}
           </select>
-          <div className="relative flex-1" style={{ minWidth: 220 }}>
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              className="form-input pl-9"
-              placeholder={t('shipments.search_placeholder')}
-              value={search}
-              onChange={(e) => setShipmentsFilter({ shipmentsSearch: e.target.value, shipmentsPage: 1 })}
-            />
-          </div>
+          <SearchInput
+            wrapperClassName="flex-1"
+            wrapperStyle={{ minWidth: 220 }}
+            placeholder={t('shipments.search_placeholder')}
+            value={search}
+            onChange={(e) => setShipmentsFilter({ shipmentsSearch: e.target.value, shipmentsPage: 1 })}
+          />
           <button className="secondary-btn" type="button" onClick={() => setShowFilters((v) => !v)}>
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
@@ -304,7 +303,7 @@ export function ShipmentsPage() {
         </div>
 
         {showFilters ? (
-          <div className="grid grid-cols-3 gap-4 px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
             <div>
               <label className="form-label">{t('shipments.supplier')}</label>
               <select

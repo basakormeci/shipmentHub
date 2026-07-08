@@ -6,6 +6,7 @@ import { useT } from '../../hooks/useT'
 import { toast } from '../../lib/toast'
 import { getNodeUsage } from '../../lib/contracts'
 import type { StockNode } from '../../data/seed'
+import { SearchInput } from '../../components/ui/SearchInput'
 
 function NodeCreateModal({
   open,
@@ -280,7 +281,7 @@ export function NodesPage() {
   }, [nodes, search])
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="page-container">
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-neutral-500">{t('nodes.count', { n: nodes.length })}</p>
         <button className="primary-btn" type="button" onClick={() => setCreateOpen(true)}>
@@ -291,24 +292,12 @@ export function NodesPage() {
         </button>
       </div>
 
-      <div className="relative mb-4">
-        <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input
-          type="text"
-          className="form-input pl-9"
-          placeholder={t('nodes.search_placeholder')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
+      <SearchInput
+        wrapperClassName="mb-4"
+        placeholder={t('nodes.search_placeholder')}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
       <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden divide-y divide-neutral-100">
         {filtered.length === 0 ? (

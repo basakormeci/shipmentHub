@@ -48,29 +48,6 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: icon(<path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />),
       },
       {
-        to: '/contracts',
-        labelKey: 'sidebar.nav_contracts',
-        icon: icon(
-          <>
-            <rect x="1" y="7" width="14" height="10" rx="1" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10h4l3 3v4h-7z" />
-            <circle cx="6" cy="19" r="1.6" />
-            <circle cx="18" cy="19" r="1.6" />
-          </>,
-        ),
-      },
-      {
-        to: '/nodes',
-        labelKey: 'sidebar.nav_nodes',
-        icon: icon(
-          <>
-            <rect x="2" y="3" width="20" height="5" rx="1" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8" />
-            <line x1="10" y1="12" x2="14" y2="12" strokeLinecap="round" />
-          </>,
-        ),
-      },
-      {
         to: '/transfers',
         labelKey: 'sidebar.nav_transfers',
         icon: icon(<path strokeLinecap="round" strokeLinejoin="round" d="M8 7h13M8 7l4-4M8 7l4 4M16 17H3m13 0l-4 4m4-4l-4-4" />),
@@ -90,13 +67,8 @@ export const NAV_SECTIONS: NavSection[] = [
             <polyline points="21 16 21 21 16 21" />
             <line x1="15" y1="15" x2="21" y2="21" />
             <line x1="4" y1="4" x2="9" y2="9" />
-          </>,
+          </>
         ),
-      },
-      {
-        to: '/monitoring/health',
-        labelKey: 'sidebar.nav_monitoring',
-        icon: icon(<path strokeLinecap="round" strokeLinejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2" />),
       },
     ],
   },
@@ -111,13 +83,13 @@ export const NAV_SECTIONS: NavSection[] = [
             <rect x="2" y="5" width="20" height="14" rx="2" />
             <line x1="2" y1="10" x2="22" y2="10" />
             <line x1="6" y1="15" x2="10" y2="15" strokeLinecap="round" />
-          </>,
+          </>
         ),
       },
     ],
   },
   {
-    labelKey: 'sidebar.section_admin',
+    labelKey: 'sidebar.section_reports',
     items: [
       {
         to: '/performance',
@@ -129,25 +101,32 @@ export const NAV_SECTIONS: NavSection[] = [
         labelKey: 'sidebar.nav_reports',
         icon: icon(<path strokeLinecap="round" strokeLinejoin="round" d="M3 3v18h18M8 17V10m5 7V6m5 11v-4" />),
       },
+    ],
+  },
+  {
+    labelKey: 'sidebar.section_settings',
+    items: [
       {
-        to: '/users',
-        labelKey: 'sidebar.nav_users',
+        to: '/contracts',
+        labelKey: 'sidebar.nav_contracts',
         icon: icon(
           <>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-          </>,
+            <rect x="1" y="7" width="14" height="10" rx="1" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10h4l3 3v4h-7z" />
+            <circle cx="6" cy="19" r="1.6" />
+            <circle cx="18" cy="19" r="1.6" />
+          </>
         ),
       },
       {
-        to: '/permissions',
-        labelKey: 'sidebar.nav_permissions',
+        to: '/nodes',
+        labelKey: 'sidebar.nav_nodes',
         icon: icon(
           <>
-            <rect x="3" y="11" width="18" height="10" rx="2" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7 11V7a5 5 0 0110 0v4" />
-          </>,
+            <rect x="2" y="3" width="20" height="5" rx="1" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8" />
+            <line x1="10" y1="12" x2="14" y2="12" strokeLinecap="round" />
+          </>
         ),
       },
       {
@@ -157,7 +136,7 @@ export const NAV_SECTIONS: NavSection[] = [
           <>
             <rect x="2" y="4" width="20" height="16" rx="2" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M22 6l-10 7L2 6" />
-          </>,
+          </>
         ),
       },
       {
@@ -170,7 +149,18 @@ export const NAV_SECTIONS: NavSection[] = [
             <line x1="10" y1="5" x2="10" y2="19" strokeLinecap="round" />
             <line x1="14" y1="5" x2="14" y2="19" strokeLinecap="round" />
             <line x1="17" y1="5" x2="17" y2="19" strokeLinecap="round" />
-          </>,
+          </>
+        ),
+      },
+      {
+        to: '/users',
+        labelKey: 'sidebar.nav_users_permissions',
+        icon: icon(
+          <>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+          </>
         ),
       },
     ],
@@ -312,7 +302,7 @@ export const PAGE_META: Record<string, { titleKey: string; descKey?: string; ico
     icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v18h18M8 17V10m5 7V6m5 11v-4" />,
   },
   users: {
-    titleKey: 'page.users',
+    titleKey: 'sidebar.nav_users_permissions',
     descKey: 'page.users_desc',
     icon: (
       <>
@@ -345,6 +335,16 @@ export const PAGE_META: Record<string, { titleKey: string; descKey?: string; ico
     titleKey: 'page.barcode_templates',
     descKey: 'page.barcode_templates_desc',
     icon: <rect x="3" y="5" width="18" height="14" rx="1" />,
+  },
+  profile: {
+    titleKey: 'profile.title',
+    descKey: 'profile.desc',
+    icon: (
+      <>
+        <circle cx="12" cy="8" r="4" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+      </>
+    ),
   },
   'not-found': {
     titleKey: 'page.not_found',

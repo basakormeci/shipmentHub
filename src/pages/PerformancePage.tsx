@@ -87,7 +87,7 @@ export function PerformancePage() {
   const overallCostDiffPct = overallExpected ? (overallCostBalance / overallExpected) * 100 : 0
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="page-container">
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
         <StatTile label="Başarılı Teslimat Oranı" value={overallSuccess.toFixed(1)} suffix="%" />
         <StatTile label="Hasarlı Teslimat Oranı" value={overallDamaged.toFixed(1)} suffix="%" />

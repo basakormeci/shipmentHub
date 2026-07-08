@@ -1,0 +1,36 @@
+import type { CSSProperties, InputHTMLAttributes } from 'react'
+
+interface SearchInputProps extends InputHTMLAttributes<HTMLInputElement> {
+  wrapperClassName?: string
+  wrapperStyle?: CSSProperties
+  error?: boolean
+}
+
+/** Text input with a fixed left-side search icon. Use for all search/filter fields. */
+export function SearchInput({
+  className = '',
+  wrapperClassName = '',
+  wrapperStyle,
+  error = false,
+  type = 'text',
+  ...props
+}: SearchInputProps) {
+  return (
+    <div className={`relative ${wrapperClassName}`} style={wrapperStyle}>
+      <svg
+        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <input
+        type={type}
+        className={`form-input search-input ${error ? 'error' : ''} ${className}`}
+        {...props}
+      />
+    </div>
+  )
+}

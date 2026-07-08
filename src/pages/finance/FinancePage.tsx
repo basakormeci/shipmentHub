@@ -441,7 +441,7 @@ export function FinancePage() {
   const [invoiceOpen, setInvoiceOpen] = useState(false)
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="page-container">
       <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3 border-b border-neutral-100">
           <div className="flex items-center gap-1.5">

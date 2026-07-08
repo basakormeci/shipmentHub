@@ -200,7 +200,7 @@ export function BarcodeTemplatesPage() {
   const [createOpen, setCreateOpen] = useState(false)
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="page-container">
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-neutral-500">
           {barcodeTemplates.length} şablon tanımlı — kargo firmasına göre barkod etiket formatı ve zorunlu alanlar

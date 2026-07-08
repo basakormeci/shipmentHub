@@ -379,3 +379,23 @@ input[type="checkbox"] {
   padding: 0 10px;
   margin: 16px 0 6px;
 }
+
+/*
+ * Shared page-body container. Deliberately full-width (no max-width) so
+ * page content aligns with Topbar, which is also unconstrained edge-to-edge.
+ */
+.page-container {
+  width: 100%;
+  padding: 24px;
+}
+
+/*
+ * Left padding for inputs with a fixed-position leading icon (see SearchInput).
+ * Declared after .form-input so it reliably wins the cascade — Tailwind's
+ * utility classes (e.g. pl-9) live in @layer utilities, which always loses
+ * to this un-layered rule regardless of class order, so they can't be used
+ * to override .form-input's padding shorthand here.
+ */
+.search-input {
+  padding-left: 36px;
+}

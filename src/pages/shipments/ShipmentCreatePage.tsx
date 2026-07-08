@@ -99,7 +99,7 @@ export function ShipmentCreatePage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="page-container">
       <div className="bg-white rounded-lg border border-neutral-200 p-6">
         <div className="grid grid-cols-2 gap-6">
           <div className="col-span-2">

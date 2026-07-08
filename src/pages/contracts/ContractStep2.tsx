@@ -1,5 +1,6 @@
 import { getProvince, PROVINCES, type ContractForm, type CoveredRegion } from '../../data/catalog'
 import { useT } from '../../hooks/useT'
+import { SearchInput } from '../../components/ui/SearchInput'
 
 function ChkBox({ full, partial }: { full: boolean; partial: boolean }) {
   if (full) {
@@ -188,25 +189,11 @@ export function ContractStep2({ f, onChange }: { f: ContractForm; onChange: (pat
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ position: 'relative' }}>
-        <svg
-          style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#99a0ae', pointerEvents: 'none' }}
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-        >
-          <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-        <input
-          type="text"
-          className="form-input"
-          style={{ paddingLeft: 38 }}
-          placeholder={t('step2.search_placeholder')}
-          value={f.search2}
-          onChange={(e) => onChange({ search2: e.target.value })}
-        />
-      </div>
+      <SearchInput
+        placeholder={t('step2.search_placeholder')}
+        value={f.search2}
+        onChange={(e) => onChange({ search2: e.target.value })}
+      />
 
       {isSearching ? (
         <div style={{ border: '1px solid #eaecf0', borderRadius: 12, maxHeight: 300, overflowY: 'auto' }}>
