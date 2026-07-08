@@ -1,0 +1,1042 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shipment Hub — Kullanım Kılavuzu</title>
+  <meta name="description" content="Shipment Hub uygulamasının tüm modüllerini gerçek ekran görüntüleriyle adım adım anlatan kullanıcı kılavuzu." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="toc">
+      <div class="toc-brand">
+        <div class="brand-mark"><span></span><span></span></div>
+        <div>
+          <p class="brand-name">Shipment Hub</p>
+          <p class="brand-sub">Kullanım Kılavuzu</p>
+        </div>
+      </div>
+      <nav class="toc-nav">
+      <a href="#giris" class="nav-link"><span class="nav-dot"></span>Giriş Yapma</a>
+      <a href="#dashboard" class="nav-link"><span class="nav-dot"></span>Gösterge Paneli</a>
+      <a href="#gonderiler" class="nav-link"><span class="nav-dot"></span>Gönderiler</a>
+      <a href="#gonderi-olustur" class="nav-link"><span class="nav-dot"></span>Gönderi Oluşturma</a>
+      <a href="#gonderi-detay" class="nav-link"><span class="nav-dot"></span>Gönderi Detayı ve İşlemler</a>
+      <a href="#iade" class="nav-link"><span class="nav-dot"></span>İade Yönetimi</a>
+      <a href="#kargo-firmalari" class="nav-link"><span class="nav-dot"></span>Kargo Firmaları</a>
+      <a href="#stok-merkezleri" class="nav-link"><span class="nav-dot"></span>Stok Merkezleri</a>
+      <a href="#transfer" class="nav-link"><span class="nav-dot"></span>Transfer</a>
+      <a href="#yonlendirme" class="nav-link"><span class="nav-dot"></span>Akıllı Yönlendirme</a>
+      <a href="#izleme" class="nav-link"><span class="nav-dot"></span>Entegrasyon & İzleme</a>
+      <a href="#finans" class="nav-link"><span class="nav-dot"></span>Finans</a>
+      <a href="#performans" class="nav-link"><span class="nav-dot"></span>Kargo Performansı</a>
+      <a href="#raporlama" class="nav-link"><span class="nav-dot"></span>Raporlama & Analitik</a>
+      <a href="#kullanicilar" class="nav-link"><span class="nav-dot"></span>Kullanıcılar</a>
+      <a href="#yetki" class="nav-link"><span class="nav-dot"></span>Yetki Yönetimi</a>
+      <a href="#bildirim-sablonlari" class="nav-link"><span class="nav-dot"></span>Bildirim Şablonları</a>
+      <a href="#barkod-sablonlari" class="nav-link"><span class="nav-dot"></span>Barkod Şablonları</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <header class="cover">
+        <p class="eyebrow">Shipment Hub · Kullanıcı Kılavuzu</p>
+        <h1>Uygulamayı adım adım kullanmayı öğrenin</h1>
+        <p class="cover-lede">Bu kılavuz, girişten raporlamaya kadar Shipment Hub'daki her modülü gerçek ekran görüntüleriyle anlatır. Sol menüden bir bölüme atlayabilir ya da yukarıdan aşağı takip edebilirsiniz.</p>
+      </header>
+      
+  <section class="module" id="giris">
+    <header class="module-head">
+      <p class="eyebrow">Başlarken</p>
+      <h2>01 &nbsp;Giriş Yapma</h2>
+      <p class="lede">Shipment Hub, kurumsal bir hesap üzerinden erişilen bir taşıma yönetim panelidir. Oturum açmadan hiçbir ekran görüntülenmez.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Uygulama açıldığında karşınıza giriş ekranı gelir. Kayıtlı kullanıcı e-postanızı ve şifrenizi girin.</p>
+            
+              <figure class="frame">
+                <img src="images/01-login-empty.png" alt="Giriş ekranı — e-posta ve şifre alanları" loading="lazy" width="1440" height="900" />
+                <figcaption>Giriş ekranı — e-posta ve şifre alanları</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>Hatalı bir e-posta ya da şifre girilirse form alanları kırmızı çerçeveyle işaretlenir ve altında ne olduğunu açıklayan bir uyarı belirir. Bilgileri düzeltip yeniden deneyin.</p>
+            
+              <figure class="frame">
+                <img src="images/02-login-error.png" alt="Hatalı giriş denemesi sonrası uyarı mesajı" loading="lazy" width="1440" height="900" />
+                <figcaption>Hatalı giriş denemesi sonrası uyarı mesajı</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p>Doğru bilgilerle "Giriş Yap" butonuna bastığınızda (veya Enter tuşuna bastığınızda) doğrudan Gösterge Paneli'ne yönlendirilirsiniz. Sol menünün en altında oturum açan kullanıcının adı ve rolü görünür; buradaki ok simgesine tıklayarak çıkış yapabilirsiniz.</p>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="dashboard">
+    <header class="module-head">
+      <p class="eyebrow">Genel Bakış</p>
+      <h2>02 &nbsp;Gösterge Paneli</h2>
+      <p class="lede">Operasyonun günlük özetini tek ekranda gösterir: gönderi hacmi, teslimat başarısı, taşıyıcı sağlığı ve kargo firması bazlı performans.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Üstte beş özet kart yer alır: Toplam Gönderi, Teslimat Başarı Oranı, Ortalama Teslimat Süresi, Aktif İade Talebi ve Taşıyıcı Sağlığı. Hemen altında "Son Gönderiler" tablosu ve dikkat gerektiren taşıyıcı/hata uyarıları listelenir.</p>
+            
+              <figure class="frame">
+                <img src="images/03-dashboard-top.png" alt="Gösterge Paneli üst bölüm — özet kartlar ve son gönderiler" loading="lazy" width="1440" height="900" />
+                <figcaption>Gösterge Paneli üst bölüm — özet kartlar ve son gönderiler</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>Sayfanın en üstündeki Başlangıç/Bitiş tarih alanlarını doldurduğunuzda, aşağıdaki gönderi ve iade widget'ları seçilen aralığa göre yeniden hesaplanır. Sayfanın devamında gönderi durum dağılımı (donut grafik), kargo firması bazlı hacim, zamanında teslimat oranı, beklenen-gerçek maliyet farkı, kalan kota ve kargo firması performans tablosu sırayla yer alır.</p>
+            
+              <figure class="frame">
+                <img src="images/04-dashboard-full.png" alt="Gösterge Paneli tam görünüm — tüm widget'lar" loading="lazy" width="1440" height="900" />
+                <figcaption>Gösterge Paneli tam görünüm — tüm widget'lar</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="gonderiler">
+    <header class="module-head">
+      <p class="eyebrow">Operasyon</p>
+      <h2>03 &nbsp;Gönderiler</h2>
+      <p class="lede">Tüm sipariş ve iade gönderilerinin listelendiği, filtrelenip dışa aktarılabildiği ana çalışma ekranı.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Sol menüden Gönderiler'e girildiğinde durum sekmeleri (Tümü, Hazırlanıyor, Yolda, Teslim Edildi…), arama kutusu ve liste görünür. Her satırın sonundaki ikonlarla gönderi detayına gidebilir, tekli barkod alabilir ya da gönderiyi iptal edebilirsiniz.</p>
+            
+              <figure class="frame">
+                <img src="images/05-shipments-list.png" alt="Gönderi listesi — durum sekmeleri ve satır aksiyonları" loading="lazy" width="1440" height="900" />
+                <figcaption>Gönderi listesi — durum sekmeleri ve satır aksiyonları</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>"Filtreler" butonuna tıklayarak tedarikçi (kargo firması) ve kargo tipi (sipariş/iade) bazında ek daraltma yapabilirsiniz.</p>
+            
+              <figure class="frame">
+                <img src="images/06-shipments-filters-open.png" alt="Genişletilmiş filtre paneli" loading="lazy" width="1440" height="900" />
+                <figcaption>Genişletilmiş filtre paneli</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p>"Tabloyu Düzenle" ile listede hangi kolonların görüneceğini seçebilirsiniz; seçiminiz sadece görünümü değiştirir, veriyi etkilemez. Gönderileri işaretleyip toplu barkod alabilir veya "CSV Olarak İndir" ile tüm listeyi dışa aktarabilirsiniz.</p>
+            
+              <figure class="frame">
+                <img src="images/07-shipments-column-panel.png" alt="Kolon özelleştirme paneli" loading="lazy" width="1440" height="900" />
+                <figcaption>Kolon özelleştirme paneli</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="gonderi-olustur">
+    <header class="module-head">
+      <p class="eyebrow">Operasyon</p>
+      <h2>04 &nbsp;Gönderi Oluşturma</h2>
+      <p class="lede">Gönderiler listesindeki "Gönderi Oluştur" butonundan açılan, sipariş bilgilerinden teslimata kadar her ayrıntının girildiği form.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Form dört bölüme ayrılır: Sipariş Bilgileri, Kargo Bilgileri (firma, depo, parça sayısı, desi, ağırlık), Teslimat Adresi (il/ilçe, açık adres, alıcı telefon/e-posta) ve İçerik & Ödeme (ürün içeriği, ödeme tipi, teslimat notu).</p>
+            
+              <figure class="frame">
+                <img src="images/08-shipment-create-empty.png" alt="Boş gönderi oluşturma formu" loading="lazy" width="1440" height="900" />
+                <figcaption>Boş gönderi oluşturma formu</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>Zorunlu bir alanı boş bırakıp "Gönderi Oluştur"a bastığınızda ilgili alanlar kırmızı çerçeveyle işaretlenir ve altlarında ne eksik olduğu yazar; hiçbir kayıt eksik bilgiyle oluşturulmaz.</p>
+            
+              <figure class="frame">
+                <img src="images/09-shipment-create-validation-errors.png" alt="Eksik alan uyarıları" loading="lazy" width="1440" height="900" />
+                <figcaption>Eksik alan uyarıları</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p>Kargo Firması alanının en üstünde "Otomatik Seçim (Akıllı Yönlendirme)" seçeneği bulunur. Bu seçilip desi ve il girildiğinde, alanın altında hangi yönlendirme kuralının eşleştiği ve hangi firmanın seçileceği canlı olarak gösterilir. Eşleşen kural yoksa uyarı verilir ve manuel seçim istenir.</p>
+            
+              <figure class="frame">
+                <img src="images/10-shipment-create-auto-routing.png" alt="Otomatik Seçim açık — eşleşen kural önizlemesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Otomatik Seçim açık — eşleşen kural önizlemesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <p>Tüm zorunlu alanlar doldurulduğunda form bu şekilde görünür. "Gönderi Oluştur"a basıldığında yeni gönderi kaydedilir ve doğrudan detay sayfasına yönlendirilirsiniz.</p>
+            
+              <figure class="frame">
+                <img src="images/11-shipment-create-filled.png" alt="Doldurulmuş form — gönderim türü seçili" loading="lazy" width="1440" height="900" />
+                <figcaption>Doldurulmuş form — gönderim türü seçili</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="gonderi-detay">
+    <header class="module-head">
+      <p class="eyebrow">Operasyon</p>
+      <h2>05 &nbsp;Gönderi Detayı ve İşlemler</h2>
+      <p class="lede">Bir gönderinin siparişten teslimata kadar tüm bilgilerini gösteren ve üzerinde aksiyon alınabilen sayfa.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Az önce oluşturulan gönderide, formda girilen telefon, e-posta, açık adres, ödeme tipi ve tahsilat tutarı gibi bilgiler ilgili bölümlerde gerçek değerleriyle görünür.</p>
+            
+              <figure class="frame">
+                <img src="images/12-shipment-detail-new.png" alt="Yeni oluşturulan gönderinin detayı" loading="lazy" width="1440" height="900" />
+                <figcaption>Yeni oluşturulan gönderinin detayı</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>Her bölüm başlığının sonundaki ok ikonuna tıklayarak genişletebilirsiniz. Paket bölümü ürün içeriği/desi/kilo bilgisini, Teslimat Süresi bölümü planlanan ile gerçekleşen teslimat arasındaki farkı gösterir.</p>
+            
+              <figure class="frame">
+                <img src="images/14-shipment-detail-expanded.png" alt="Genişletilmiş Paket ve Teslimat Süresi bölümleri" loading="lazy" width="1440" height="900" />
+                <figcaption>Genişletilmiş Paket ve Teslimat Süresi bölümleri</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p>Sayfa başlığının yanındaki "Kurye Etiketi Yazdır" barkod almak için ayrı bir buton olarak durur; kalan tüm işlemler (Statü Güncelleme, Düzenle, Geri Çağır, İptal Et) "Diğer İşlemler" menüsü altında toplanır.</p>
+            
+              <figure class="frame">
+                <img src="images/15-shipment-detail-actions-menu.png" alt=""Diğer İşlemler" menüsü" loading="lazy" width="1440" height="900" />
+                <figcaption>"Diğer İşlemler" menüsü</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <p>"Statü Güncelleme" gönderinin durumunu (Hazırlanıyor, Yolda, Teslim Edildi…) manuel olarak değiştirmenizi sağlar.</p>
+            
+              <figure class="frame">
+                <img src="images/16-shipment-status-modal.png" alt="Statü güncelleme penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>Statü güncelleme penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <p>"Düzenle" ile alıcı adı, il/ilçe ve teslimat notunu güncelleyebilirsiniz.</p>
+            
+              <figure class="frame">
+                <img src="images/17-shipment-edit-modal.png" alt="Gönderi düzenleme penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>Gönderi düzenleme penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <p>"Geri Çağır", kargo firmasına teslim edilmiş ama henüz alıcıya ulaşmamış bir gönderiyi durdurmak için kullanılır; yalnızca gönderi "Yolda" durumundayken aktiftir.</p>
+            
+              <figure class="frame">
+                <img src="images/18-shipment-recall-modal.png" alt="Geri çağırma onay penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>Geri çağırma onay penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">7</div>
+          <div class="step-body">
+            <p>"İptal Et" gönderiyi kalıcı olarak iptal eder; bu işlem geri alınamaz olduğu için bir onay penceresi çıkar.</p>
+            
+              <figure class="frame">
+                <img src="images/19-shipment-cancel-modal.png" alt="İptal onay penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>İptal onay penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">8</div>
+          <div class="step-body">
+            <p>"Kurye Etiketi Yazdır" tıklandığında bir format seçim penceresi açılır: PDF, PNG, ZPL (Zebra) veya EPL (Eltron). PNG seçildiğinde ayrıca 203/300/600 dpi çözünürlük seçilebilir.</p>
+            
+              <figure class="frame">
+                <img src="images/20-barcode-format-modal.png" alt="Barkod formatı seçim penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>Barkod formatı seçim penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">9</div>
+          <div class="step-body">
+            <p>PNG formatı seçildiğinde çözünürlük seçenekleri belirir. "Barkod Oluştur"a basıldığında etiket yeni bir sekmede açılır ve doğrudan yazdırılabilir ya da indirilebilir.</p>
+            
+              <figure class="frame">
+                <img src="images/21-barcode-format-modal-png.png" alt="PNG formatı ve çözünürlük seçimi" loading="lazy" width="1440" height="900" />
+                <figcaption>PNG formatı ve çözünürlük seçimi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="iade">
+    <header class="module-head">
+      <p class="eyebrow">Operasyon</p>
+      <h2>06 &nbsp;İade Yönetimi</h2>
+      <p class="lede">Müşteri iade taleplerinin oluşturulduğu, takip edildiği ve sonuçlandırıldığı modül.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>İade Yönetimi listesi, gönderi listesiyle aynı mantıkta çalışır: durum sekmeleri, arama ve satır bazlı aksiyonlar.</p>
+            
+              <figure class="frame">
+                <img src="images/22-returns-list.png" alt="İade listesi" loading="lazy" width="1440" height="900" />
+                <figcaption>İade listesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>"İade Oluştur" ekranında önce orijinal gönderi seçilir; seçilen gönderinin sipariş, kargo firması, adres ve durum bilgileri otomatik olarak altta özet kart halinde gösterilir.</p>
+            
+              <figure class="frame">
+                <img src="images/23-return-create-empty.png" alt="Boş iade oluşturma formu" loading="lazy" width="1440" height="900" />
+                <figcaption>Boş iade oluşturma formu</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p>Orijinal gönderi ve iade nedeni seçildikten sonra form bu hale gelir; "İade Talebi Oluştur" ile kayıt tamamlanır.</p>
+            
+              <figure class="frame">
+                <img src="images/24-return-create-filled.png" alt="Doldurulmuş iade formu — orijinal gönderi özeti" loading="lazy" width="1440" height="900" />
+                <figcaption>Doldurulmuş iade formu — orijinal gönderi özeti</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <p>İade detay sayfası, iade bilgisi, orijinal gönderi bağlantısı, toplama/kurye bilgisi ve varsa müşteri notunu gösterir.</p>
+            
+              <figure class="frame">
+                <img src="images/25-return-detail.png" alt="İade detay sayfası" loading="lazy" width="1440" height="900" />
+                <figcaption>İade detay sayfası</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <p>"İade Barkodu Yazdır" ayrı bir buton olarak durur; Statü Güncelleme, Kargo Firması Güncelle, Adres Güncelle, Geri Çağır ve İptal Et işlemleri "Diğer İşlemler" menüsündedir.</p>
+            
+              <figure class="frame">
+                <img src="images/26-return-detail-actions-menu.png" alt="İade "Diğer İşlemler" menüsü" loading="lazy" width="1440" height="900" />
+                <figcaption>İade "Diğer İşlemler" menüsü</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <p>"Kargo Firması Güncelle" ile iadeyi toplayacak kuryeyi değiştirebilirsiniz — örneğin orijinal gönderiyi getiren firma iadeyi almıyorsa.</p>
+            
+              <figure class="frame">
+                <img src="images/27-return-carrier-modal.png" alt="İade kargo firması güncelleme penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>İade kargo firması güncelleme penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">7</div>
+          <div class="step-body">
+            <p>"Adres Güncelle" ile iadenin toplanacağı il/ilçe bilgisini, müşterinin orijinal adresinden farklıysa güncelleyebilirsiniz.</p>
+            
+              <figure class="frame">
+                <img src="images/28-return-address-modal.png" alt="İade adres güncelleme penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>İade adres güncelleme penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="kargo-firmalari">
+    <header class="module-head">
+      <p class="eyebrow">Tanımlar</p>
+      <h2>07 &nbsp;Kargo Firmaları</h2>
+      <p class="lede">Her kargo firmasıyla yapılan sözleşmenin şartlarının, kapsadığı bölgelerin ve API bilgilerinin tanımlandığı yer.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Liste, tanımlı tüm sözleşmeleri firma, gönderim yönü (sipariş/iade), desi aralığı ve durum bilgisiyle gösterir. Varsayılan kargo firması adının yanında yıldız ikonuyla işaretlenir.</p>
+            
+              <figure class="frame">
+                <img src="images/29-contracts-list.png" alt="Kargo firmaları listesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Kargo firmaları listesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>"Yeni Sözleşme" 3 adımlık bir sihirbaz açar. 1. adımda firma seçilir, varsayılan/öncelik ayarlanır, desi ve sipariş tutarı limitleri ile ürün tipi, müşteri segmenti, paket tipi, sipariş kanalı ve ödeme tipi kısıtları tanımlanır.</p>
+            
+              <figure class="frame">
+                <img src="images/30-contract-wizard-step1.png" alt="Sözleşme sihirbazı — 1. adım: Firma & Kurallar" loading="lazy" width="1440" height="900" />
+                <figcaption>Sözleşme sihirbazı — 1. adım: Firma & Kurallar</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p>2. adımda sözleşmenin geçerli olduğu il ve ilçeler seçilir; sol listeden bir il seçildiğinde sağda o ile ait ilçeler görünür.</p>
+            
+              <figure class="frame">
+                <img src="images/31-contract-wizard-step2.png" alt="Sözleşme sihirbazı — 2. adım: Hizmet Bölgeleri" loading="lazy" width="1440" height="900" />
+                <figcaption>Sözleşme sihirbazı — 2. adım: Hizmet Bölgeleri</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <p>3. adımda API kimlik bilgileri (kullanıcı adı/şifre veya API anahtarı) ve bu kimlik bilgisine bağlı stok merkezi (node) eşlemeleri tanımlanır.</p>
+            <p class="note">Sözleşme sihirbazı — 3. adım: Credentials & Node</p>
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="stok-merkezleri">
+    <header class="module-head">
+      <p class="eyebrow">Tanımlar</p>
+      <h2>08 &nbsp;Stok Merkezleri</h2>
+      <p class="lede">Depo/mağaza gibi fiziksel sevkiyat noktalarının ve bunların hangi kargo firması sözleşmelerinde kullanıldığının listelendiği ekran.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Her node satırı genişletilerek hangi kargo firmasına hangi kimlik bilgisiyle bağlı olduğu görülebilir. Arama kutusuyla node adı veya koduna göre filtreleme yapılabilir.</p>
+            
+              <figure class="frame">
+                <img src="images/33-nodes-list.png" alt="Stok merkezleri listesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Stok merkezleri listesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>"Yeni Stok Merkezi" ile ad ve kod girilerek yeni bir node tanımlanır; satırdaki çöp kutusu ikonuyla bir node silinebilir.</p>
+            
+              <figure class="frame">
+                <img src="images/34-node-create-modal.png" alt="Yeni stok merkezi oluşturma penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>Yeni stok merkezi oluşturma penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="transfer">
+    <header class="module-head">
+      <p class="eyebrow">Operasyon</p>
+      <h2>09 &nbsp;Transfer</h2>
+      <p class="lede">Depolar/mağazalar arasında müşteriye gitmeyen, iç lojistik amaçlı transfer gönderilerinin yönetildiği modül.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Transfer listesi durum sekmeleri ve arama ile gönderi/iade listeleriyle aynı deneyimi sunar.</p>
+            
+              <figure class="frame">
+                <img src="images/35-transfers-list.png" alt="Transfer listesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Transfer listesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>"Yeni Transfer Oluştur" formunda kaynak node, hedef node, kargo firması, desi ve isteğe bağlı not girilir. Kaynak ve hedef node'un aynı olması engellenir.</p>
+            
+              <figure class="frame">
+                <img src="images/36-transfer-create-empty.png" alt="Transfer oluşturma formu" loading="lazy" width="1440" height="900" />
+                <figcaption>Transfer oluşturma formu</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p>Transfer detay sayfasında kaynak/hedef node, kargo firması ve durum bilgisi görünür; "Diğer İşlemler" menüsünden node veya kargo firması güncellenebilir, transfer geri çağrılabilir ya da iptal edilebilir.</p>
+            
+              <figure class="frame">
+                <img src="images/37-transfer-detail.png" alt="Transfer detay sayfası" loading="lazy" width="1440" height="900" />
+                <figcaption>Transfer detay sayfası</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="yonlendirme">
+    <header class="module-head">
+      <p class="eyebrow">Otomasyon</p>
+      <h2>10 &nbsp;Akıllı Yönlendirme</h2>
+      <p class="lede">Hangi gönderinin hangi kargo firmasına otomatik atanacağını belirleyen kural motoru; Gönderi Oluşturma ekranındaki "Otomatik Seçim" bu kuralları kullanır.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>"Kurallar" sekmesi, önceliğe göre sıralanmış kural listesini ve bir test aracı olan Yönlendirme Simülatörü'nü içerir. Desi, il ve tutar girilerek "Simüle Et" ile hangi kuralın eşleşeceği ve hangi taşıyıcının seçileceği görülebilir.</p>
+            
+              <figure class="frame">
+                <img src="images/38-routing-rules.png" alt="Kurallar sekmesi ve simülatör" loading="lazy" width="1440" height="900" />
+                <figcaption>Kurallar sekmesi ve simülatör</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>Simülasyon çalıştırıldığında eşleşen kuralın adı, birincil ve varsa yedek taşıyıcı bilgisiyle birlikte yeşil bir sonuç kutusunda gösterilir.</p>
+            
+              <figure class="frame">
+                <img src="images/39-routing-simulator-result.png" alt="Simülasyon sonucu" loading="lazy" width="1440" height="900" />
+                <figcaption>Simülasyon sonucu</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p>"Yeni Kural Ekle" ile kural adı, desi/tutar aralığı, geçerli olduğu iller ve birincil/yedek taşıyıcı tanımlanır. Kurallar listede yukarı/aşağı oklarla önceliklendirilir — üstteki kural önce değerlendirilir.</p>
+            
+              <figure class="frame">
+                <img src="images/40-routing-rule-modal.png" alt="Yeni kural ekleme penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>Yeni kural ekleme penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <p>"Ağırlık Verme" sekmesinde maliyet, teslimat süresi ve başarı oranı kriterlerine kaydırıcılarla ağırlık verilir; bu ağırlıklar toplamda %100'e otomatik normalize edilir.</p>
+            
+              <figure class="frame">
+                <img src="images/41-routing-weights.png" alt="Ağırlık verme sekmesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Ağırlık verme sekmesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <p>"Normalize Puanlama" sekmesi, belirlenen ağırlıklara göre hesaplanan taşıyıcı skorlarını sıralı bir liste halinde gösterir.</p>
+            
+              <figure class="frame">
+                <img src="images/42-routing-scoring.png" alt="Normalize puanlama sekmesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Normalize puanlama sekmesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <p>"Kural Geçmişi" sekmesi, kurallarda yapılan her oluşturma/güncelleme/silme/önceliklendirme değişikliğini zaman damgasıyla kayıt altına alır.</p>
+            
+              <figure class="frame">
+                <img src="images/43-routing-history.png" alt="Kural geçmişi sekmesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Kural geçmişi sekmesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="izleme">
+    <header class="module-head">
+      <p class="eyebrow">Otomasyon</p>
+      <h2>11 &nbsp;Entegrasyon & İzleme</h2>
+      <p class="lede">Kargo firması API bağlantılarının sağlığını, entegrasyon hatalarını ve bekleyen webhook bildirimlerini izleme ekranı.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>"Sağlık Durumu" sekmesi her kargo firmasının API bağlantı durumunu (Çalışıyor / Yavaşlamış / Kesinti), ortalama yanıt süresini ve son kontrol zamanını tablo halinde listeler.</p>
+            
+              <figure class="frame">
+                <img src="images/44-monitoring-health.png" alt="Sağlık durumu sekmesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Sağlık durumu sekmesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>"Hata Yönetimi" sekmesi entegrasyon sırasında oluşan hataları gönderi, kargo firması ve hata mesajıyla listeler; çözülmemiş kayıtlarda "Yeniden Dene" bağlantısı görünür.</p>
+            
+              <figure class="frame">
+                <img src="images/45-monitoring-errors.png" alt="Hata yönetimi sekmesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Hata yönetimi sekmesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p>"Webhook Kuyruğu" sekmesi, kargo firmalarından gelen ve henüz işlenmemiş bildirimleri deneme sayısı ve sıradaki deneme zamanıyla gösterir.</p>
+            
+              <figure class="frame">
+                <img src="images/46-monitoring-webhooks.png" alt="Webhook kuyruğu sekmesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Webhook kuyruğu sekmesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="finans">
+    <header class="module-head">
+      <p class="eyebrow">Finans</p>
+      <h2>12 &nbsp;Finans</h2>
+      <p class="lede">Kargo firmalarıyla olan fiyat anlaşmalarının, gelen faturaların ve aylık gönderi kotalarının takip edildiği modül.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>"Fiyatlandırma" sekmesi her kargo firması için desi aralığına göre beklenen (anlaşmalı) ücreti listeler.</p>
+            
+              <figure class="frame">
+                <img src="images/47-finance-pricing.png" alt="Fiyatlandırma sekmesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Fiyatlandırma sekmesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>"Yeni Fiyat Kaydı" ile bir kargo firmasına ait desi aralığı ve bu aralık için geçerli ücret tanımlanır.</p>
+            
+              <figure class="frame">
+                <img src="images/48-finance-pricing-modal.png" alt="Yeni fiyat kaydı penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>Yeni fiyat kaydı penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p>"Fatura İşlemleri" sekmesi her gönderi için kargo firmasından gelen gerçek ücreti, beklenen ücretle karşılaştırmalı olarak gösterir; sapma varsa kırmızı/yeşil renkle vurgulanır.</p>
+            
+              <figure class="frame">
+                <img src="images/49-finance-invoices.png" alt="Fatura işlemleri sekmesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Fatura işlemleri sekmesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <p>"Kota Bilgileri" sekmesi her kargo firmasının aylık gönderi kotasını, kullanılan ve kalan miktarı segmentli bir çubukla gösterir.</p>
+            
+              <figure class="frame">
+                <img src="images/50-finance-quotas.png" alt="Kota bilgileri sekmesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Kota bilgileri sekmesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <p>Bir kartın sağ üstündeki kalem ikonuyla o kargo firmasının aylık kota limiti güncellenebilir.</p>
+            
+              <figure class="frame">
+                <img src="images/51-finance-quota-modal.png" alt="Kota limiti güncelleme penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>Kota limiti güncelleme penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="performans">
+    <header class="module-head">
+      <p class="eyebrow">Yönetim</p>
+      <h2>13 &nbsp;Kargo Performansı</h2>
+      <p class="lede">Kargo firmalarının teslimat başarısı, hasar oranı, zamanında teslimat ve maliyet performansını karşılaştırmalı olarak gösteren analiz sayfası.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Üstteki özet kartların ardından, her kargo firmasının hacim, başarılı teslimat, hasar oranı, zamanında teslimat (OTD), ortalama toplama süresi ve maliyet farkı değerlerini içeren karşılaştırma tablosu yer alır.</p>
+            
+              <figure class="frame">
+                <img src="images/52-performance-page.png" alt="Kargo Performansı sayfası" loading="lazy" width="1440" height="900" />
+                <figcaption>Kargo Performansı sayfası</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="raporlama">
+    <header class="module-head">
+      <p class="eyebrow">Yönetim</p>
+      <h2>14 &nbsp;Raporlama & Analitik</h2>
+      <p class="lede">Tarih aralığı, kargo firması ve bölgeye göre filtrelenebilen; gönderi hacmi, iade sayısı ve maliyet analizini bir araya getiren rapor ekranı.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Filtreleri ayarladıktan sonra üstteki metrik kartları, kargo firması bazlı hacim/durum dağılım grafikleri ve altta detaylı maliyet analizi tablosu güncellenir.</p>
+            
+              <figure class="frame">
+                <img src="images/53-reports-page.png" alt="Raporlama & Analitik sayfası" loading="lazy" width="1440" height="900" />
+                <figcaption>Raporlama & Analitik sayfası</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="kullanicilar">
+    <header class="module-head">
+      <p class="eyebrow">Yönetim</p>
+      <h2>15 &nbsp;Kullanıcılar</h2>
+      <p class="lede">Panele erişebilen kullanıcıların ve rollerinin (Sistem Yöneticisi, Operasyon, Raporlama) yönetildiği ekran.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Liste her kullanıcının rolünü, durumunu ve son giriş zamanını gösterir; satır sonundaki butonlarla düzenleme, pasife alma ve silme işlemleri yapılır.</p>
+            
+              <figure class="frame">
+                <img src="images/54-users-list.png" alt="Kullanıcılar listesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Kullanıcılar listesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>"Yeni Kullanıcı Ekle" ile ad, e-posta ve rol bilgisiyle yeni bir kullanıcı tanımlanır.</p>
+            
+              <figure class="frame">
+                <img src="images/55-user-modal.png" alt="Yeni kullanıcı ekleme penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>Yeni kullanıcı ekleme penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="yetki">
+    <header class="module-head">
+      <p class="eyebrow">Yönetim</p>
+      <h2>16 &nbsp;Yetki Yönetimi</h2>
+      <p class="lede">Her kullanıcı rolünün hangi modüllere erişebileceğinin tanımlandığı, Kullanıcılar ekranından ayrılmış bağımsız sayfa.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Tablodaki her satır bir modülü, her kolon bir rolü temsil eder; kutucuklar işaretlenip kaldırılarak erişim anında güncellenir.</p>
+            
+              <figure class="frame">
+                <img src="images/56-permissions-page.png" alt="Rol bazlı yetki matrisi" loading="lazy" width="1440" height="900" />
+                <figcaption>Rol bazlı yetki matrisi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="bildirim-sablonlari">
+    <header class="module-head">
+      <p class="eyebrow">Şablonlar</p>
+      <h2>17 &nbsp;Bildirim Şablonları</h2>
+      <p class="lede">Müşteriye gönderilen SMS ve e-posta bildirimlerinin metinlerinin yönetildiği ekran.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Liste her şablonun tipini (SMS/Email), tetikleyici olayını (gönderi oluşturuldu, kargoya verildi…) ve durumunu gösterir.</p>
+            
+              <figure class="frame">
+                <img src="images/57-templates-list.png" alt="Bildirim şablonları listesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Bildirim şablonları listesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>"Yeni Şablon Ekle" penceresinde değişken etiketlerine (müşteri adı, sipariş no, takip no…) tıklayarak metne ekleyebilir, alt kısımdaki canlı önizlemeden sonucu görebilirsiniz.</p>
+            
+              <figure class="frame">
+                <img src="images/58-template-modal.png" alt="Yeni şablon ekleme penceresi ve önizleme" loading="lazy" width="1440" height="900" />
+                <figcaption>Yeni şablon ekleme penceresi ve önizleme</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+
+  <section class="module" id="barkod-sablonlari">
+    <header class="module-head">
+      <p class="eyebrow">Şablonlar</p>
+      <h2>18 &nbsp;Barkod Şablonları</h2>
+      <p class="lede">Kargo firmasına göre barkod etiketi formatının ve zorunlu alanların tanımlandığı ekran.</p>
+    </header>
+    <ol class="steps">
+      
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p>Liste her şablonun hangi kargo firmasına (veya tüm firmalara) ait olduğunu, formatını (PDF/PNG/ZPL/EPL) ve zorunlu alanlarını gösterir.</p>
+            
+              <figure class="frame">
+                <img src="images/59-barcode-templates-list.png" alt="Barkod şablonları listesi" loading="lazy" width="1440" height="900" />
+                <figcaption>Barkod şablonları listesi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p>"Yeni Şablon Ekle" penceresinde kargo firması ve format seçilir, etikette hangi bilgilerin zorunlu olacağı (takip no, kargo firması, adres…) işaretlenir.</p>
+            
+              <figure class="frame">
+                <img src="images/60-barcode-template-modal.png" alt="Yeni barkod şablonu ekleme penceresi" loading="lazy" width="1440" height="900" />
+                <figcaption>Yeni barkod şablonu ekleme penceresi</figcaption>
+              </figure>
+            
+          </div>
+        </li>
+      
+    </ol>
+  </section>
+
+      <footer class="end">
+        <p>Kılavuzun sonuna geldiniz. Bir modülde takılırsanız o bölümün ekran görüntüsündeki adımları tekrar izleyin — arayüz her zaman aynı sırayı takip eder.</p>
+      </footer>
+    </main>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
