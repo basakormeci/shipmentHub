@@ -1411,7 +1411,12 @@ let S = {
   shipmentCreate: {
     orderNo: '', companyId: '', cargoType: 'order', customerName: '',
     shipFrom: '', provinceId: '', district: '', referenceId: '', packageNo: '',
-    channel: 'Kendi Web Sitesi', errors: {},
+    channel: 'Kendi Web Sitesi',
+    phone: '', email: '', addressLine: '',
+    desi: '', weightKg: '', pieceCount: '1', content: '',
+    paymentType: 'kredi_karti', codAmount: '',
+    note: '', requestedDeliveryDate: '',
+    errors: {},
   },
 
   returnCreate: {
@@ -2388,13 +2393,30 @@ function buildShipmentDetail() {
   const co = getCompany(s.companyId);
   const st = SHIPMENT_STATUS[s.status];
   const item = packageItemFor(s.id);
-  const contentItems = packageItemsFor(s.id);
-  const totalQty = contentItems.reduce((sum, it) => sum + it.qty, 0);
-  const dk = desiKgFor(s.id);
+  const hasRealCreationData = s.desi != null && s.weightKg != null;
+  const contentItems = hasRealCreationData ? [] : packageItemsFor(s.id);
+  const totalQty = s.pieceCount != null ? s.pieceCount : contentItems.reduce((sum, it) => sum + it.qty, 0);
+  const dk = hasRealCreationData ? { desi: s.desi, weight: s.weightKg } : desiKgFor(s.id);
   const planned = plannedDeliveryDate(s);
   const actual = actualDeliveryDate(s);
 
-  const packageExpanded = `
+  const packageExpanded = hasRealCreationData ? `
+    <div class="flex flex-col gap-2">
+      ${s.content ? `
+        <div class="bg-white border border-neutral-200 rounded-lg p-3">
+          <p class="text-xs text-neutral-400 mb-1">Ürün İçeriği</p>
+          <p class="text-sm font-medium text-neutral-800">${s.content}</p>
+        </div>
+      ` : ''}
+      <div class="flex items-center gap-4 bg-neutral-50/50 border border-dashed border-neutral-200 rounded-lg p-3">
+        <div class="flex-1 flex items-center gap-5 text-xs">
+          <span class="text-neutral-400">Desi: <span class="font-semibold text-neutral-700">${dk.desi}</span></span>
+          <span class="text-neutral-400">Ağırlık: <span class="font-semibold text-neutral-700">${dk.weight} kg</span></span>
+          <span class="text-neutral-400">Parça Sayısı: <span class="font-semibold text-neutral-700">${totalQty}</span></span>
+        </div>
+      </div>
+    </div>
+  ` : `
     <div class="flex flex-col gap-2">
       ${contentItems.map(it => `
         <div class="flex items-center gap-4 bg-white border border-neutral-200 rounded-lg p-3">
@@ -2424,21 +2446,29 @@ function buildShipmentDetail() {
   `;
 
   const deliveryDurationExpanded = `
-    <div class="flex items-center gap-6 bg-white border border-neutral-200 rounded-lg p-3.5">
-      <div class="flex-1">
-        <p class="text-xs text-neutral-400 mb-1">Planlanan Teslimat</p>
-        <p class="text-sm font-semibold text-neutral-800">${fmtDateTimeStr(planned)}</p>
-      </div>
-      <div class="w-px h-8 bg-neutral-200"></div>
-      <div class="flex-1">
-        <p class="text-xs text-neutral-400 mb-1">Gerçekleşen Teslimat</p>
-        <p class="text-sm font-semibold ${actual ? 'text-neutral-800' : 'text-neutral-300'}">${actual ? fmtDateTimeStr(actual) : 'Henüz teslim edilmedi'}</p>
-      </div>
-      ${actual ? `
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center gap-6 bg-white border border-neutral-200 rounded-lg p-3.5">
+        <div class="flex-1">
+          <p class="text-xs text-neutral-400 mb-1">Planlanan Teslimat</p>
+          <p class="text-sm font-semibold text-neutral-800">${fmtDateTimeStr(planned)}</p>
+        </div>
         <div class="w-px h-8 bg-neutral-200"></div>
         <div class="flex-1">
-          <p class="text-xs text-neutral-400 mb-1">Fark</p>
-          <p class="text-sm font-semibold ${new Date(actual) <= new Date(planned) ? 'text-[#1a8245]' : 'text-[#ad1f2b]'}">${Math.round((new Date(actual) - new Date(planned)) / 3600000) >= 0 ? '+' : ''}${Math.round((new Date(actual) - new Date(planned)) / 3600000)} saat</p>
+          <p class="text-xs text-neutral-400 mb-1">Gerçekleşen Teslimat</p>
+          <p class="text-sm font-semibold ${actual ? 'text-neutral-800' : 'text-neutral-300'}">${actual ? fmtDateTimeStr(actual) : 'Henüz teslim edilmedi'}</p>
+        </div>
+        ${actual ? `
+          <div class="w-px h-8 bg-neutral-200"></div>
+          <div class="flex-1">
+            <p class="text-xs text-neutral-400 mb-1">Fark</p>
+            <p class="text-sm font-semibold ${new Date(actual) <= new Date(planned) ? 'text-[#1a8245]' : 'text-[#ad1f2b]'}">${Math.round((new Date(actual) - new Date(planned)) / 3600000) >= 0 ? '+' : ''}${Math.round((new Date(actual) - new Date(planned)) / 3600000)} saat</p>
+          </div>
+        ` : ''}
+      </div>
+      ${s.note ? `
+        <div class="bg-neutral-50/50 border border-dashed border-neutral-200 rounded-lg p-3">
+          <p class="text-xs text-neutral-400 mb-1">Teslimat Notu</p>
+          <p class="text-sm text-neutral-700">${s.note}</p>
         </div>
       ` : ''}
     </div>
@@ -2459,6 +2489,8 @@ function buildShipmentDetail() {
       fields: [
         { label: t('shipmentDetail.field_order_no'), value: `<span class="text-primary">${s.orderNo}</span>`, copy: s.orderNo },
         { label: t('shipmentDetail.field_channel'), value: s.channel },
+        ...(s.paymentType ? [{ label: 'Ödeme Tipi', value: ORDER_PAYMENT_TYPES[s.paymentType] || s.paymentType }] : []),
+        ...(s.codAmount ? [{ label: 'Tahsilat Tutarı', value: `₺${s.codAmount}` }] : []),
       ],
     }),
     detailSectionRow({
@@ -2476,8 +2508,8 @@ function buildShipmentDetail() {
       title: t('shipmentDetail.section_customer'),
       fields: [
         { label: '', value: `<span class="font-semibold">${s.customerName}</span>` },
-        { label: t('shipmentDetail.field_email'), value: emailFor(s.customerName) },
-        { label: t('shipmentDetail.field_phone'), value: phoneFor(s.id) },
+        { label: t('shipmentDetail.field_email'), value: s.email || emailFor(s.customerName) },
+        { label: t('shipmentDetail.field_phone'), value: s.phone || phoneFor(s.id) },
       ],
       actionBtn: `
         <button class="w-8 h-8 rounded-lg bg-primary-lighter hover:bg-primary-light text-primary flex items-center justify-center flex-shrink-0 transition-colors" onclick="toast(t('shipmentDetail.customer_detail_soon'), 'info')" title="${t('shipmentDetail.customer_detail_tooltip')}">
@@ -2505,6 +2537,7 @@ function buildShipmentDetail() {
         { label: t('shipmentDetail.field_carrier'), value: `<span class="font-semibold">${co ? co.name : t('common.unknown')}</span>` },
         { label: t('shipmentDetail.field_tracking_no'), value: `<span class="font-mono text-xs">${s.trackingNo}</span>`, copy: s.trackingNo },
         { label: '', value: `${s.shipFrom} <span class="text-neutral-300 mx-1">→</span> ${s.shipTo.district} / ${s.shipTo.province}` },
+        ...(s.shipTo.addressLine ? [{ label: 'Açık Adres', value: s.shipTo.addressLine }] : []),
       ],
       expandable: true,
       expandedContent: shipmentExpanded,
@@ -2516,6 +2549,7 @@ function buildShipmentDetail() {
       fields: [
         { label: 'Planlanan', value: fmtDateTimeStr(planned) },
         { label: 'Gerçekleşen', value: actual ? fmtDateTimeStr(actual) : '<span class="text-neutral-300">Henüz teslim edilmedi</span>' },
+        ...(s.requestedDeliveryDate ? [{ label: 'Talep Edilen', value: fmtDate(s.requestedDeliveryDate) }] : []),
       ],
       expandable: true,
       expandedContent: deliveryDurationExpanded,
@@ -5109,9 +5143,11 @@ function saveQuotaLimit() {
 // =========================================================
 // KARGO PERFORMANSI — hasarlı/başarılı teslimat, OTD, pickup time, cost farkı
 // =========================================================
-function computeCarrierPerformance() {
+function computeCarrierPerformance(shipmentsList, invoicesList) {
+  shipmentsList = shipmentsList || SHIPMENTS;
+  invoicesList = invoicesList || carrierInvoices;
   const byCompany = {};
-  SHIPMENTS.forEach(s => {
+  shipmentsList.forEach(s => {
     if (!byCompany[s.companyId]) byCompany[s.companyId] = { total: 0, delivered: 0, damaged: 0, onTime: 0, pickupSum: 0 };
     const b = byCompany[s.companyId];
     b.total++;
@@ -5127,7 +5163,7 @@ function computeCarrierPerformance() {
   return Object.keys(byCompany).map(cid => {
     const b = byCompany[cid];
     const co = getCompany(+cid);
-    const invoices = carrierInvoices.filter(i => i.companyId === +cid);
+    const invoices = invoicesList.filter(i => i.companyId === +cid);
     const costBalance = invoices.reduce((sum, i) => sum + (i.realCost - i.expectedCost), 0);
     const totalExpected = invoices.reduce((sum, i) => sum + i.expectedCost, 0);
     const costDiffPct = totalExpected ? (costBalance / totalExpected * 100) : 0;
@@ -5217,6 +5253,16 @@ const STATUS_CHART_COLORS = {
   delivered:  '#1fc16b',
   returned:   '#94a0b4',
   cancelled:  '#fb3748',
+  recalled:   '#a78bfa',
+};
+
+const RETURN_STATUS_CHART_COLORS = {
+  requested:    '#335cff',
+  picked_up:    '#fa7319',
+  in_warehouse: '#94a0b4',
+  completed:    '#1fc16b',
+  cancelled:    '#fb3748',
+  recalled:     '#a78bfa',
 };
 
 function shipmentCost(s) {
@@ -5945,10 +5991,10 @@ function deleteTemplate(id) {
 // =========================================================
 function buildDashboardPage() {
   const totalShipments = SHIPMENTS.length;
-  const delivered = SHIPMENTS.filter(s => s.status === 'delivered').length;
+  const delivered = SHIPMENTS.filter(s => s.status === 'delivered' || s.status === 'returned').length;
   const successRate = (delivered / totalShipments * 100).toFixed(1);
   const avgDays = (SHIPMENTS.reduce((sum, s) => sum + shipmentDeliveryDays(s), 0) / totalShipments).toFixed(1);
-  const activeReturns = returns.filter(r => r.status !== 'completed' && r.status !== 'cancelled').length;
+  const activeReturns = returns.filter(r => r.status !== 'completed' && r.status !== 'cancelled' && r.status !== 'recalled').length;
   const healthUp = CARRIER_HEALTH.filter(h => h.status === 'up').length;
   const healthTotal = CARRIER_HEALTH.length;
   const activeRules = routingRules.filter(r => r.active).length;
@@ -5958,7 +6004,6 @@ function buildDashboardPage() {
 
   const byStatus = {};
   SHIPMENTS.forEach(s => { byStatus[s.status] = (byStatus[s.status] || 0) + 1; });
-  const maxStatusCount = Math.max(1, ...Object.values(byStatus));
   const unhealthyCarriers = CARRIER_HEALTH.filter(h => h.status !== 'up');
   const dr = S.dashboard;
 
@@ -6050,22 +6095,7 @@ function buildDashboardPage() {
     <div class="grid grid-cols-2 gap-6">
       <div class="bg-white rounded-lg border border-neutral-200 p-5">
         <p class="text-sm font-semibold text-neutral-950 mb-4">Gönderi Durum Dağılımı</p>
-        <div class="flex flex-col gap-3">
-          ${Object.keys(byStatus).map(key => `
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-medium text-neutral-600 flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${STATUS_CHART_COLORS[key]}"></span>
-                  ${statusLabel(key)}
-                </span>
-                <span class="text-xs font-semibold text-neutral-700">${byStatus[key]}</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-neutral-100 overflow-hidden">
-                <div class="h-full rounded-full" style="width:${(byStatus[key] / maxStatusCount * 100).toFixed(1)}%;background:${STATUS_CHART_COLORS[key]}"></div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
+        ${buildDonutChart(Object.keys(byStatus).map(key => ({ label: statusLabel(key), value: byStatus[key], color: STATUS_CHART_COLORS[key] })))}
       </div>
 
       <div class="bg-white rounded-lg border border-neutral-200 p-5">
@@ -6135,6 +6165,95 @@ function getDashboardReturns() {
   });
 }
 
+function getDashboardInvoices() {
+  const d = S.dashboard;
+  return carrierInvoices.filter(i => {
+    const day = i.invoiceDate.slice(0, 10);
+    if (d.dateFrom && day < d.dateFrom) return false;
+    if (d.dateTo && day > d.dateTo) return false;
+    return true;
+  });
+}
+
+// rows: [{ label, value, color }]
+function buildDonutChart(rows, opts) {
+  opts = opts || {};
+  const size = opts.size || 132;
+  const stroke = opts.stroke || 20;
+  const r = (size - stroke) / 2;
+  const cx = size / 2, cy = size / 2;
+  const circumference = 2 * Math.PI * r;
+  const total = rows.reduce((sum, row) => sum + row.value, 0);
+  const GAP = 2;
+  let offsetAcc = 0;
+  const arcs = rows.filter(row => row.value > 0).map(row => {
+    const frac = total ? row.value / total : 0;
+    const rawDash = frac * circumference;
+    const dash = Math.max(0, rawDash - GAP);
+    const rest = circumference - dash;
+    const dashoffset = -offsetAcc;
+    offsetAcc += rawDash;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${row.color}" stroke-width="${stroke}" stroke-dasharray="${dash.toFixed(2)} ${rest.toFixed(2)}" stroke-dashoffset="${dashoffset.toFixed(2)}"><title>${row.label}: ${row.value} (%${(frac * 100).toFixed(1)})</title></circle>`;
+  }).join('');
+  return `
+    <div class="flex items-center gap-6">
+      <div class="relative flex-shrink-0" style="width:${size}px;height:${size}px">
+        <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+          <g transform="rotate(-90 ${cx} ${cy})">
+            <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#f0f1f3" stroke-width="${stroke}" />
+            ${arcs}
+          </g>
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <p class="text-2xl font-bold text-neutral-950 leading-none">${total}</p>
+          <p class="text-[11px] text-neutral-400 mt-1">toplam</p>
+        </div>
+      </div>
+      <div class="flex-1 min-w-0 flex flex-col gap-2">
+        ${rows.map(row => {
+          const frac = total ? row.value / total : 0;
+          return `
+            <div class="flex items-center gap-2 text-xs">
+              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${row.color}"></span>
+              <span class="text-neutral-600 flex-1 truncate">${row.label}</span>
+              <span class="font-semibold text-neutral-800">${row.value}</span>
+              <span class="text-neutral-400 w-9 text-right">%${(frac * 100).toFixed(0)}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// rows: [{ label, value, color }] — single 100%-stacked horizontal bar (composition of a whole)
+function buildStackedBar(rows) {
+  const total = rows.reduce((sum, row) => sum + row.value, 0);
+  const GAP = 2;
+  const visible = rows.filter(row => row.value > 0);
+  return `
+    <div class="flex h-3 rounded-full overflow-hidden bg-neutral-100" style="gap:${GAP}px">
+      ${visible.map(row => {
+        const pct = total ? (row.value / total * 100) : 0;
+        return `<div style="width:${pct}%;background:${row.color}" title="${row.label}: ${row.value} (%${pct.toFixed(1)})"></div>`;
+      }).join('')}
+    </div>
+    <div class="flex flex-wrap gap-x-4 gap-y-2 mt-3">
+      ${rows.map(row => {
+        const pct = total ? (row.value / total * 100) : 0;
+        return `
+          <div class="flex items-center gap-1.5 text-xs">
+            <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${row.color}"></span>
+            <span class="text-neutral-600">${row.label}</span>
+            <span class="font-semibold text-neutral-800">${row.value}</span>
+            <span class="text-neutral-400">(%${pct.toFixed(0)})</span>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
 function dashboardBarPanel(title, rows) {
   if (rows.length === 0) {
     return `
@@ -6165,32 +6284,58 @@ function dashboardBarPanel(title, rows) {
   `;
 }
 
+// rows: [{ label, value (signed), display }] — zero-centered diverging bar (polarity data)
+function dashboardDivergingBarPanel(title, subtitle, rows) {
+  if (rows.length === 0) {
+    return `
+      <div class="bg-white rounded-lg border border-neutral-200 p-5">
+        <p class="text-sm font-semibold text-neutral-950 mb-4">${title}</p>
+        <p class="text-xs text-neutral-400 text-center py-6">Bu aralıkta veri yok.</p>
+      </div>
+    `;
+  }
+  const maxAbs = Math.max(0.0001, ...rows.map(r => Math.abs(r.value)));
+  return `
+    <div class="bg-white rounded-lg border border-neutral-200 p-5">
+      <p class="text-sm font-semibold text-neutral-950 mb-1">${title}</p>
+      <p class="text-xs text-neutral-400 mb-4">${subtitle}</p>
+      <div class="flex flex-col gap-3">
+        ${rows.map(r => {
+          const pct = Math.min(100, Math.abs(r.value) / maxAbs * 100).toFixed(1);
+          const color = r.value > 0 ? '#ad1f2b' : r.value < 0 ? '#178c4e' : '#cacfd8';
+          return `
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-medium text-neutral-600 w-28 flex-shrink-0 truncate">${r.label}</span>
+              <div class="flex-1 flex items-stretch h-2">
+                <div class="w-1/2 flex justify-end">
+                  ${r.value < 0 ? `<div style="width:${pct}%;background:${color}" class="rounded-l-full" title="${r.label}: ${r.display}"></div>` : ''}
+                </div>
+                <div class="w-px bg-neutral-300 flex-shrink-0"></div>
+                <div class="w-1/2 flex justify-start">
+                  ${r.value > 0 ? `<div style="width:${pct}%;background:${color}" class="rounded-r-full" title="${r.label}: ${r.display}"></div>` : ''}
+                </div>
+              </div>
+              <span class="text-xs font-semibold w-14 text-right flex-shrink-0" style="color:${color}">${r.display}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
 function dashboardReturnsBreakdownWidget() {
   const list = getDashboardReturns();
   const byStatus = {};
   list.forEach(x => { byStatus[x.status] = (byStatus[x.status] || 0) + 1; });
-  const rows = Object.keys(byStatus).map(key => ({ label: RETURN_STATUS[key].label, value: byStatus[key], display: String(byStatus[key]) }));
+  const rows = Object.keys(byStatus).map(key => ({ label: RETURN_STATUS[key].label, value: byStatus[key], color: RETURN_STATUS_CHART_COLORS[key] }));
   return `
     <div class="bg-white rounded-lg border border-neutral-200 p-5">
       <div class="flex items-center justify-between mb-4">
         <p class="text-sm font-semibold text-neutral-950">İade Talepleri (Tarih Aralığı)</p>
         <span class="text-lg font-bold text-neutral-950">${list.length}</span>
       </div>
-      ${rows.length === 0 ? `<p class="text-xs text-neutral-400 text-center py-6">Bu aralıkta veri yok.</p>` : `
-        <div class="flex flex-col gap-3">
-          ${rows.map(r => `
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-medium text-neutral-600">${r.label}</span>
-                <span class="text-xs font-semibold text-neutral-700">${r.display}</span>
-              </div>
-              <div class="w-full h-1.5 rounded-full bg-neutral-100 overflow-hidden">
-                <div class="h-full rounded-full bg-primary" style="width:${(r.value / list.length * 100).toFixed(1)}%"></div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      `}
+      ${rows.length === 0 ? `<p class="text-xs text-neutral-400 text-center py-6">Bu aralıkta veri yok.</p>` : buildStackedBar(rows)}
     </div>
   `;
 }
@@ -6199,28 +6344,14 @@ function dashboardShipmentsBreakdownWidget() {
   const list = getDashboardShipments();
   const byStatus = {};
   list.forEach(s => { byStatus[s.status] = (byStatus[s.status] || 0) + 1; });
-  const rows = Object.keys(byStatus).map(key => ({ label: statusLabel(key), value: byStatus[key], display: String(byStatus[key]) }));
+  const rows = Object.keys(byStatus).map(key => ({ label: statusLabel(key), value: byStatus[key], color: STATUS_CHART_COLORS[key] }));
   return `
     <div class="bg-white rounded-lg border border-neutral-200 p-5">
       <div class="flex items-center justify-between mb-4">
         <p class="text-sm font-semibold text-neutral-950">Gönderiler (Tarih Aralığı)</p>
         <span class="text-lg font-bold text-neutral-950">${list.length}</span>
       </div>
-      ${rows.length === 0 ? `<p class="text-xs text-neutral-400 text-center py-6">Bu aralıkta veri yok.</p>` : `
-        <div class="flex flex-col gap-3">
-          ${rows.map(r => `
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-medium text-neutral-600">${r.label}</span>
-                <span class="text-xs font-semibold text-neutral-700">${r.display}</span>
-              </div>
-              <div class="w-full h-1.5 rounded-full bg-neutral-100 overflow-hidden">
-                <div class="h-full rounded-full bg-primary" style="width:${(r.value / list.length * 100).toFixed(1)}%"></div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      `}
+      ${rows.length === 0 ? `<p class="text-xs text-neutral-400 text-center py-6">Bu aralıkta veri yok.</p>` : buildStackedBar(rows)}
     </div>
   `;
 }
@@ -6269,13 +6400,7 @@ function dashboardOtdWidget() {
 }
 
 function dashboardCostBalanceWidget() {
-  const d = S.dashboard;
-  const list = carrierInvoices.filter(i => {
-    const day = i.invoiceDate.slice(0, 10);
-    if (d.dateFrom && day < d.dateFrom) return false;
-    if (d.dateTo && day > d.dateTo) return false;
-    return true;
-  });
+  const list = getDashboardInvoices();
   const byCompany = {};
   list.forEach(i => {
     if (!byCompany[i.companyId]) byCompany[i.companyId] = { diff: 0, expected: 0 };
@@ -6290,31 +6415,58 @@ function dashboardCostBalanceWidget() {
         label: getCompany(+id) ? getCompany(+id).name : t('common.unknown'),
         value: pct,
         display: `${pct >= 0 ? '+' : ''}%${pct.toFixed(1)}`,
-        colorClass: pct > 0 ? 'text-[#ad1f2b]' : pct < 0 ? 'text-[#178c4e]' : 'text-neutral-700',
-        barClass: pct > 0 ? '' : 'bg-primary',
       };
     })
     .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
-  return dashboardBarPanel('Beklenen-Gerçek Maliyet Farkı (Kargo Firması)', rows);
+  return dashboardDivergingBarPanel('Beklenen-Gerçek Maliyet Farkı (Kargo Firması)', 'Solda yeşil = beklenenden ucuz, sağda kırmızı = beklenenden pahalı', rows);
 }
 
 function dashboardQuotaWidget() {
   const rows = carrierQuotas.map(q => {
     const remaining = Math.max(0, q.monthlyLimit - q.usedThisMonth);
-    const pct = q.monthlyLimit ? (q.usedThisMonth / q.monthlyLimit * 100) : 0;
+    const pct = q.monthlyLimit ? Math.min(100, q.usedThisMonth / q.monthlyLimit * 100) : 0;
+    const usedColor = pct >= 90 ? '#fb3748' : pct >= 70 ? '#fa7319' : '#16a34a';
     return {
-      label: getCompany(q.companyId) ? getCompany(q.companyId).name : t('common.unknown'),
-      value: pct,
-      display: `${remaining.toLocaleString('tr-TR')} kalan`,
-      colorClass: pct >= 90 ? 'text-[#ad1f2b]' : pct >= 70 ? 'text-[#c2570e]' : 'text-neutral-700',
-      barClass: pct >= 90 ? '' : pct >= 70 ? '' : 'bg-primary',
+      companyName: getCompany(q.companyId) ? getCompany(q.companyId).name : t('common.unknown'),
+      used: q.usedThisMonth,
+      remaining,
+      limit: q.monthlyLimit,
+      pct,
+      usedColor,
     };
-  }).sort((a, b) => b.value - a.value);
-  return dashboardBarPanel('Kalan Kota — Kargo Firması', rows);
+  }).sort((a, b) => b.pct - a.pct);
+
+  if (rows.length === 0) {
+    return `
+      <div class="bg-white rounded-lg border border-neutral-200 p-5">
+        <p class="text-sm font-semibold text-neutral-950 mb-4">Kalan Kota — Kargo Firması</p>
+        <p class="text-xs text-neutral-400 text-center py-6">Veri yok.</p>
+      </div>
+    `;
+  }
+  return `
+    <div class="bg-white rounded-lg border border-neutral-200 p-5">
+      <p class="text-sm font-semibold text-neutral-950 mb-4">Kalan Kota — Kargo Firması</p>
+      <div class="flex flex-col gap-3">
+        ${rows.map(row => `
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium text-neutral-600">${row.companyName}</span>
+              <span class="text-xs text-neutral-400">${row.used.toLocaleString('tr-TR')} / ${row.limit.toLocaleString('tr-TR')} <span class="font-semibold text-neutral-700">(${row.remaining.toLocaleString('tr-TR')} kalan)</span></span>
+            </div>
+            <div class="flex h-2 rounded-full overflow-hidden bg-neutral-100" style="gap:2px">
+              <div style="width:${row.pct.toFixed(1)}%;background:${row.usedColor}" title="Kullanılan: ${row.used.toLocaleString('tr-TR')}"></div>
+              <div style="width:${(100 - row.pct).toFixed(1)}%;background:#e5e7eb" title="Kalan: ${row.remaining.toLocaleString('tr-TR')}"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
 }
 
 function dashboardPerformanceScoreWidget() {
-  const rows = computeCarrierPerformance();
+  const rows = computeCarrierPerformance(getDashboardShipments(), getDashboardInvoices());
   return `
     <div class="bg-white rounded-lg border border-neutral-200 overflow-hidden">
       <div class="flex items-center justify-between px-5 py-3.5 border-b border-neutral-100">
@@ -6374,6 +6526,24 @@ function generateTrackingNo(companyId) {
   return `${prefix}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000000) + 1000000}`;
 }
 
+function resolveAutoRoutingRule(f) {
+  if (!f.desi || !f.provinceId) return null;
+  const amount = f.paymentType === 'kapida_odeme' && f.codAmount ? +f.codAmount : 0;
+  return matchRoutingRule(+f.desi, f.provinceId, amount);
+}
+
+function buildAutoRoutingPreview(f) {
+  if (!f.desi || !f.provinceId) {
+    return `<p class="text-xs text-neutral-400 mt-1.5">Kural önerisini görmek için desi ve il bilgisini girin.</p>`;
+  }
+  const rule = resolveAutoRoutingRule(f);
+  if (!rule) {
+    return `<p class="text-xs mt-1.5" style="color:#c2570e">Girilen bilgilerle eşleşen bir yönlendirme kuralı bulunamadı. Lütfen manuel firma seçin.</p>`;
+  }
+  const primary = getCompany(rule.primaryCompanyId);
+  return `<p class="text-xs text-neutral-500 mt-1.5">"${rule.name}" kuralı eşleşti → <span class="font-semibold text-neutral-700">${primary ? primary.name : t('common.unknown')}</span> seçilecek</p>`;
+}
+
 function buildShipmentCreatePage() {
   const f = S.shipmentCreate;
   const e = f.errors;
@@ -6413,8 +6583,9 @@ function buildShipmentCreatePage() {
           <div class="grid grid-cols-2 gap-5">
             <div>
               <label class="form-label">Kargo Firması <span class="text-[#fb3748]">*</span></label>
-              ${buildCustomSelect('shipmentCreateCompany', [{ value: '', label: 'Firma seçin...' }, ...COMPANIES.map(c => ({ value: c.id, label: c.name }))], f.companyId, "setShipmentCreateField('companyId', __VALUE__)", { placeholder: 'Firma seçin...', error: !!e.companyId })}
+              ${buildCustomSelect('shipmentCreateCompany', [{ value: '', label: 'Firma seçin...' }, { value: 'auto', label: 'Otomatik Seçim (Akıllı Yönlendirme)' }, ...COMPANIES.map(c => ({ value: c.id, label: c.name }))], f.companyId, "setShipmentCreateField('companyId', __VALUE__)", { placeholder: 'Firma seçin...', error: !!e.companyId })}
               ${e.companyId ? `<p class="form-error">${e.companyId}</p>` : ''}
+              ${f.companyId === 'auto' ? buildAutoRoutingPreview(f) : ''}
             </div>
             <div>
               <label class="form-label">Sevk Yeri (Depo) <span class="text-[#fb3748]">*</span></label>
@@ -6424,6 +6595,21 @@ function buildShipmentCreatePage() {
             <div>
               <label class="form-label">Paket No <span class="font-normal normal-case text-neutral-400">(boş bırakılırsa otomatik)</span></label>
               <input type="text" class="form-input" value="${f.packageNo}" oninput="setShipmentCreateField('packageNo', this.value)" />
+            </div>
+            <div>
+              <label class="form-label">Parça Sayısı <span class="text-[#fb3748]">*</span></label>
+              <input type="text" inputmode="numeric" class="form-input ${e.pieceCount ? 'error' : ''}" min="1" value="${f.pieceCount}" oninput="setShipmentCreateField('pieceCount', this.value)" />
+              ${e.pieceCount ? `<p class="form-error">${e.pieceCount}</p>` : ''}
+            </div>
+            <div>
+              <label class="form-label">Desi <span class="text-[#fb3748]">*</span></label>
+              <input type="text" inputmode="numeric" class="form-input ${e.desi ? 'error' : ''}" min="0" placeholder="Örn. 15" value="${f.desi}" oninput="setShipmentCreateField('desi', this.value)" />
+              ${e.desi ? `<p class="form-error">${e.desi}</p>` : ''}
+            </div>
+            <div>
+              <label class="form-label">Ağırlık (kg) <span class="text-[#fb3748]">*</span></label>
+              <input type="text" inputmode="numeric" class="form-input ${e.weightKg ? 'error' : ''}" min="0" placeholder="Örn. 2.5" value="${f.weightKg}" oninput="setShipmentCreateField('weightKg', this.value)" />
+              ${e.weightKg ? `<p class="form-error">${e.weightKg}</p>` : ''}
             </div>
           </div>
         </div>
@@ -6441,6 +6627,50 @@ function buildShipmentCreatePage() {
               <label class="form-label">İlçe <span class="text-[#fb3748]">*</span></label>
               ${buildCustomSelect('shipmentCreateDistrict', [{ value: '', label: 'İlçe seçin...' }, ...(province ? province.districts.map(d => ({ value: d, label: d })) : [])], f.district, "setShipmentCreateField('district', __VALUE__)", { placeholder: 'İlçe seçin...', error: !!e.district, disabled: !province })}
               ${e.district ? `<p class="form-error">${e.district}</p>` : ''}
+            </div>
+            <div class="col-span-2">
+              <label class="form-label">Açık Adres <span class="text-[#fb3748]">*</span></label>
+              <input type="text" class="form-input ${e.addressLine ? 'error' : ''}" placeholder="Mahalle, sokak, no, daire..." value="${f.addressLine}" oninput="setShipmentCreateField('addressLine', this.value)" />
+              ${e.addressLine ? `<p class="form-error">${e.addressLine}</p>` : ''}
+            </div>
+            <div>
+              <label class="form-label">Alıcı Telefon <span class="text-[#fb3748]">*</span></label>
+              <input type="text" inputmode="tel" class="form-input ${e.phone ? 'error' : ''}" placeholder="+90 5xx xxx xx xx" value="${f.phone}" oninput="setShipmentCreateField('phone', this.value)" />
+              ${e.phone ? `<p class="form-error">${e.phone}</p>` : ''}
+            </div>
+            <div>
+              <label class="form-label">Alıcı E-posta <span class="font-normal normal-case text-neutral-400">(isteğe bağlı)</span></label>
+              <input type="text" inputmode="email" class="form-input" placeholder="ornek@eposta.com" value="${f.email}" oninput="setShipmentCreateField('email', this.value)" />
+            </div>
+          </div>
+        </div>
+
+        <div class="col-span-2">
+          <div class="h-px bg-neutral-100 my-1"></div>
+          <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-4 mb-4">İçerik & Ödeme</p>
+          <div class="grid grid-cols-2 gap-5">
+            <div class="col-span-2">
+              <label class="form-label">Ürün İçeriği <span class="font-normal normal-case text-neutral-400">(isteğe bağlı)</span></label>
+              <input type="text" class="form-input" placeholder="Örn. 2x Elbise, 1x Kazak" value="${f.content}" oninput="setShipmentCreateField('content', this.value)" />
+            </div>
+            <div>
+              <label class="form-label">Ödeme Tipi</label>
+              ${buildCustomSelect('shipmentCreatePaymentType', Object.keys(ORDER_PAYMENT_TYPES).map(k => ({ value: k, label: ORDER_PAYMENT_TYPES[k] })), f.paymentType, "setShipmentCreateField('paymentType', __VALUE__)")}
+            </div>
+            ${f.paymentType === 'kapida_odeme' ? `
+              <div>
+                <label class="form-label">Tahsilat Tutarı (₺) <span class="text-[#fb3748]">*</span></label>
+                <input type="text" inputmode="numeric" class="form-input ${e.codAmount ? 'error' : ''}" min="0" placeholder="Örn. 450" value="${f.codAmount}" oninput="setShipmentCreateField('codAmount', this.value)" />
+                ${e.codAmount ? `<p class="form-error">${e.codAmount}</p>` : ''}
+              </div>
+            ` : ''}
+            <div>
+              <label class="form-label">Talep Edilen Teslimat Tarihi <span class="font-normal normal-case text-neutral-400">(isteğe bağlı)</span></label>
+              <input type="date" class="form-input" value="${f.requestedDeliveryDate}" onchange="setShipmentCreateField('requestedDeliveryDate', this.value)" />
+            </div>
+            <div class="col-span-2">
+              <label class="form-label">Teslimat Notu <span class="font-normal normal-case text-neutral-400">(isteğe bağlı)</span></label>
+              <textarea class="form-input" rows="2" oninput="setShipmentCreateField('note', this.value)">${f.note}</textarea>
             </div>
           </div>
         </div>
@@ -6488,7 +6718,12 @@ function resetShipmentCreateForm() {
   S.shipmentCreate = {
     orderNo: '', companyId: '', cargoType: 'order', customerName: '',
     shipFrom: '', provinceId: '', district: '', referenceId: '', packageNo: '',
-    channel: 'Kendi Web Sitesi', errors: {},
+    channel: 'Kendi Web Sitesi',
+    phone: '', email: '', addressLine: '',
+    desi: '', weightKg: '', pieceCount: '1', content: '',
+    paymentType: 'kredi_karti', codAmount: '',
+    note: '', requestedDeliveryDate: '',
+    errors: {},
   };
   render();
 }
@@ -6502,6 +6737,15 @@ function validateShipmentCreate() {
   if (!f.shipFrom) errs.shipFrom = 'Sevk yeri seçilmelidir.';
   if (!f.provinceId) errs.provinceId = 'İl seçilmelidir.';
   if (!f.district) errs.district = 'İlçe seçilmelidir.';
+  if (!f.addressLine.trim()) errs.addressLine = 'Açık adres zorunludur.';
+  if (!f.phone.trim()) errs.phone = 'Alıcı telefonu zorunludur.';
+  if (!f.pieceCount || +f.pieceCount <= 0) errs.pieceCount = 'Geçerli bir parça sayısı girin.';
+  if (!f.desi || +f.desi <= 0) errs.desi = 'Geçerli bir desi değeri girin.';
+  if (!f.weightKg || +f.weightKg <= 0) errs.weightKg = 'Geçerli bir ağırlık girin.';
+  if (f.paymentType === 'kapida_odeme' && (!f.codAmount || +f.codAmount <= 0)) errs.codAmount = 'Tahsilat tutarı zorunludur.';
+  if (f.companyId === 'auto' && f.desi && +f.desi > 0 && f.provinceId && !resolveAutoRoutingRule(f)) {
+    errs.companyId = 'Otomatik seçim için uygun bir yönlendirme kuralı bulunamadı. Lütfen manuel firma seçin.';
+  }
   return errs;
 }
 
@@ -6518,11 +6762,18 @@ function submitShipmentCreate() {
   const shipmentNo = Math.max(...SHIPMENTS.map(s => s.shipmentNo)) + 1;
   const orderNoVal = isNaN(+f.orderNo) ? f.orderNo : +f.orderNo;
 
+  let matchedRule = null;
+  let resolvedCompanyId = f.companyId;
+  if (f.companyId === 'auto') {
+    matchedRule = resolveAutoRoutingRule(f);
+    resolvedCompanyId = matchedRule.primaryCompanyId;
+  }
+
   const newShipment = {
-    id, shipmentNo, orderNo: orderNoVal, companyId: +f.companyId,
-    trackingNo: generateTrackingNo(+f.companyId),
+    id, shipmentNo, orderNo: orderNoVal, companyId: +resolvedCompanyId,
+    trackingNo: generateTrackingNo(+resolvedCompanyId),
     shipFrom: f.shipFrom,
-    shipTo: { district: f.district, province: province.name },
+    shipTo: { district: f.district, province: province.name, addressLine: f.addressLine.trim() },
     shipTime: new Date().toISOString(),
     status: 'preparing',
     cargoType: f.cargoType,
@@ -6530,9 +6781,24 @@ function submitShipmentCreate() {
     packageNo: f.packageNo || `PKT-${String(id).padStart(6, '0')}`,
     customerName: f.customerName,
     channel: f.channel,
+    phone: f.phone.trim(),
+    email: f.email.trim(),
+    desi: +f.desi,
+    weightKg: +f.weightKg,
+    pieceCount: +f.pieceCount,
+    content: f.content.trim(),
+    paymentType: f.paymentType,
+    codAmount: f.paymentType === 'kapida_odeme' ? +f.codAmount : 0,
+    note: f.note.trim(),
+    requestedDeliveryDate: f.requestedDeliveryDate || null,
   };
   SHIPMENTS.push(newShipment);
-  toast(`Gönderi #${newShipment.shipmentNo} oluşturuldu.`, 'success');
+  if (matchedRule) {
+    const co = getCompany(matchedRule.primaryCompanyId);
+    toast(`Gönderi #${newShipment.shipmentNo} oluşturuldu. Akıllı Yönlendirme "${matchedRule.name}" kuralıyla ${co ? co.name : ''} seçti.`, 'success');
+  } else {
+    toast(`Gönderi #${newShipment.shipmentNo} oluşturuldu.`, 'success');
+  }
   resetShipmentCreateForm();
   S.page = 'shipments';
   openShipmentDetail(newShipment.id);
