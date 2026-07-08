@@ -1,0 +1,997 @@
+{
+  "COMPANIES": [
+    {
+      "id": 1,
+      "name": "Yurtiçi Kargo",
+      "fields": [
+        "password",
+        "apiKey"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Aras Kargo",
+      "fields": [
+        "customerId",
+        "apiKey"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "MNG Kargo",
+      "fields": [
+        "password"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "PTT Kargo",
+      "fields": [
+        "apiKey"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Sürat Kargo",
+      "fields": [
+        "password",
+        "apiKey"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "DHL eCommerce",
+      "fields": [
+        "password",
+        "apiKey"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Horoz Lojistik",
+      "fields": [
+        "customerId",
+        "apiKey"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Hepsijet",
+      "fields": [
+        "password"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Kolay Gelsin",
+      "fields": [
+        "apiKey"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Ceva Tedarik Zinciri",
+      "fields": [
+        "customerId",
+        "apiKey"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "PointPost",
+      "fields": [
+        "apiKey"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "KuryeNet",
+      "fields": [
+        "password",
+        "apiKey"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Digital Kurye",
+      "fields": [
+        "apiKey"
+      ]
+    }
+  ],
+  "SHIPMENTS": [
+    {
+      "id": 1,
+      "shipmentNo": 8200145,
+      "orderNo": 61234501,
+      "companyId": 1,
+      "trackingNo": "YK-2026-0091823-TR",
+      "shipFrom": "İstanbul Ana Depo",
+      "shipTo": {
+        "district": "Kadıköy",
+        "province": "İstanbul"
+      },
+      "shipTime": "2026-07-02T09:15:00",
+      "status": "in_transit",
+      "cargoType": "order",
+      "referenceId": "REF-77812",
+      "packageNo": "PKT-000145",
+      "customerName": "Elif Yıldız",
+      "channel": "Trendyol"
+    },
+    {
+      "id": 2,
+      "shipmentNo": 8200146,
+      "orderNo": 61234502,
+      "companyId": 2,
+      "trackingNo": "ARAS-778812934",
+      "shipFrom": "İzmir Depo",
+      "shipTo": {
+        "district": "Bornova",
+        "province": "İzmir"
+      },
+      "shipTime": "2026-07-02T08:40:00",
+      "status": "delivered",
+      "cargoType": "order",
+      "referenceId": "REF-77813",
+      "packageNo": "PKT-000146",
+      "customerName": "Mehmet Kaya",
+      "channel": "Hepsiburada"
+    },
+    {
+      "id": 3,
+      "shipmentNo": 8200147,
+      "orderNo": 61234503,
+      "companyId": 3,
+      "trackingNo": "MNG-2026556781",
+      "shipFrom": "Bursa Depo",
+      "shipTo": {
+        "district": "Nilüfer",
+        "province": "Bursa"
+      },
+      "shipTime": "2026-07-01T16:22:00",
+      "status": "preparing",
+      "cargoType": "order",
+      "referenceId": "REF-77814",
+      "packageNo": "PKT-000147",
+      "customerName": "Ayşe Demir",
+      "channel": "Kendi Web Sitesi"
+    },
+    {
+      "id": 4,
+      "shipmentNo": 8200148,
+      "orderNo": 61234504,
+      "companyId": 6,
+      "trackingNo": "DHL-99001827734",
+      "shipFrom": "Ankara Merkez",
+      "shipTo": {
+        "district": "Çankaya",
+        "province": "Ankara"
+      },
+      "shipTime": "2026-07-01T11:05:00",
+      "status": "in_transit",
+      "cargoType": "order",
+      "referenceId": "REF-77815",
+      "packageNo": "PKT-000148",
+      "customerName": "Burak Şahin",
+      "channel": "N11"
+    },
+    {
+      "id": 5,
+      "shipmentNo": 8200149,
+      "orderNo": 61234505,
+      "companyId": 7,
+      "trackingNo": "HRZ-2026-441209",
+      "shipFrom": "İstanbul Anadolu",
+      "shipTo": {
+        "district": "Pendik",
+        "province": "İstanbul"
+      },
+      "shipTime": "2026-06-30T14:50:00",
+      "status": "delivered",
+      "cargoType": "return",
+      "referenceId": "REF-77816",
+      "packageNo": "PKT-000149",
+      "customerName": "Zeynep Arslan",
+      "channel": "Trendyol"
+    },
+    {
+      "id": 6,
+      "shipmentNo": 8200150,
+      "orderNo": 61234506,
+      "companyId": 8,
+      "trackingNo": "HPJ-778123456",
+      "shipFrom": "İstanbul Anadolu",
+      "shipTo": {
+        "district": "Üsküdar",
+        "province": "İstanbul"
+      },
+      "shipTime": "2026-06-30T10:12:00",
+      "status": "cancelled",
+      "cargoType": "order",
+      "referenceId": "REF-77817",
+      "packageNo": "PKT-000150",
+      "customerName": "Can Öztürk",
+      "channel": "Hepsiburada"
+    },
+    {
+      "id": 7,
+      "shipmentNo": 8200151,
+      "orderNo": 61234507,
+      "companyId": 4,
+      "trackingNo": "PTT-2026-0093451",
+      "shipFrom": "Konya Depo",
+      "shipTo": {
+        "district": "Selçuklu",
+        "province": "Konya"
+      },
+      "shipTime": "2026-06-29T13:30:00",
+      "status": "in_transit",
+      "cargoType": "order",
+      "referenceId": "REF-77818",
+      "packageNo": "PKT-000151",
+      "customerName": "Fatma Çelik",
+      "channel": "Kendi Web Sitesi"
+    },
+    {
+      "id": 8,
+      "shipmentNo": 8200152,
+      "orderNo": 61234508,
+      "companyId": 5,
+      "trackingNo": "SRT-88213456",
+      "shipFrom": "Adana Depo",
+      "shipTo": {
+        "district": "Seyhan",
+        "province": "Adana"
+      },
+      "shipTime": "2026-06-29T09:05:00",
+      "status": "delivered",
+      "cargoType": "order",
+      "referenceId": "REF-77819",
+      "packageNo": "PKT-000152",
+      "customerName": "Emre Aydın",
+      "channel": "N11"
+    },
+    {
+      "id": 9,
+      "shipmentNo": 8200153,
+      "orderNo": 61234509,
+      "companyId": 1,
+      "trackingNo": "YK-2026-0091999-TR",
+      "shipFrom": "İstanbul Ana Depo",
+      "shipTo": {
+        "district": "Beşiktaş",
+        "province": "İstanbul"
+      },
+      "shipTime": "2026-06-28T17:40:00",
+      "status": "returned",
+      "cargoType": "return",
+      "referenceId": "REF-77820",
+      "packageNo": "PKT-000153",
+      "customerName": "Selin Koç",
+      "channel": "Trendyol"
+    },
+    {
+      "id": 10,
+      "shipmentNo": 8200154,
+      "orderNo": 61234510,
+      "companyId": 2,
+      "trackingNo": "ARAS-778812999",
+      "shipFrom": "İzmir Depo",
+      "shipTo": {
+        "district": "Karşıyaka",
+        "province": "İzmir"
+      },
+      "shipTime": "2026-06-28T12:15:00",
+      "status": "preparing",
+      "cargoType": "order",
+      "referenceId": "REF-77821",
+      "packageNo": "PKT-000154",
+      "customerName": "Onur Yavuz",
+      "channel": "Hepsiburada"
+    },
+    {
+      "id": 11,
+      "shipmentNo": 8200155,
+      "orderNo": 61234511,
+      "companyId": 6,
+      "trackingNo": "DHL-99001899234",
+      "shipFrom": "Gaziantep Merkez",
+      "shipTo": {
+        "district": "Şahinbey",
+        "province": "Gaziantep"
+      },
+      "shipTime": "2026-06-27T15:00:00",
+      "status": "in_transit",
+      "cargoType": "order",
+      "referenceId": "REF-77822",
+      "packageNo": "PKT-000155",
+      "customerName": "Deniz Polat",
+      "channel": "Kendi Web Sitesi"
+    },
+    {
+      "id": 12,
+      "shipmentNo": 8200156,
+      "orderNo": 61234512,
+      "companyId": 3,
+      "trackingNo": "MNG-2026559981",
+      "shipFrom": "Kayseri Depo",
+      "shipTo": {
+        "district": "Melikgazi",
+        "province": "Kayseri"
+      },
+      "shipTime": "2026-06-27T08:20:00",
+      "status": "delivered",
+      "cargoType": "order",
+      "referenceId": "REF-77823",
+      "packageNo": "PKT-000156",
+      "customerName": "Gizem Er",
+      "channel": "N11"
+    },
+    {
+      "id": 13,
+      "shipmentNo": 8200157,
+      "orderNo": 61234513,
+      "companyId": 7,
+      "trackingNo": "HRZ-2026-449912",
+      "shipFrom": "İstanbul Anadolu",
+      "shipTo": {
+        "district": "Kartal",
+        "province": "İstanbul"
+      },
+      "shipTime": "2026-06-26T10:45:00",
+      "status": "delivered",
+      "cargoType": "order",
+      "referenceId": "REF-77824",
+      "packageNo": "PKT-000157",
+      "customerName": "Kerem Doğan",
+      "channel": "Trendyol"
+    },
+    {
+      "id": 14,
+      "shipmentNo": 8200158,
+      "orderNo": 61234514,
+      "companyId": 8,
+      "trackingNo": "HPJ-778199887",
+      "shipFrom": "İstanbul Anadolu",
+      "shipTo": {
+        "district": "Ataşehir",
+        "province": "İstanbul"
+      },
+      "shipTime": "2026-06-25T19:10:00",
+      "status": "cancelled",
+      "cargoType": "return",
+      "referenceId": "REF-77825",
+      "packageNo": "PKT-000158",
+      "customerName": "Aslı Kurt",
+      "channel": "Hepsiburada"
+    },
+    {
+      "id": 15,
+      "shipmentNo": 8200159,
+      "orderNo": 61234515,
+      "companyId": 4,
+      "trackingNo": "PTT-2026-0093998",
+      "shipFrom": "Diyarbakır Depo",
+      "shipTo": {
+        "district": "Bağlar",
+        "province": "Diyarbakır"
+      },
+      "shipTime": "2026-06-24T11:35:00",
+      "status": "in_transit",
+      "cargoType": "order",
+      "referenceId": "REF-77826",
+      "packageNo": "PKT-000159",
+      "customerName": "Yusuf Aksoy",
+      "channel": "Kendi Web Sitesi"
+    },
+    {
+      "id": 16,
+      "shipmentNo": 8200160,
+      "orderNo": 61234516,
+      "companyId": 5,
+      "trackingNo": "SRT-88219981",
+      "shipFrom": "Antalya Merkez",
+      "shipTo": {
+        "district": "Muratpaşa",
+        "province": "Antalya"
+      },
+      "shipTime": "2026-06-23T14:00:00",
+      "status": "delivered",
+      "cargoType": "order",
+      "referenceId": "REF-77827",
+      "packageNo": "PKT-000160",
+      "customerName": "Pınar Şen",
+      "channel": "Trendyol"
+    },
+    {
+      "id": 17,
+      "shipmentNo": 8200161,
+      "orderNo": 61234517,
+      "companyId": 1,
+      "trackingNo": "YK-2026-0092456-TR",
+      "shipFrom": "Ankara Merkez",
+      "shipTo": {
+        "district": "Keçiören",
+        "province": "Ankara"
+      },
+      "shipTime": "2026-06-22T09:50:00",
+      "status": "preparing",
+      "cargoType": "order",
+      "referenceId": "REF-77828",
+      "packageNo": "PKT-000161",
+      "customerName": "Hakan Uçar",
+      "channel": "N11"
+    },
+    {
+      "id": 18,
+      "shipmentNo": 8200162,
+      "orderNo": 61234518,
+      "companyId": 2,
+      "trackingNo": "ARAS-778899214",
+      "shipFrom": "İstanbul Ana Depo",
+      "shipTo": {
+        "district": "Şişli",
+        "province": "İstanbul"
+      },
+      "shipTime": "2026-06-21T16:25:00",
+      "status": "delivered",
+      "cargoType": "return",
+      "referenceId": "REF-77829",
+      "packageNo": "PKT-000162",
+      "customerName": "Merve Bulut",
+      "channel": "Hepsiburada"
+    }
+  ],
+  "returns": [
+    {
+      "id": 1,
+      "returnNo": 9300145,
+      "originalShipmentId": 5,
+      "reason": "begenmedim",
+      "status": "completed",
+      "requestDate": "2026-07-01T10:00:00",
+      "pickup": true,
+      "note": ""
+    },
+    {
+      "id": 2,
+      "returnNo": 9300146,
+      "originalShipmentId": 9,
+      "reason": "kusurlu",
+      "status": "in_warehouse",
+      "requestDate": "2026-07-02T11:30:00",
+      "pickup": true,
+      "note": "Ürün kırık geldi."
+    },
+    {
+      "id": 3,
+      "returnNo": 9300147,
+      "originalShipmentId": 14,
+      "reason": "yanlis_urun",
+      "status": "picked_up",
+      "requestDate": "2026-07-03T09:15:00",
+      "pickup": true,
+      "note": ""
+    },
+    {
+      "id": 4,
+      "returnNo": 9300148,
+      "originalShipmentId": 18,
+      "reason": "degisim",
+      "status": "requested",
+      "requestDate": "2026-07-04T14:20:00",
+      "pickup": false,
+      "note": "Beden değişimi istiyor."
+    },
+    {
+      "id": 5,
+      "returnNo": 9300149,
+      "originalShipmentId": 2,
+      "reason": "begenmedim",
+      "status": "requested",
+      "requestDate": "2026-07-05T16:45:00",
+      "pickup": true,
+      "note": ""
+    },
+    {
+      "id": 6,
+      "returnNo": 9300150,
+      "originalShipmentId": 8,
+      "reason": "diger",
+      "status": "cancelled",
+      "requestDate": "2026-06-29T08:00:00",
+      "pickup": true,
+      "note": "Müşteri vazgeçti."
+    }
+  ],
+  "routingRules": [
+    {
+      "id": 1,
+      "name": "İstanbul İçi Ekonomik",
+      "priority": 1,
+      "active": true,
+      "conditions": {
+        "minDesi": 0,
+        "maxDesi": 10,
+        "provinceIds": [
+          1
+        ],
+        "minAmount": "",
+        "maxAmount": ""
+      },
+      "primaryCompanyId": 8,
+      "failoverCompanyId": 1
+    },
+    {
+      "id": 2,
+      "name": "Yüksek Desi - Ağır Kargo",
+      "priority": 2,
+      "active": true,
+      "conditions": {
+        "minDesi": 30,
+        "maxDesi": 999,
+        "provinceIds": [],
+        "minAmount": "",
+        "maxAmount": ""
+      },
+      "primaryCompanyId": 7,
+      "failoverCompanyId": 10
+    },
+    {
+      "id": 3,
+      "name": "Yüksek Tutarlı Siparişler",
+      "priority": 3,
+      "active": true,
+      "conditions": {
+        "minDesi": 0,
+        "maxDesi": 999,
+        "provinceIds": [],
+        "minAmount": 2000,
+        "maxAmount": ""
+      },
+      "primaryCompanyId": 6,
+      "failoverCompanyId": 2
+    },
+    {
+      "id": 4,
+      "name": "Ege Bölgesi Standart",
+      "priority": 4,
+      "active": true,
+      "conditions": {
+        "minDesi": 0,
+        "maxDesi": 30,
+        "provinceIds": [
+          3
+        ],
+        "minAmount": "",
+        "maxAmount": ""
+      },
+      "primaryCompanyId": 2,
+      "failoverCompanyId": 5
+    },
+    {
+      "id": 5,
+      "name": "Genel Varsayılan",
+      "priority": 5,
+      "active": true,
+      "conditions": {
+        "minDesi": 0,
+        "maxDesi": 999,
+        "provinceIds": [],
+        "minAmount": "",
+        "maxAmount": ""
+      },
+      "primaryCompanyId": 1,
+      "failoverCompanyId": 3
+    }
+  ],
+  "routingRuleHistory": [
+    {
+      "id": 1,
+      "time": "2026-06-20T09:00:00",
+      "action": "created",
+      "ruleName": "Genel Varsayılan",
+      "detail": "Kural oluşturuldu."
+    },
+    {
+      "id": 2,
+      "time": "2026-06-25T14:30:00",
+      "action": "updated",
+      "ruleName": "İstanbul İçi Ekonomik",
+      "detail": "Birincil taşıyıcı değiştirildi."
+    },
+    {
+      "id": 3,
+      "time": "2026-07-01T11:15:00",
+      "action": "toggled",
+      "ruleName": "Ege Bölgesi Standart",
+      "detail": "Kural pasife alındı."
+    }
+  ],
+  "carrierPricing": [
+    {
+      "id": 1,
+      "companyId": 1,
+      "minDesi": 0,
+      "maxDesi": 10,
+      "price": 45
+    },
+    {
+      "id": 2,
+      "companyId": 1,
+      "minDesi": 11,
+      "maxDesi": 30,
+      "price": 75
+    },
+    {
+      "id": 3,
+      "companyId": 1,
+      "minDesi": 31,
+      "maxDesi": 999,
+      "price": 120
+    },
+    {
+      "id": 4,
+      "companyId": 2,
+      "minDesi": 0,
+      "maxDesi": 10,
+      "price": 42
+    },
+    {
+      "id": 5,
+      "companyId": 2,
+      "minDesi": 11,
+      "maxDesi": 30,
+      "price": 70
+    },
+    {
+      "id": 6,
+      "companyId": 6,
+      "minDesi": 0,
+      "maxDesi": 10,
+      "price": 68
+    },
+    {
+      "id": 7,
+      "companyId": 8,
+      "minDesi": 0,
+      "maxDesi": 10,
+      "price": 39
+    }
+  ],
+  "carrierInvoices": [
+    {
+      "id": 1,
+      "companyId": 1,
+      "shipmentNo": 8200145,
+      "invoiceNo": "FTR-2026-00234",
+      "expectedCost": 45,
+      "realCost": 52,
+      "invoiceDate": "2026-07-03T10:00:00",
+      "status": "matched"
+    },
+    {
+      "id": 2,
+      "companyId": 2,
+      "shipmentNo": 8200146,
+      "invoiceNo": "FTR-2026-00235",
+      "expectedCost": 42,
+      "realCost": 42,
+      "invoiceDate": "2026-07-03T11:20:00",
+      "status": "matched"
+    },
+    {
+      "id": 3,
+      "companyId": 6,
+      "shipmentNo": 8200148,
+      "invoiceNo": "FTR-2026-00236",
+      "expectedCost": 68,
+      "realCost": 89,
+      "invoiceDate": "2026-07-02T09:00:00",
+      "status": "disputed"
+    },
+    {
+      "id": 4,
+      "companyId": 8,
+      "shipmentNo": 8200150,
+      "invoiceNo": "FTR-2026-00237",
+      "expectedCost": 39,
+      "realCost": 39,
+      "invoiceDate": "2026-07-01T15:40:00",
+      "status": "matched"
+    },
+    {
+      "id": 5,
+      "companyId": 1,
+      "shipmentNo": 8200153,
+      "invoiceNo": "FTR-2026-00238",
+      "expectedCost": 75,
+      "realCost": 75,
+      "invoiceDate": "2026-06-30T08:15:00",
+      "status": "pending"
+    }
+  ],
+  "carrierQuotas": [
+    {
+      "companyId": 1,
+      "monthlyLimit": 5000,
+      "usedThisMonth": 3120
+    },
+    {
+      "companyId": 2,
+      "monthlyLimit": 3000,
+      "usedThisMonth": 2890
+    },
+    {
+      "companyId": 3,
+      "monthlyLimit": 2000,
+      "usedThisMonth": 640
+    },
+    {
+      "companyId": 6,
+      "monthlyLimit": 1500,
+      "usedThisMonth": 1410
+    },
+    {
+      "companyId": 7,
+      "monthlyLimit": 1000,
+      "usedThisMonth": 210
+    },
+    {
+      "companyId": 8,
+      "monthlyLimit": 2500,
+      "usedThisMonth": 1980
+    }
+  ],
+  "CARRIER_HEALTH": [
+    {
+      "companyId": 1,
+      "status": "up",
+      "avgResponseMs": 180,
+      "lastCheck": "2026-07-06T17:08:00"
+    },
+    {
+      "companyId": 2,
+      "status": "up",
+      "avgResponseMs": 210,
+      "lastCheck": "2026-07-06T17:08:00"
+    },
+    {
+      "companyId": 3,
+      "status": "degraded",
+      "avgResponseMs": 1450,
+      "lastCheck": "2026-07-06T17:07:30"
+    },
+    {
+      "companyId": 4,
+      "status": "up",
+      "avgResponseMs": 320,
+      "lastCheck": "2026-07-06T17:08:00"
+    },
+    {
+      "companyId": 5,
+      "status": "up",
+      "avgResponseMs": 195,
+      "lastCheck": "2026-07-06T17:08:00"
+    },
+    {
+      "companyId": 6,
+      "status": "up",
+      "avgResponseMs": 240,
+      "lastCheck": "2026-07-06T17:08:00"
+    },
+    {
+      "companyId": 7,
+      "status": "down",
+      "avgResponseMs": null,
+      "lastCheck": "2026-07-06T16:52:00"
+    },
+    {
+      "companyId": 8,
+      "status": "up",
+      "avgResponseMs": 165,
+      "lastCheck": "2026-07-06T17:08:00"
+    },
+    {
+      "companyId": 9,
+      "status": "up",
+      "avgResponseMs": 275,
+      "lastCheck": "2026-07-06T17:08:00"
+    },
+    {
+      "companyId": 10,
+      "status": "up",
+      "avgResponseMs": 305,
+      "lastCheck": "2026-07-06T17:08:00"
+    },
+    {
+      "companyId": 11,
+      "status": "degraded",
+      "avgResponseMs": 980,
+      "lastCheck": "2026-07-06T17:06:00"
+    },
+    {
+      "companyId": 12,
+      "status": "up",
+      "avgResponseMs": 220,
+      "lastCheck": "2026-07-06T17:08:00"
+    },
+    {
+      "companyId": 13,
+      "status": "up",
+      "avgResponseMs": 260,
+      "lastCheck": "2026-07-06T17:08:00"
+    }
+  ],
+  "ERROR_LOGS": [
+    {
+      "id": 1,
+      "shipmentNo": 8200156,
+      "companyId": 7,
+      "errorMessage": "HTTP 503 Service Unavailable: kargo firması entegrasyon servisi yanıt vermiyor.",
+      "time": "2026-07-06T16:40:00",
+      "status": "retrying"
+    },
+    {
+      "id": 2,
+      "shipmentNo": 8200159,
+      "companyId": 3,
+      "errorMessage": "Timeout: 30000ms içinde yanıt alınamadı.",
+      "time": "2026-07-06T15:12:00",
+      "status": "manual"
+    },
+    {
+      "id": 3,
+      "shipmentNo": 8200148,
+      "companyId": 11,
+      "errorMessage": "422 Unprocessable Entity: \"district\" alanı eşlenemedi (mapping hatası).",
+      "time": "2026-07-06T11:05:00",
+      "status": "resolved"
+    },
+    {
+      "id": 4,
+      "shipmentNo": 8200151,
+      "companyId": 7,
+      "errorMessage": "Connection refused: API endpoint erişilemez durumda.",
+      "time": "2026-07-05T22:31:00",
+      "status": "resolved"
+    }
+  ],
+  "WEBHOOK_QUEUE": [
+    {
+      "id": 1,
+      "companyId": 7,
+      "eventType": "shipment.status_changed",
+      "attempt": 3,
+      "nextRetry": "2026-07-06T17:20:00"
+    },
+    {
+      "id": 2,
+      "companyId": 3,
+      "eventType": "shipment.delivered",
+      "attempt": 1,
+      "nextRetry": "2026-07-06T17:15:00"
+    },
+    {
+      "id": 3,
+      "companyId": 11,
+      "eventType": "shipment.status_changed",
+      "attempt": 2,
+      "nextRetry": "2026-07-06T17:25:00"
+    }
+  ],
+  "templates": [
+    {
+      "id": 1,
+      "name": "Gönderi Oluşturuldu (SMS)",
+      "type": "sms",
+      "trigger": "created",
+      "subject": "",
+      "body": "Sayın {{musteri_adi}}, {{siparis_no}} numaralı siparişiniz kargoya hazırlanıyor. Takip no: {{takip_no}}",
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "Kargoya Verildi (SMS)",
+      "type": "sms",
+      "trigger": "in_transit",
+      "subject": "",
+      "body": "{{siparis_no}} numaralı siparişiniz {{kargo_firmasi}} ile yola çıktı. Takip: {{takip_no}}",
+      "active": true
+    },
+    {
+      "id": 3,
+      "name": "Teslim Edildi (Email)",
+      "type": "email",
+      "trigger": "delivered",
+      "subject": "Siparişiniz teslim edildi",
+      "body": "Sayın {{musteri_adi}},\n\n{{siparis_no}} numaralı siparişiniz teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.",
+      "active": true
+    },
+    {
+      "id": 4,
+      "name": "İade Alındı (Email)",
+      "type": "email",
+      "trigger": "return_received",
+      "subject": "İade talebiniz alındı",
+      "body": "Sayın {{musteri_adi}},\n\n{{siparis_no}} numaralı siparişinize ait iade talebiniz alınmıştır. Süreç en kısa sürede tamamlanacaktır.",
+      "active": true
+    },
+    {
+      "id": 5,
+      "name": "Teslimat Gecikmesi (SMS)",
+      "type": "sms",
+      "trigger": "delayed",
+      "subject": "",
+      "body": "{{siparis_no}} numaralı siparişinizin teslimatında gecikme yaşanmaktadır. Anlayışınız için teşekkür ederiz.",
+      "active": false
+    }
+  ],
+  "barcodeTemplates": [
+    {
+      "id": 1,
+      "name": "Standart Kargo Etiketi",
+      "companyId": 1,
+      "format": "pdf",
+      "requiredFields": [
+        "trackingNo",
+        "companyName",
+        "address"
+      ],
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "Termal Yazıcı Etiketi (ZPL)",
+      "companyId": 2,
+      "format": "zpl",
+      "requiredFields": [
+        "trackingNo",
+        "to",
+        "address"
+      ],
+      "active": true
+    },
+    {
+      "id": 3,
+      "name": "İade Etiketi",
+      "companyId": null,
+      "format": "pdf",
+      "requiredFields": [
+        "trackingNo",
+        "docNo"
+      ],
+      "active": false
+    }
+  ],
+  "permissionMatrix": {
+    "admin": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "operation": [
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false
+    ],
+    "reporting": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  }
+}
