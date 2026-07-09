@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { COMPANIES, RETURN_STATUS, type ReturnItem, type ReturnStatus } from '../../data/catalog'
 import { useT } from '../../hooks/useT'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 export function CancelReturnModal({
   item,
@@ -131,13 +132,11 @@ export function ReturnStatusModal({
           <strong className="text-neutral-700">#{item.returnNo}</strong>
           {t('returnStatusModal.desc_after')}
         </p>
-        <select className="form-input" value={value} onChange={(e) => setValue(e.target.value as ReturnStatus)}>
-          {options.map((k) => (
-            <option key={k} value={k}>
-              {t(`returnStatus.${k}`)}
-            </option>
-          ))}
-        </select>
+        <Dropdown
+          value={value}
+          onChange={(v) => setValue(v as ReturnStatus)}
+          options={options.map((k) => ({ value: k, label: t(`returnStatus.${k}`) }))}
+        />
         <div className="flex justify-end gap-3 mt-6">
           <button className="secondary-btn" type="button" onClick={onClose}>
             {t('common.cancel')}
@@ -181,17 +180,11 @@ export function ReturnCarrierModal({
           <strong className="text-neutral-700">#{item.returnNo}</strong>
           {t('returnCarrierModal.desc_after')}
         </p>
-        <select
-          className="form-input"
-          value={companyId}
-          onChange={(e) => onCompanyChange(+e.target.value)}
-        >
-          {COMPANIES.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <Dropdown
+          value={companyId === '' ? '' : String(companyId)}
+          onChange={(v) => onCompanyChange(+v)}
+          options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
+        />
         <div className="flex justify-end gap-3 mt-6">
           <button className="secondary-btn" type="button" onClick={onClose}>
             {t('common.cancel')}

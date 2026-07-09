@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { Lang } from '../data/seed'
 import type { ShipmentColumnKey, ShipmentSearchField } from '../lib/shipments'
-import type { ContractForm, ReturnStatus, ShipmentStatus, TransferStatus } from '../data/catalog'
+import type { ContractForm, ReturnStatus, RoutingCargoType, ShipmentStatus, TransferStatus } from '../data/catalog'
 import { emptyContractForm, type ContractFilterStatus } from '../lib/contracts'
 import type { ReturnColumnKey, ReturnSearchField } from '../lib/returns'
 import type { TransferColumnKey, TransferSearchField } from '../lib/transfers'
@@ -18,7 +18,13 @@ interface UiState {
   reportsDateTo: string
   reportsCompanyId: string
   reportsProvinceId: string
-  routingSimulator: { desi: string; provinceId: string; amount: string; resultId: number | null | false }
+  routingSimulator: {
+    desi: string
+    provinceId: string
+    amount: string
+    cargoType: RoutingCargoType | ''
+    resultId: number | null | false
+  }
   routingWeights: { cost: number; deliveryTime: number; successRate: number }
   shipmentsSearch: string
   shipmentsSearchField: ShipmentSearchField
@@ -122,7 +128,7 @@ export const useUiStore = create<UiState>()(
       reportsDateTo: '2026-07-06',
       reportsCompanyId: '',
       reportsProvinceId: '',
-      routingSimulator: { desi: '', provinceId: '', amount: '', resultId: null },
+      routingSimulator: { desi: '', provinceId: '', amount: '', cargoType: '', resultId: null },
       routingWeights: { cost: 34, deliveryTime: 33, successRate: 33 },
       shipmentsSearch: '',
       shipmentsSearchField: 'shipmentNo',

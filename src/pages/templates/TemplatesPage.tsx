@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useDataStore } from '../../stores/dataStore'
 import { TEMPLATE_TRIGGERS, TEMPLATE_VARS, type NotifyTemplate, type TemplateType } from '../../data/catalog'
 import { toast } from '../../lib/toast'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 function templatePreview(body: string) {
   const sample: Record<string, string> = {
@@ -72,20 +73,22 @@ function TemplateModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="form-label">Tip</label>
-              <select className="form-input" value={type} onChange={(e) => setType(e.target.value as TemplateType)}>
-                <option value="sms">SMS</option>
-                <option value="email">Email</option>
-              </select>
+              <Dropdown
+                value={type}
+                onChange={(v) => setType(v as TemplateType)}
+                options={[
+                  { value: 'sms', label: 'SMS' },
+                  { value: 'email', label: 'Email' },
+                ]}
+              />
             </div>
             <div>
               <label className="form-label">Tetikleyici Olay</label>
-              <select className="form-input" value={trigger} onChange={(e) => setTrigger(e.target.value)}>
-                {Object.keys(TEMPLATE_TRIGGERS).map((k) => (
-                  <option key={k} value={k}>
-                    {TEMPLATE_TRIGGERS[k]}
-                  </option>
-                ))}
-              </select>
+              <Dropdown
+                value={trigger}
+                onChange={(v) => setTrigger(v)}
+                options={Object.keys(TEMPLATE_TRIGGERS).map((k) => ({ value: k, label: TEMPLATE_TRIGGERS[k] }))}
+              />
             </div>
           </div>
           {type === 'email' ? (

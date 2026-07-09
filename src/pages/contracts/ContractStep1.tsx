@@ -8,6 +8,7 @@ import {
   type ContractForm,
 } from '../../data/catalog'
 import { useT } from '../../hooks/useT'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 function Toggle({
   val,
@@ -57,18 +58,13 @@ export function ContractStep1({
         <label className="form-label">
           {t('step1.company_label')} <span className="text-[#fb3748]">*</span>
         </label>
-        <select
-          className={`form-input ${errors.companyId ? 'error' : ''}`}
-          value={f.companyId}
-          onChange={(e) => onChange({ companyId: e.target.value ? +e.target.value : '' })}
-        >
-          <option value="">{t('step1.company_placeholder')}</option>
-          {COMPANIES.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <Dropdown
+          error={!!errors.companyId}
+          value={f.companyId === '' ? '' : String(f.companyId)}
+          onChange={(v) => onChange({ companyId: v ? +v : '' })}
+          placeholder={t('step1.company_placeholder')}
+          options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
+        />
         {errors.companyId ? <p className="form-error">{errors.companyId}</p> : null}
       </div>
 

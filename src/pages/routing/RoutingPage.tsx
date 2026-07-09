@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useState } from 'react'
 import { NavLink, useParams } from 'react-router-dom'
 import { useDataStore } from '../../stores/dataStore'
 import { useUiStore } from '../../stores/uiStore'
@@ -6,11 +6,14 @@ import {
   COMPANIES,
   PROVINCES,
   getCompany,
+  type RoutingCargoType,
   type RoutingRule,
 } from '../../data/catalog'
 import { computeCarrierPerformance } from '../PerformancePage'
 import { fmtDateTimeStr } from '../../lib/format'
 import { toast } from '../../lib/toast'
+import { useHeaderSlotStore } from '../../stores/headerSlotStore'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 const TABS = [
   { key: 'rules', label: 'Kurallar', to: '/routing/rules' },
@@ -18,6 +21,14 @@ const TABS = [
   { key: 'scoring', label: 'Normalize Puanlama', to: '/routing/scoring' },
   { key: 'history', label: 'Kural Geçmişi', to: '/routing/history' },
 ] as const
+
+const CARGO_TYPE_META: Record<RoutingCargoType, { label: string; badge: string }> = {
+  shipment: { label: 'Gönderiler', badge: 'badge-info' },
+  transfer: { label: 'Transferler', badge: 'badge-warning' },
+  return: { label: 'İadeler', badge: 'badge-passive' },
+}
+
+const CARGO_TYPE_OPTIONS: RoutingCargoType[] = ['shipment', 'transfer', 'return']
 
 const RULE_HISTORY_ACTION_META: Record<string, { label: string; badge: string }> = {
   created: { label: 'Oluşturuldu', badge: 'badge-active' },
@@ -46,10 +57,17 @@ function ruleConditionsSummary(cond: RoutingRule['conditions']) {
   return parts.join(' · ')
 }
 
-function matchRoutingRule(rules: RoutingRule[], desi: number, provinceId: number, amount: number) {
+function matchRoutingRule(
+  rules: RoutingRule[],
+  desi: number,
+  provinceId: number,
+  amount: number,
+  cargoType: RoutingCargoType,
+) {
   const sorted = [...rules].filter((r) => r.active).sort((a, b) => a.priority - b.priority)
   for (const rule of sorted) {
     const c = rule.conditions
+    if (!rule.cargoTypes.includes(cargoType)) continue
     if (desi < c.minDesi || desi > c.maxDesi) continue
     if (c.provinceIds.length > 0 && !c.provinceIds.includes(provinceId)) continue
     if (c.minAmount !== '' && amount < +c.minAmount) continue
@@ -125,13 +143,18 @@ function RoutingRuleModal({
   const [primaryCompanyId, setPrimaryCompanyId] = useState(existing?.primaryCompanyId ?? COMPANIES[0].id)
   const [failoverCompanyId, setFailoverCompanyId] = useState<number | ''>(existing?.failoverCompanyId ?? '')
   const [active, setActive] = useState(existing?.active ?? true)
+  const [cargoTypes, setCargoTypes] = useState<RoutingCargoType[]>(existing?.cargoTypes ?? [...CARGO_TYPE_OPTIONS])
 
   if (!open) return null
 
-  const canSave = name.trim() && primaryCompanyId
+  const canSave = name.trim() && primaryCompanyId && cargoTypes.length > 0
 
   function toggleProvince(id: number) {
     setProvinceIds((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]))
+  }
+
+  function toggleCargoType(type: RoutingCargoType) {
+    setCargoTypes((prev) => (prev.includes(type) ? prev.filter((c) => c !== type) : [...prev, type]))
   }
 
   function save() {
@@ -151,6 +174,7 @@ function RoutingRuleModal({
       conditions,
       primaryCompanyId,
       failoverCompanyId: failoverCompanyId === '' ? null : failoverCompanyId,
+      cargoTypes,
     })
     logRoutingHistory(editId ? 'updated' : 'created', rule.name, editId ? 'Kural güncellendi.' : 'Kural oluşturuldu.')
     toast(editId ? 'Kural güncellendi.' : 'Yeni kural oluşturuldu.', 'success')
@@ -177,6 +201,23 @@ function RoutingRuleModal({
               Kural Adı <span className="text-[#fb3748]">*</span>
             </label>
             <input type="text" className="form-input" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div>
+            <label className="form-label">
+              Bu Kural Hangi Modüller İçin Geçerli? <span className="text-[#fb3748]">*</span>
+              <span className="font-normal normal-case text-neutral-400"> (en az bir tanesi seçilmeli)</span>
+            </label>
+            <div className="flex items-center gap-4 flex-wrap">
+              {CARGO_TYPE_OPTIONS.map((type) => (
+                <label key={type} className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={cargoTypes.includes(type)} onChange={() => toggleCargoType(type)} />
+                  <span className="text-sm text-neutral-700">{CARGO_TYPE_META[type].label}</span>
+                </label>
+              ))}
+            </div>
+            {cargoTypes.length === 0 ? (
+              <p className="form-error">En az bir modül seçmelisiniz.</p>
+            ) : null}
           </div>
           <div>
             <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Koşullar</p>
@@ -217,28 +258,20 @@ function RoutingRuleModal({
                 <label className="form-label">
                   Birincil Kargo Firması <span className="text-[#fb3748]">*</span>
                 </label>
-                <select className="form-input" value={primaryCompanyId} onChange={(e) => setPrimaryCompanyId(+e.target.value)}>
-                  {COMPANIES.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                <Dropdown
+                  value={String(primaryCompanyId)}
+                  onChange={(v) => setPrimaryCompanyId(+v)}
+                  options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
+                />
               </div>
               <div>
                 <label className="form-label">Yedek Kargo Firması (Failover)</label>
-                <select
-                  className="form-input"
-                  value={failoverCompanyId}
-                  onChange={(e) => setFailoverCompanyId(e.target.value === '' ? '' : +e.target.value)}
-                >
-                  <option value="">Yok</option>
-                  {COMPANIES.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                <Dropdown
+                  value={failoverCompanyId === '' ? '' : String(failoverCompanyId)}
+                  onChange={(v) => setFailoverCompanyId(v === '' ? '' : +v)}
+                  placeholder="Yok"
+                  options={[{ value: '', label: 'Yok' }, ...COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))]}
+                />
               </div>
             </div>
           </div>
@@ -280,8 +313,8 @@ function RulesTab() {
   const sorted = useMemo(() => [...routingRules].sort((a, b) => a.priority - b.priority), [routingRules])
 
   function runSimulation() {
-    if (simulator.desi === '' || !simulator.provinceId) {
-      toast('Simülasyon için desi ve il bilgisi gereklidir.', 'info')
+    if (simulator.desi === '' || !simulator.provinceId || !simulator.cargoType) {
+      toast('Simülasyon için modül, desi ve il bilgisi gereklidir.', 'info')
       return
     }
     const result = matchRoutingRule(
@@ -289,6 +322,7 @@ function RulesTab() {
       +simulator.desi,
       +simulator.provinceId,
       simulator.amount === '' ? 0 : +simulator.amount,
+      simulator.cargoType,
     )
     setRoutingSimulator({ resultId: result ? result.id : false })
   }
@@ -300,21 +334,42 @@ function RulesTab() {
         ? false
         : routingRules.find((r) => r.id === simulator.resultId) ?? false
 
-  return (
-    <>
-      <div className="flex items-center justify-between mb-6">
-        <p className="text-sm text-neutral-500">{routingRules.length} kural tanımlı</p>
-        <button className="primary-btn" type="button" onClick={() => setCreateOpen(true)}>
+  const setHeaderSlot = useHeaderSlotStore((s) => s.setHeaderSlot)
+  const clearHeaderSlot = useHeaderSlotStore((s) => s.clearHeaderSlot)
+
+  useLayoutEffect(() => {
+    setHeaderSlot({
+      subtitle: `${routingRules.length} kural tanımlı`,
+      actions: (
+        <button className="secondary-btn" type="button" onClick={() => setCreateOpen(true)}>
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
           Yeni Kural Ekle
         </button>
-      </div>
+      ),
+    })
+    return () => clearHeaderSlot()
+  })
+
+  return (
+    <>
 
       <div className="bg-white rounded-lg border border-neutral-200 p-5 mb-6">
         <p className="text-sm font-semibold text-neutral-950 mb-1">Yönlendirme Simülatörü</p>
         <p className="text-xs text-neutral-400 mb-4">
           Örnek bir gönderi girin, hangi kuralın eşleşip hangi taşıyıcının seçileceğini görün.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+          <div>
+            <label className="form-label">Modül</label>
+            <Dropdown
+              value={simulator.cargoType}
+              onChange={(v) => setRoutingSimulator({ cargoType: v as RoutingCargoType | '', resultId: null })}
+              placeholder="Modül seçin..."
+              options={CARGO_TYPE_OPTIONS.map((type) => ({ value: type, label: CARGO_TYPE_META[type].label }))}
+            />
+          </div>
           <div>
             <label className="form-label">Desi</label>
             <input
@@ -328,18 +383,12 @@ function RulesTab() {
           </div>
           <div>
             <label className="form-label">İl</label>
-            <select
-              className="form-input"
+            <Dropdown
               value={simulator.provinceId}
-              onChange={(e) => setRoutingSimulator({ provinceId: e.target.value, resultId: null })}
-            >
-              <option value="">İl seçin...</option>
-              {PROVINCES.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setRoutingSimulator({ provinceId: v, resultId: null })}
+              placeholder="İl seçin..."
+              options={PROVINCES.map((p) => ({ value: String(p.id), label: p.name }))}
+            />
           </div>
           <div>
             <label className="form-label">Sipariş Tutarı</label>
@@ -393,11 +442,17 @@ function RulesTab() {
             <tr className="text-left border-b border-neutral-100">
               <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Öncelik</th>
               <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kural Adı</th>
+              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kapsam</th>
               <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Koşullar</th>
               <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Birincil Taşıyıcı</th>
               <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Yedek Taşıyıcı</th>
               <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Durum</th>
-              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right">İşlemler</th>
+              <th
+                className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right sticky right-0 bg-white"
+                style={{ boxShadow: '-4px 0 6px -2px rgba(0,0,0,0.06)' }}
+              >
+                İşlemler
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -405,6 +460,7 @@ function RulesTab() {
               const primary = getCompany(rule.primaryCompanyId)
               const failover = rule.failoverCompanyId ? getCompany(rule.failoverCompanyId) : null
               const even = i % 2 === 0
+              const stickyBg = even ? '#ffffff' : '#fafbfc'
               return (
                 <tr key={rule.id} className={`${even ? 'bg-white' : 'bg-neutral-50/50'} hover:bg-primary-lighter/20 transition-colors`}>
                   <td className="px-5 py-3.5">
@@ -439,6 +495,15 @@ function RulesTab() {
                     </div>
                   </td>
                   <td className="px-5 py-3.5 font-medium text-neutral-700">{rule.name}</td>
+                  <td className="px-5 py-3.5">
+                    <div className="flex flex-wrap gap-1">
+                      {rule.cargoTypes.map((type) => (
+                        <span key={type} className={`badge ${CARGO_TYPE_META[type].badge}`}>
+                          {CARGO_TYPE_META[type].label}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
                   <td className="px-5 py-3.5 text-neutral-500 text-xs">{ruleConditionsSummary(rule.conditions)}</td>
                   <td className="px-5 py-3.5 text-neutral-600">{primary ? primary.name : 'Bilinmiyor'}</td>
                   <td className="px-5 py-3.5 text-neutral-500">{failover ? failover.name : '-'}</td>
@@ -448,32 +513,51 @@ function RulesTab() {
                       {rule.active ? 'Aktif' : 'Pasif'}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-1 justify-end">
-                      <button className="action-btn btn-edit" type="button" onClick={() => setEditId(rule.id)}>
-                        Düzenle
+                  <td
+                    className="px-5 py-3.5 sticky right-0"
+                    style={{ background: stickyBg, boxShadow: '-4px 0 6px -2px rgba(0,0,0,0.06)' }}
+                  >
+                    <div className="flex justify-end gap-1">
+                      <button className="action-btn" type="button" title="Düzenle" onClick={() => setEditId(rule.id)}>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
                       </button>
                       <button
-                        className={`action-btn ${rule.active ? 'btn-passive' : 'btn-toggle'}`}
+                        className="action-btn"
                         type="button"
+                        title={rule.active ? 'Pasife Al' : 'Aktife Al'}
                         onClick={() => {
                           toggleRoutingRule(rule.id)
                           logRoutingHistory('toggled', rule.name, rule.active ? 'Kural pasife alındı.' : 'Kural aktif edildi.')
                           toast(`"${rule.name}" ${rule.active ? 'pasife alındı' : 'aktif edildi'}.`, 'info')
                         }}
                       >
-                        {rule.active ? 'Pasife Al' : 'Aktife Al'}
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v9m6.364-7.364a9 9 0 11-12.728 0" />
+                        </svg>
                       </button>
                       <button
-                        className="action-btn btn-delete"
+                        className="action-btn hover:text-[#ad1f2b] hover:bg-[#ffebec]"
                         type="button"
+                        title="Sil"
                         onClick={() => {
                           removeRoutingRule(rule.id)
                           logRoutingHistory('deleted', rule.name, 'Kural silindi.')
                           toast(`"${rule.name}" silindi.`, 'info')
                         }}
                       >
-                        Sil
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
                       </button>
                     </div>
                   </td>
@@ -634,7 +718,7 @@ export function RoutingPage() {
   const { tab } = useParams<{ tab: string }>()
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="page-container">
       <div className="flex items-center gap-1.5 mb-6">
         {TABS.map((tb) => (
           <NavLink

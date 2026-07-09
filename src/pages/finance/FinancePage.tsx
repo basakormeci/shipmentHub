@@ -9,6 +9,7 @@ import {
 } from '../../data/catalog'
 import { fmtDateTimeStr } from '../../lib/format'
 import { toast } from '../../lib/toast'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 const TABS = [
   { key: 'pricing', label: 'Fiyatlandırma', to: '/finance/pricing' },
@@ -63,13 +64,11 @@ function PricingModal({
         <div className="flex flex-col gap-4">
           <div>
             <label className="form-label">Kargo Firması</label>
-            <select className="form-input" value={companyId} onChange={(e) => setCompanyId(+e.target.value)}>
-              {COMPANIES.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <Dropdown
+              value={String(companyId)}
+              onChange={(v) => setCompanyId(+v)}
+              options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -151,13 +150,11 @@ function InvoiceModal({
         <div className="flex flex-col gap-4">
           <div>
             <label className="form-label">Kargo Firması</label>
-            <select className="form-input" value={companyId} onChange={(e) => setCompanyId(+e.target.value)}>
-              {COMPANIES.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <Dropdown
+              value={String(companyId)}
+              onChange={(v) => setCompanyId(+v)}
+              options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -181,13 +178,14 @@ function InvoiceModal({
           </div>
           <div>
             <label className="form-label">Durum</label>
-            <select className="form-input" value={status} onChange={(e) => setStatus(e.target.value as CarrierInvoice['status'])}>
-              {(Object.keys(INVOICE_STATUS) as CarrierInvoice['status'][]).map((k) => (
-                <option key={k} value={k}>
-                  {INVOICE_STATUS[k].label}
-                </option>
-              ))}
-            </select>
+            <Dropdown
+              value={status}
+              onChange={(v) => setStatus(v as CarrierInvoice['status'])}
+              options={(Object.keys(INVOICE_STATUS) as CarrierInvoice['status'][]).map((k) => ({
+                value: k,
+                label: INVOICE_STATUS[k].label,
+              }))}
+            />
           </div>
         </div>
         <div className="flex justify-end gap-3 mt-6">

@@ -20,6 +20,7 @@ import {
 import { CancelReturnModal } from './ReturnModals'
 import { SearchInput } from '../../components/ui/SearchInput'
 import { ColumnPanelModal } from '../../components/ui/ColumnPanelModal'
+import { Dropdown } from '../../components/ui/Dropdown'
 import { useHeaderSlotStore } from '../../stores/headerSlotStore'
 import type { Shipment } from '../../data/catalog'
 
@@ -168,18 +169,12 @@ export function ReturnsPage() {
         </div>
 
         <div className="flex items-center gap-3 px-5 py-3 border-b border-neutral-100 flex-wrap">
-          <select
-            className="form-input"
-            style={{ width: 190 }}
+          <Dropdown
+            wrapperStyle={{ width: 190 }}
             value={searchField}
-            onChange={(e) => setReturnsFilter({ returnsSearchField: e.target.value as ReturnSearchField })}
-          >
-            {RETURN_SEARCH_FIELDS.map((f) => (
-              <option key={f.key} value={f.key}>
-                {t(`search.${f.key}`)}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => setReturnsFilter({ returnsSearchField: v as ReturnSearchField })}
+            options={RETURN_SEARCH_FIELDS.map((f) => ({ value: f.key, label: t(`search.${f.key}`) }))}
+          />
           <SearchInput
             wrapperClassName="flex-1"
             wrapperStyle={{ minWidth: 220 }}
@@ -214,33 +209,21 @@ export function ReturnsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
             <div>
               <label className="form-label">{t('returns.th_carrier')}</label>
-              <select
-                className="form-input"
+              <Dropdown
                 value={filterCompanyId}
-                onChange={(e) => setReturnsFilter({ returnsFilterCompanyId: e.target.value })}
-              >
-                <option value="">{t('common.all')}</option>
-                {COMPANIES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(v) => setReturnsFilter({ returnsFilterCompanyId: v })}
+                placeholder={t('common.all')}
+                options={[{ value: '', label: t('common.all') }, ...COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))]}
+              />
             </div>
             <div>
               <label className="form-label">{t('returns.th_reason')}</label>
-              <select
-                className="form-input"
+              <Dropdown
                 value={filterReason}
-                onChange={(e) => setReturnsFilter({ returnsFilterReason: e.target.value })}
-              >
-                <option value="">{t('common.all')}</option>
-                {RETURN_REASONS.map((r) => (
-                  <option key={r} value={r}>
-                    {reasonLabel(r)}
-                  </option>
-                ))}
-              </select>
+                onChange={(v) => setReturnsFilter({ returnsFilterReason: v })}
+                placeholder={t('common.all')}
+                options={[{ value: '', label: t('common.all') }, ...RETURN_REASONS.map((r) => ({ value: r, label: reasonLabel(r) }))]}
+              />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>

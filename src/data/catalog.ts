@@ -504,6 +504,15 @@ export const RETURN_STATUS: Record<ReturnStatus, { badge: string }> = {
   recalled: { badge: 'badge-danger' },
 }
 
+export const RETURN_STATUS_CHART_COLORS: Record<ReturnStatus, string> = {
+  requested: '#335cff',
+  picked_up: '#fa7319',
+  in_warehouse: '#94a0b4',
+  completed: '#1fc16b',
+  cancelled: '#fb3748',
+  recalled: '#ad1f2b',
+}
+
 export interface ReturnItem {
   id: number
   returnNo: number
@@ -590,6 +599,14 @@ export const TRANSFER_STATUS: Record<TransferStatus, { badge: string }> = {
   recalled: { badge: 'badge-danger' },
 }
 
+export const TRANSFER_STATUS_CHART_COLORS: Record<TransferStatus, string> = {
+  preparing: '#fa7319',
+  in_transit: '#335cff',
+  delivered: '#1fc16b',
+  cancelled: '#fb3748',
+  recalled: '#ad1f2b',
+}
+
 export interface TransferItem {
   id: number
   transferNo: number
@@ -654,6 +671,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
   },
 ]
 
+export type RoutingCargoType = 'shipment' | 'transfer' | 'return'
+
 export interface RoutingRule {
   id: number
   name: string
@@ -662,6 +681,7 @@ export interface RoutingRule {
   conditions: { minDesi: number; maxDesi: number; provinceIds: number[]; minAmount: number | ''; maxAmount: number | '' }
   primaryCompanyId: number
   failoverCompanyId: number | null
+  cargoTypes: RoutingCargoType[]
 }
 
 export const SEED_ROUTING_RULES: RoutingRule[] = [
@@ -680,7 +700,8 @@ export const SEED_ROUTING_RULES: RoutingRule[] = [
       "maxAmount": ""
     },
     "primaryCompanyId": 8,
-    "failoverCompanyId": 1
+    "failoverCompanyId": 1,
+    "cargoTypes": ["shipment", "transfer", "return"]
   },
   {
     "id": 2,
@@ -695,7 +716,8 @@ export const SEED_ROUTING_RULES: RoutingRule[] = [
       "maxAmount": ""
     },
     "primaryCompanyId": 7,
-    "failoverCompanyId": 10
+    "failoverCompanyId": 10,
+    "cargoTypes": ["shipment", "transfer", "return"]
   },
   {
     "id": 3,
@@ -710,7 +732,8 @@ export const SEED_ROUTING_RULES: RoutingRule[] = [
       "maxAmount": ""
     },
     "primaryCompanyId": 6,
-    "failoverCompanyId": 2
+    "failoverCompanyId": 2,
+    "cargoTypes": ["shipment", "transfer", "return"]
   },
   {
     "id": 4,
@@ -727,7 +750,8 @@ export const SEED_ROUTING_RULES: RoutingRule[] = [
       "maxAmount": ""
     },
     "primaryCompanyId": 2,
-    "failoverCompanyId": 5
+    "failoverCompanyId": 5,
+    "cargoTypes": ["shipment", "transfer", "return"]
   },
   {
     "id": 5,
@@ -742,7 +766,8 @@ export const SEED_ROUTING_RULES: RoutingRule[] = [
       "maxAmount": ""
     },
     "primaryCompanyId": 1,
-    "failoverCompanyId": 3
+    "failoverCompanyId": 3,
+    "cargoTypes": ["shipment", "transfer", "return"]
   }
 ]
 

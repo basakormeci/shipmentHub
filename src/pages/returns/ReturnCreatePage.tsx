@@ -5,6 +5,7 @@ import { useDataStore } from '../../stores/dataStore'
 import { useT } from '../../hooks/useT'
 import { toast } from '../../lib/toast'
 import { getOriginalShipment } from '../../lib/returns'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 const INITIAL = {
   originalShipmentId: '',
@@ -61,18 +62,16 @@ export function ReturnCreatePage() {
             <label className="form-label">
               {t('returnCreate.original_shipment')} <span className="text-[#fb3748]">*</span>
             </label>
-            <select
-              className={`form-input ${errors.originalShipmentId ? 'error' : ''}`}
+            <Dropdown
+              error={!!errors.originalShipmentId}
               value={form.originalShipmentId}
-              onChange={(e) => setField('originalShipmentId', e.target.value)}
-            >
-              <option value="">{t('returnCreate.shipment_placeholder')}</option>
-              {shipments.map((s) => (
-                <option key={s.id} value={s.id}>
-                  #{s.shipmentNo} — {s.customerName} ({getCompany(s.companyId)?.name ?? ''})
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setField('originalShipmentId', v)}
+              placeholder={t('returnCreate.shipment_placeholder')}
+              options={shipments.map((s) => ({
+                value: String(s.id),
+                label: `#${s.shipmentNo} — ${s.customerName} (${getCompany(s.companyId)?.name ?? ''})`,
+              }))}
+            />
             {errors.originalShipmentId ? <p className="form-error">{errors.originalShipmentId}</p> : null}
           </div>
 
@@ -101,13 +100,11 @@ export function ReturnCreatePage() {
 
           <div>
             <label className="form-label">{t('returnCreate.reason')}</label>
-            <select className="form-input" value={form.reason} onChange={(e) => setField('reason', e.target.value)}>
-              {Object.keys(RETURN_REASONS).map((k) => (
-                <option key={k} value={k}>
-                  {t(`returnReason.${k}`)}
-                </option>
-              ))}
-            </select>
+            <Dropdown
+              value={form.reason}
+              onChange={(v) => setField('reason', v)}
+              options={Object.keys(RETURN_REASONS).map((k) => ({ value: k, label: t(`returnReason.${k}`) }))}
+            />
           </div>
 
           <div className="flex items-center justify-between p-4 rounded-lg border border-neutral-100 bg-neutral-50/50">

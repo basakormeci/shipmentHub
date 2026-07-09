@@ -3,6 +3,7 @@ import { SHIPMENT_STATUS, type Shipment, type ShipmentStatus } from '../../data/
 import { useT } from '../../hooks/useT'
 import { openShipmentBarcodePrint } from '../../lib/barcodePrint'
 import { toast } from '../../lib/toast'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 export function CancelShipmentModal({
   shipment,
@@ -85,13 +86,11 @@ export function StatusUpdateModal({
           <strong className="text-neutral-700">#{shipment.shipmentNo}</strong>
           {t('statusModal.desc_after')}
         </p>
-        <select className="form-input" value={value} onChange={(e) => setValue(e.target.value as ShipmentStatus)}>
-          {options.map((k) => (
-            <option key={k} value={k}>
-              {t(`status.${k}`)}
-            </option>
-          ))}
-        </select>
+        <Dropdown
+          value={value}
+          onChange={(v) => setValue(v as ShipmentStatus)}
+          options={options.map((k) => ({ value: k, label: t(`status.${k}`) }))}
+        />
         <div className="flex justify-end gap-3 mt-6">
           <button className="secondary-btn" type="button" onClick={onClose}>
             {t('common.cancel')}

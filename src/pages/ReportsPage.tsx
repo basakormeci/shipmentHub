@@ -9,6 +9,7 @@ import {
   type Shipment,
 } from '../data/catalog'
 import { StatTile } from '../components/ui/StatTile'
+import { Dropdown } from '../components/ui/Dropdown'
 
 function shipmentCost(s: Shipment) {
   return 35 + (s.id % 7) * 8 + (s.cargoType === 'return' ? 15 : 0)
@@ -89,33 +90,21 @@ export function ReportsPage() {
         </div>
         <div style={{ minWidth: 180 }}>
           <label className="form-label">Kargo Firması</label>
-          <select
-            className="form-input"
+          <Dropdown
             value={companyId}
-            onChange={(e) => setReportsFilter('reportsCompanyId', e.target.value)}
-          >
-            <option value="">Tümü</option>
-            {COMPANIES.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => setReportsFilter('reportsCompanyId', v)}
+            placeholder="Tümü"
+            options={[{ value: '', label: 'Tümü' }, ...COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))]}
+          />
         </div>
         <div style={{ minWidth: 160 }}>
           <label className="form-label">Bölge</label>
-          <select
-            className="form-input"
+          <Dropdown
             value={provinceId}
-            onChange={(e) => setReportsFilter('reportsProvinceId', e.target.value)}
-          >
-            <option value="">Tümü</option>
-            {PROVINCES.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => setReportsFilter('reportsProvinceId', v)}
+            placeholder="Tümü"
+            options={[{ value: '', label: 'Tümü' }, ...PROVINCES.map((p) => ({ value: String(p.id), label: p.name }))]}
+          />
         </div>
       </div>
 

@@ -8,6 +8,7 @@ import {
   type BarcodeTemplate,
 } from '../../data/catalog'
 import { toast } from '../../lib/toast'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 function BarcodeTemplateModal({
   open,
@@ -74,28 +75,20 @@ function BarcodeTemplateModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="form-label">Kargo Firması</label>
-              <select
-                className="form-input"
-                value={companyId}
-                onChange={(e) => setCompanyId(e.target.value === '' ? '' : +e.target.value)}
-              >
-                <option value="">Tüm Firmalar</option>
-                {COMPANIES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <Dropdown
+                value={companyId === '' ? '' : String(companyId)}
+                onChange={(v) => setCompanyId(v === '' ? '' : +v)}
+                placeholder="Tüm Firmalar"
+                options={[{ value: '', label: 'Tüm Firmalar' }, ...COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))]}
+              />
             </div>
             <div>
               <label className="form-label">Format</label>
-              <select className="form-input" value={format} onChange={(e) => setFormat(e.target.value)}>
-                {BARCODE_FORMATS.map((bf) => (
-                  <option key={bf.key} value={bf.key}>
-                    {bf.label}
-                  </option>
-                ))}
-              </select>
+              <Dropdown
+                value={format}
+                onChange={(v) => setFormat(v)}
+                options={BARCODE_FORMATS.map((bf) => ({ value: bf.key, label: bf.label }))}
+              />
             </div>
           </div>
           <div>

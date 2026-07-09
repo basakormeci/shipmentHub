@@ -1,5 +1,6 @@
 import { COMPANIES, type TransferItem } from '../../data/catalog'
 import { useT } from '../../hooks/useT'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 export function CancelTransferModal({
   item,
@@ -131,13 +132,11 @@ export function TransferCarrierModal({
           <strong className="text-neutral-700">{item.transferNo}</strong>
           {t('transferCarrierModal.desc_after')}
         </p>
-        <select className="form-input" value={companyId} onChange={(e) => onCompanyChange(+e.target.value)}>
-          {COMPANIES.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <Dropdown
+          value={String(companyId)}
+          onChange={(v) => onCompanyChange(+v)}
+          options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
+        />
         <div className="flex justify-end gap-3 mt-6">
           <button className="secondary-btn" type="button" onClick={onClose}>
             {t('common.cancel')}
@@ -192,23 +191,19 @@ export function TransferNodeModal({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="form-label">{t('transferNodeModal.from')}</label>
-            <select className="form-input" value={fromNodeId} onChange={(e) => onFromChange(+e.target.value)}>
-              {nodes.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.name}
-                </option>
-              ))}
-            </select>
+            <Dropdown
+              value={String(fromNodeId)}
+              onChange={(v) => onFromChange(+v)}
+              options={nodes.map((n) => ({ value: String(n.id), label: n.name }))}
+            />
           </div>
           <div>
             <label className="form-label">{t('transferNodeModal.to')}</label>
-            <select className="form-input" value={toNodeId} onChange={(e) => onToChange(+e.target.value)}>
-              {nodes.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.name}
-                </option>
-              ))}
-            </select>
+            <Dropdown
+              value={String(toNodeId)}
+              onChange={(v) => onToChange(+v)}
+              options={nodes.map((n) => ({ value: String(n.id), label: n.name }))}
+            />
           </div>
         </div>
         {sameNode ? <p className="form-error mt-2">{t('transferNodeModal.same_node_error')}</p> : null}

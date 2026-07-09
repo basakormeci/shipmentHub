@@ -30,6 +30,16 @@
   --color-line-soft: #f2f2f3;
 }
 
+/*
+ * App is light-only (no dark mode). Without this, native form controls
+ * (select dropdown popups, date pickers) follow the OS color scheme and can
+ * render white-on-white or otherwise mismatched text on macOS/Windows dark
+ * mode, even though every custom-styled element here stays light.
+ */
+:root {
+  color-scheme: light;
+}
+
 * {
   font-family: "Inter", system-ui, sans-serif;
 }

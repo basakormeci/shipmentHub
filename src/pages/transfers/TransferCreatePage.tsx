@@ -4,6 +4,7 @@ import { COMPANIES } from '../../data/catalog'
 import { useDataStore } from '../../stores/dataStore'
 import { useT } from '../../hooks/useT'
 import { toast } from '../../lib/toast'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 type FormErrors = Partial<Record<'fromNodeId' | 'toNodeId' | 'companyId' | 'desi', string>>
 
@@ -74,54 +75,39 @@ export function TransferCreatePage() {
             <label className="form-label">
               {t('transferCreate.from_node')} <span className="text-[#fb3748]">*</span>
             </label>
-            <select
-              className={`form-input ${errors.fromNodeId ? 'error' : ''}`}
+            <Dropdown
+              error={!!errors.fromNodeId}
               value={form.fromNodeId}
-              onChange={(e) => setField('fromNodeId', e.target.value)}
-            >
-              <option value="">{t('transferCreate.node_placeholder')}</option>
-              {nodes.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.name}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setField('fromNodeId', v)}
+              placeholder={t('transferCreate.node_placeholder')}
+              options={nodes.map((n) => ({ value: String(n.id), label: n.name }))}
+            />
             {errors.fromNodeId ? <p className="form-error">{errors.fromNodeId}</p> : null}
           </div>
           <div>
             <label className="form-label">
               {t('transferCreate.to_node')} <span className="text-[#fb3748]">*</span>
             </label>
-            <select
-              className={`form-input ${errors.toNodeId ? 'error' : ''}`}
+            <Dropdown
+              error={!!errors.toNodeId}
               value={form.toNodeId}
-              onChange={(e) => setField('toNodeId', e.target.value)}
-            >
-              <option value="">{t('transferCreate.node_placeholder')}</option>
-              {nodes.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.name}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setField('toNodeId', v)}
+              placeholder={t('transferCreate.node_placeholder')}
+              options={nodes.map((n) => ({ value: String(n.id), label: n.name }))}
+            />
             {errors.toNodeId ? <p className="form-error">{errors.toNodeId}</p> : null}
           </div>
           <div>
             <label className="form-label">
               {t('transferCreate.company')} <span className="text-[#fb3748]">*</span>
             </label>
-            <select
-              className={`form-input ${errors.companyId ? 'error' : ''}`}
+            <Dropdown
+              error={!!errors.companyId}
               value={form.companyId}
-              onChange={(e) => setField('companyId', e.target.value)}
-            >
-              <option value="">{t('transferCreate.company_placeholder')}</option>
-              {COMPANIES.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setField('companyId', v)}
+              placeholder={t('transferCreate.company_placeholder')}
+              options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
+            />
             {errors.companyId ? <p className="form-error">{errors.companyId}</p> : null}
           </div>
           <div>

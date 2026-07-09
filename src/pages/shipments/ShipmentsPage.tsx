@@ -20,6 +20,7 @@ import {
 import { CancelShipmentModal, ColumnPanelModal, BarcodePrintModal } from './ShipmentModals'
 import { SearchInput } from '../../components/ui/SearchInput'
 import { useHeaderSlotStore } from '../../stores/headerSlotStore'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 function CargoTypeChip({ type, label }: { type: 'order' | 'return'; label: string }) {
   if (type === 'order') {
@@ -260,18 +261,12 @@ export function ShipmentsPage() {
         </div>
 
         <div className="flex items-center gap-3 px-5 py-3 border-b border-neutral-100 flex-wrap">
-          <select
-            className="form-input"
-            style={{ width: 190 }}
+          <Dropdown
+            wrapperStyle={{ width: 190 }}
             value={searchField}
-            onChange={(e) => setShipmentsFilter({ shipmentsSearchField: e.target.value as ShipmentSearchField, shipmentsPage: 1 })}
-          >
-            {SHIPMENT_SEARCH_FIELDS.map((f) => (
-              <option key={f.key} value={f.key}>
-                {t(`search.${f.key}`)}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => setShipmentsFilter({ shipmentsSearchField: v as ShipmentSearchField, shipmentsPage: 1 })}
+            options={SHIPMENT_SEARCH_FIELDS.map((f) => ({ value: f.key, label: t(`search.${f.key}`) }))}
+          />
           <SearchInput
             wrapperClassName="flex-1"
             wrapperStyle={{ minWidth: 220 }}
@@ -306,35 +301,29 @@ export function ShipmentsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
             <div>
               <label className="form-label">{t('shipments.supplier')}</label>
-              <select
-                className="form-input"
+              <Dropdown
                 value={filterSupplierId}
-                onChange={(e) => setShipmentsFilter({ shipmentsFilterSupplierId: e.target.value, shipmentsPage: 1 })}
-              >
-                <option value="">{t('common.all')}</option>
-                {COMPANIES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(v) => setShipmentsFilter({ shipmentsFilterSupplierId: v, shipmentsPage: 1 })}
+                placeholder={t('common.all')}
+                options={[{ value: '', label: t('common.all') }, ...COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))]}
+              />
             </div>
             <div>
               <label className="form-label">{t('shipments.cargo_type')}</label>
-              <select
-                className="form-input"
+              <Dropdown
                 value={filterCargoType}
-                onChange={(e) =>
+                onChange={(v) =>
                   setShipmentsFilter({
-                    shipmentsFilterCargoType: e.target.value as '' | 'order' | 'return',
+                    shipmentsFilterCargoType: v as '' | 'order' | 'return',
                     shipmentsPage: 1,
                   })
                 }
-              >
-                <option value="">{t('common.all')}</option>
-                <option value="order">{cargoTypeLabel('order')}</option>
-                <option value="return">{cargoTypeLabel('return')}</option>
-              </select>
+                options={[
+                  { value: '', label: t('common.all') },
+                  { value: 'order', label: cargoTypeLabel('order') },
+                  { value: 'return', label: cargoTypeLabel('return') },
+                ]}
+              />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>

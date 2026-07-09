@@ -5,6 +5,7 @@ import { useDataStore } from '../../stores/dataStore'
 import { useT } from '../../hooks/useT'
 import { toast } from '../../lib/toast'
 import { SHIPMENT_CHANNELS } from '../../lib/shipments'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 function getProvince(id: number) {
   return PROVINCES.find((p) => p.id === id)
@@ -139,13 +140,11 @@ export function ShipmentCreatePage() {
               </div>
               <div>
                 <label className="form-label">{t('shipmentCreate.channel')}</label>
-                <select className="form-input" value={form.channel} onChange={(e) => setField('channel', e.target.value)}>
-                  {SHIPMENT_CHANNELS.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                <Dropdown
+                  value={form.channel}
+                  onChange={(v) => setField('channel', v)}
+                  options={SHIPMENT_CHANNELS.map((c) => ({ value: c, label: c }))}
+                />
               </div>
             </div>
           </div>
@@ -158,36 +157,26 @@ export function ShipmentCreatePage() {
                 <label className="form-label">
                   {t('shipmentCreate.company')} <span className="text-[#fb3748]">*</span>
                 </label>
-                <select
-                  className={`form-input ${errors.companyId ? 'error' : ''}`}
+                <Dropdown
+                  error={!!errors.companyId}
                   value={form.companyId}
-                  onChange={(e) => setField('companyId', e.target.value)}
-                >
-                  <option value="">{t('shipmentCreate.company_placeholder')}</option>
-                  {COMPANIES.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => setField('companyId', v)}
+                  placeholder={t('shipmentCreate.company_placeholder')}
+                  options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
+                />
                 {errors.companyId ? <p className="form-error">{errors.companyId}</p> : null}
               </div>
               <div>
                 <label className="form-label">
                   {t('shipmentCreate.ship_from')} <span className="text-[#fb3748]">*</span>
                 </label>
-                <select
-                  className={`form-input ${errors.shipFrom ? 'error' : ''}`}
+                <Dropdown
+                  error={!!errors.shipFrom}
                   value={form.shipFrom}
-                  onChange={(e) => setField('shipFrom', e.target.value)}
-                >
-                  <option value="">{t('shipmentCreate.ship_from_placeholder')}</option>
-                  {nodes.map((n) => (
-                    <option key={n.id} value={n.name}>
-                      {n.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => setField('shipFrom', v)}
+                  placeholder={t('shipmentCreate.ship_from_placeholder')}
+                  options={nodes.map((n) => ({ value: n.name, label: n.name }))}
+                />
                 {errors.shipFrom ? <p className="form-error">{errors.shipFrom}</p> : null}
               </div>
               <div>
@@ -208,37 +197,27 @@ export function ShipmentCreatePage() {
                 <label className="form-label">
                   {t('shipmentCreate.province')} <span className="text-[#fb3748]">*</span>
                 </label>
-                <select
-                  className={`form-input ${errors.provinceId ? 'error' : ''}`}
+                <Dropdown
+                  error={!!errors.provinceId}
                   value={form.provinceId}
-                  onChange={(e) => setProvince(e.target.value)}
-                >
-                  <option value="">{t('shipmentCreate.province_placeholder')}</option>
-                  {PROVINCES.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => setProvince(v)}
+                  placeholder={t('shipmentCreate.province_placeholder')}
+                  options={PROVINCES.map((p) => ({ value: String(p.id), label: p.name }))}
+                />
                 {errors.provinceId ? <p className="form-error">{errors.provinceId}</p> : null}
               </div>
               <div>
                 <label className="form-label">
                   {t('shipmentCreate.district')} <span className="text-[#fb3748]">*</span>
                 </label>
-                <select
-                  className={`form-input ${errors.district ? 'error' : ''}`}
+                <Dropdown
+                  error={!!errors.district}
                   value={form.district}
                   disabled={!province}
-                  onChange={(e) => setField('district', e.target.value)}
-                >
-                  <option value="">{t('shipmentCreate.district_placeholder')}</option>
-                  {(province?.districts ?? []).map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => setField('district', v)}
+                  placeholder={t('shipmentCreate.district_placeholder')}
+                  options={(province?.districts ?? []).map((d) => ({ value: d, label: d }))}
+                />
                 {errors.district ? <p className="form-error">{errors.district}</p> : null}
               </div>
             </div>

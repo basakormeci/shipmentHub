@@ -4,6 +4,7 @@ import { USER_ROLES } from '../../data/seed'
 import type { User, UserRole, UserStatus } from '../../data/seed'
 import { fmtDateTimeStr } from '../../lib/format'
 import { toast } from '../../lib/toast'
+import { Dropdown } from '../../components/ui/Dropdown'
 
 function UserModal({
   open,
@@ -58,13 +59,11 @@ function UserModal({
           </div>
           <div>
             <label className="form-label">Rol</label>
-            <select className="form-input" value={role} onChange={(e) => setRole(e.target.value as UserRole)}>
-              {(Object.keys(USER_ROLES) as UserRole[]).map((k) => (
-                <option key={k} value={k}>
-                  {USER_ROLES[k].label}
-                </option>
-              ))}
-            </select>
+            <Dropdown
+              value={role}
+              onChange={(v) => setRole(v as UserRole)}
+              options={(Object.keys(USER_ROLES) as UserRole[]).map((k) => ({ value: k, label: USER_ROLES[k].label }))}
+            />
           </div>
           <div className="flex items-center justify-between p-4 rounded-lg border border-neutral-100 bg-neutral-50/50">
             <p className="text-sm font-medium text-neutral-950">Aktif Kullanıcı</p>
