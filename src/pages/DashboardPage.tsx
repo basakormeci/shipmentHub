@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useState } from 'react'
 import { useDataStore } from '../stores/dataStore'
 import { useUiStore } from '../stores/uiStore'
 import {
@@ -21,6 +21,8 @@ import { Donut, type DonutSegment } from '../components/ui/Donut'
 import { StackedBarList, type StackedBarRow } from '../components/ui/StackedBarList'
 import { KpiTile } from '../components/ui/KpiTile'
 import { DateRangeChip } from '../components/ui/DateRangeChip'
+import { DateRangePicker } from '../components/ui/DateRangePicker'
+import { useHeaderSlotStore } from '../stores/headerSlotStore'
 import { useT } from '../hooks/useT'
 
 type WidgetId = 'shipStatus' | 'shipCarrier' | 'returnStatus' | 'returnCarrier' | 'transferStatus' | 'transferCarrier' | 'cost'
@@ -315,45 +317,36 @@ export function DashboardPage() {
     [carrierQuotas, t],
   )
   function quotaColor(pct: number) {
-    if (pct >= 90) return '#ad1f2b'
-    if (pct >= 70) return '#c2570e'
-    return '#178c4e'
+    if (pct >= 90) return '#eda3ab'
+    if (pct >= 70) return '#f0bf8a'
+    return '#8fd4ab'
   }
 
   const periodLabel = isAll ? 'Tüm Zamanlar' : `${dateFrom || '…'} – ${dateTo || '…'}`
 
+  const setHeaderSlot = useHeaderSlotStore((s) => s.setHeaderSlot)
+  const clearHeaderSlot = useHeaderSlotStore((s) => s.clearHeaderSlot)
+
+  useLayoutEffect(() => {
+    setHeaderSlot({
+      actions: (
+        <DateRangePicker
+          from={dateFrom}
+          to={dateTo}
+          onQuickSelect={(f, t) => {
+            setFrom(f)
+            setTo(t)
+          }}
+          onCustomFrom={setFrom}
+          onCustomTo={setTo}
+        />
+      ),
+    })
+    return () => clearHeaderSlot()
+  })
+
   return (
     <div className="page-container">
-      {/* ---------- Global filter ---------- */}
-      <div className="flex items-center justify-between flex-wrap gap-3 mb-1">
-        <div>
-          <h1 className="text-[15px] font-semibold text-neutral-950">Gösterge Paneli</h1>
-          <p className="text-xs text-neutral-400 mt-0.5">Operasyonel özet — gönderi, iade, transfer ve maliyet tek bakışta</p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1 bg-white border border-neutral-200 rounded-lg p-1">
-            <button type="button" className={`filter-tab ${isAll ? 'active' : ''}`} onClick={() => { setFrom(''); setTo('') }}>
-              Tümü
-            </button>
-            <button type="button" className={`filter-tab ${is7 ? 'active' : ''}`} onClick={() => { setFrom(r7.from); setTo(r7.to) }}>
-              7G
-            </button>
-            <button type="button" className={`filter-tab ${is30 ? 'active' : ''}`} onClick={() => { setFrom(r30.from); setTo(r30.to) }}>
-              30G
-            </button>
-            <button type="button" className={`filter-tab ${is90 ? 'active' : ''}`} onClick={() => { setFrom(r90.from); setTo(r90.to) }}>
-              90G
-            </button>
-          </div>
-          <input type="date" className="form-input" style={{ width: 150 }} value={dateFrom} onChange={(e) => setFrom(e.target.value)} />
-          <span className="text-neutral-300 text-xs">–</span>
-          <input type="date" className="form-input" style={{ width: 150 }} value={dateTo} onChange={(e) => setTo(e.target.value)} />
-        </div>
-      </div>
-      <p className="text-[11px] text-neutral-400 mb-5">
-        Genel filtre tüm widget'lara varsayılan olarak uygulanır — her widget başlığındaki takvim ikonuyla kendi aralığını geçersiz kılabilirsin.
-      </p>
-
       {/* ---------- KPI strip ---------- */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 mb-7">
         <KpiTile
@@ -386,7 +379,7 @@ export function DashboardPage() {
           label="Ort. Maliyet Sapması"
           value={fmtDelta(costDeltaPct)}
           unit="%"
-          valueColor={costDeltaPct > 0 ? '#ad1f2b' : undefined}
+          valueColor={costDeltaPct > 0 ? '#c2626d' : undefined}
           delta={costTrendPp != null ? { text: `${fmtDelta(costTrendPp)}pp`, tone: costTrendPp <= 0 ? 'good' : 'bad', direction: costTrendPp >= 0 ? 'up' : 'down' } : undefined}
           note={costTrendPp == null ? 'Beklenen vs gerçekleşen' : undefined}
         />
@@ -394,7 +387,7 @@ export function DashboardPage() {
           label="Kota Riski"
           value={String(quotaRisk)}
           unit="taşıyıcı"
-          valueColor={quotaRisk > 0 ? '#c2570e' : undefined}
+          valueColor={quotaRisk > 0 ? '#c17d3f' : undefined}
           note="%90 üzeri kullanım"
         />
         <KpiTile label="Taşıyıcı Sağlığı" value={`${healthUp}`} unit={`/ ${carrierHealth.length}`} note="canlı bağlantı" />
@@ -403,7 +396,7 @@ export function DashboardPage() {
       {/* ---------- Zone: Gönderiler ---------- */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-6.5 h-6.5 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#ebf1ff', color: '#2547d0', width: 26, height: 26 }}>
+          <div className="w-6.5 h-6.5 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#eef1fb', color: '#6b84dd', width: 26, height: 26 }}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />
@@ -449,7 +442,7 @@ export function DashboardPage() {
       {/* ---------- Zone: İadeler ---------- */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <div className="rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#f3ecff', color: '#7d52f4', width: 26, height: 26 }}>
+          <div className="rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#f5f0fb', color: '#a688f0', width: 26, height: 26 }}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
             </svg>
@@ -494,7 +487,7 @@ export function DashboardPage() {
       {/* ---------- Zone: Transferler ---------- */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <div className="rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#fff3eb', color: '#c2570e', width: 26, height: 26 }}>
+          <div className="rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#fdf3ea', color: '#d99456', width: 26, height: 26 }}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h13M8 7l4-4M8 7l4 4M16 17H3m13 0l-4 4m4-4l-4-4" />
             </svg>
@@ -539,7 +532,7 @@ export function DashboardPage() {
       {/* ---------- Zone: Maliyet ---------- */}
       <div>
         <div className="flex items-center gap-2 mb-3">
-          <div className="rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#e3f7ec', color: '#178c4e', width: 26, height: 26 }}>
+          <div className="rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#e8f5ee', color: '#4fa87b', width: 26, height: 26 }}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <rect x="2" y="5" width="20" height="14" rx="2" />
               <path strokeLinecap="round" d="M2 10h20M6 15h4" />
@@ -569,7 +562,7 @@ export function DashboardPage() {
                 <div className="grid items-center gap-2.5" style={{ gridTemplateColumns: '120px 1fr 90px', height: 30 }}>
                   <span className="text-[11.5px] font-semibold text-neutral-600 truncate">Beklenen Toplam</span>
                   <div className="relative rounded" style={{ height: 16, background: '#f2f5f8' }}>
-                    <div className="absolute top-0 rounded" style={{ left: 0, width: `${wfPct(wfExpectedTotal)}%`, height: 16, background: '#717784' }} />
+                    <div className="absolute top-0 rounded" style={{ left: 0, width: `${wfPct(wfExpectedTotal)}%`, height: 16, background: '#b7bfcb' }} />
                   </div>
                   <span className="text-[11.5px] font-bold text-right text-neutral-950" style={{ fontVariantNumeric: 'tabular-nums' }}>
                     {fmtCurrency(wfExpectedTotal)}
@@ -584,15 +577,16 @@ export function DashboardPage() {
                     const geomWidth = wfPct(Math.abs(row.delta))
                     const isPos = row.delta > 0
                     const isZero = row.delta === 0
-                    const tone = isZero ? '#99a0ae' : isPos ? '#ad1f2b' : '#178c4e'
+                    const fillTone = isZero ? '#c3cad4' : isPos ? '#eda3ab' : '#8fd4ab'
+                    const textTone = isZero ? '#a3abb8' : isPos ? '#c2626d' : '#3f9d6e'
                     return (
                       <div key={row.companyId} className="grid items-center gap-2.5" style={{ gridTemplateColumns: '120px 1fr 90px', height: 30 }}>
                         <span className="text-[11.5px] font-semibold text-neutral-600 truncate">{row.name}</span>
                         <div className="relative rounded" style={{ height: 16, background: '#f2f5f8' }}>
                           <div className="absolute" style={{ left: `${wfPct(before)}%`, top: -7, width: 1, height: 7, background: '#cacfd8' }} />
-                          <div className="absolute top-0 rounded" style={{ left: `${geomLeft}%`, width: `${geomWidth}%`, height: 16, background: tone }} />
+                          <div className="absolute top-0 rounded" style={{ left: `${geomLeft}%`, width: `${geomWidth}%`, height: 16, background: fillTone }} />
                         </div>
-                        <span className="text-[11.5px] font-bold text-right" style={{ fontVariantNumeric: 'tabular-nums', color: tone }}>
+                        <span className="text-[11.5px] font-bold text-right" style={{ fontVariantNumeric: 'tabular-nums', color: textTone }}>
                           {isZero ? '' : isPos ? '+' : '−'}
                           {fmtCurrency(Math.abs(row.delta))}
                         </span>
@@ -606,13 +600,13 @@ export function DashboardPage() {
                 >
                   <span className="text-[11.5px] font-bold text-neutral-950">Gerçekleşen Toplam</span>
                   <div className="relative rounded" style={{ height: 16, background: '#f2f5f8' }}>
-                    <div className="absolute top-0 rounded" style={{ left: 0, width: `${wfPct(wfRealTotal)}%`, height: 16, background: '#0e121b' }} />
+                    <div className="absolute top-0 rounded" style={{ left: 0, width: `${wfPct(wfRealTotal)}%`, height: 16, background: '#4b5566' }} />
                   </div>
                   <span className="text-[11.5px] font-extrabold text-right text-neutral-950" style={{ fontVariantNumeric: 'tabular-nums' }}>
                     {fmtCurrency(wfRealTotal)}
                   </span>
                 </div>
-                <p className="text-[11px] mt-2.5 font-semibold" style={{ color: wfDeltaPct > 0 ? '#ad1f2b' : '#178c4e' }}>
+                <p className="text-[11px] mt-2.5 font-semibold" style={{ color: wfDeltaPct > 0 ? '#c2626d' : '#3f9d6e' }}>
                   Toplamda beklenenin {wfDeltaPct >= 0 ? '' : '−'}%{Math.abs(wfDeltaPct).toFixed(1).replace('.', ',')}{' '}
                   {wfDeltaPct >= 0 ? 'üzerinde' : 'altında'} gerçekleşti
                   {worstCarrier ? ` — en büyük sapma ${worstCarrier.name}'dan geliyor (${worstCarrier.delta >= 0 ? '+' : '−'}${fmtCurrency(Math.abs(worstCarrier.delta))})` : ''}

@@ -31,7 +31,7 @@ export function KpiTile({
       {delta ? (
         <div
           className="flex items-center gap-1 text-[11px] font-bold mt-1.5"
-          style={{ color: delta.tone === 'good' ? '#178c4e' : delta.tone === 'bad' ? '#ad1f2b' : '#99a0ae' }}
+          style={{ color: delta.tone === 'good' ? '#3f9d6e' : delta.tone === 'bad' ? '#c2626d' : '#a3abb8' }}
         >
           <svg className="w-2.5 h-2.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
             {delta.direction === 'up' ? (
