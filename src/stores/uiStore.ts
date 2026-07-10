@@ -4,6 +4,7 @@ import type { Lang } from '../data/seed'
 import type { ShipmentColumnKey, ShipmentSearchField } from '../lib/shipments'
 import type { ContractForm, ReturnStatus, RoutingCargoType, ShipmentStatus, TransferStatus } from '../data/catalog'
 import { emptyContractForm, type ContractFilterStatus } from '../lib/contracts'
+import { emptyNodeForm, type NodeForm } from '../lib/nodes'
 import type { ReturnColumnKey, ReturnSearchField } from '../lib/returns'
 import type { TransferColumnKey, TransferSearchField } from '../lib/transfers'
 
@@ -52,6 +53,7 @@ interface UiState {
   transfersVisibleColumns: Partial<Record<TransferColumnKey, boolean>>
   contractsFilterStatus: ContractFilterStatus
   contractWizard: { step: number; editingId: number | null; f: ContractForm }
+  nodeWizard: { step: number; editingId: number | null; f: NodeForm }
   setLang: (lang: Lang) => void
   toggleLangMenu: () => void
   closeLangMenu: () => void
@@ -113,6 +115,8 @@ interface UiState {
   setContractsFilterStatus: (status: ContractFilterStatus) => void
   setContractWizard: (patch: Partial<{ step: number; editingId: number | null; f: ContractForm }>) => void
   resetContractWizard: () => void
+  setNodeWizard: (patch: Partial<{ step: number; editingId: number | null; f: NodeForm }>) => void
+  resetNodeWizard: () => void
 }
 
 export const useUiStore = create<UiState>()(
@@ -156,6 +160,7 @@ export const useUiStore = create<UiState>()(
       transfersVisibleColumns: {},
       contractsFilterStatus: 'all',
       contractWizard: { step: 1, editingId: null, f: emptyContractForm() },
+      nodeWizard: { step: 1, editingId: null, f: emptyNodeForm() },
       setLang: (lang) => set({ lang, langMenuOpen: false }),
       toggleLangMenu: () => set({ langMenuOpen: !get().langMenuOpen }),
       closeLangMenu: () => set({ langMenuOpen: false }),
@@ -204,6 +209,8 @@ export const useUiStore = create<UiState>()(
         set({ contractWizard: { ...get().contractWizard, ...patch } }),
       resetContractWizard: () =>
         set({ contractWizard: { step: 1, editingId: null, f: emptyContractForm() } }),
+      setNodeWizard: (patch) => set({ nodeWizard: { ...get().nodeWizard, ...patch } }),
+      resetNodeWizard: () => set({ nodeWizard: { step: 1, editingId: null, f: emptyNodeForm() } }),
     }),
     {
       name: 'shipment-hub:ui',
@@ -245,6 +252,7 @@ export const useUiStore = create<UiState>()(
         transfersVisibleColumns: s.transfersVisibleColumns,
         contractsFilterStatus: s.contractsFilterStatus,
         contractWizard: s.contractWizard,
+        nodeWizard: s.nodeWizard,
       }),
       version: 5,
     },

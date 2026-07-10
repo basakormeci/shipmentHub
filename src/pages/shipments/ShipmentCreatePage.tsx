@@ -11,16 +11,21 @@ function getProvince(id: number) {
   return PROVINCES.find((p) => p.id === id)
 }
 
-type FormErrors = Partial<Record<'orderNo' | 'companyId' | 'customerName' | 'shipFrom' | 'provinceId' | 'district', string>>
+type FormErrors = Partial<
+  Record<'orderNo' | 'companyId' | 'customerName' | 'shipFrom' | 'provinceId' | 'district' | 'addressLine' | 'phone', string>
+>
 
 const INITIAL = {
   orderNo: '',
   companyId: '',
-  cargoType: 'order' as 'order' | 'return',
   customerName: '',
   shipFrom: '',
   provinceId: '',
   district: '',
+  addressLine: '',
+  phone: '',
+  email: '',
+  deliveryNote: '',
   referenceId: '',
   packageNo: '',
   channel: 'Kendi Web Sitesi',
@@ -72,6 +77,8 @@ export function ShipmentCreatePage() {
     if (!form.shipFrom) errs.shipFrom = t('shipmentCreate.err_ship_from')
     if (!form.provinceId) errs.provinceId = t('shipmentCreate.err_province')
     if (!form.district) errs.district = t('shipmentCreate.err_district')
+    if (!form.addressLine.trim()) errs.addressLine = t('shipmentCreate.err_address_line')
+    if (!form.phone.trim()) errs.phone = t('shipmentCreate.err_phone')
     return errs
   }
 
@@ -87,8 +94,15 @@ export function ShipmentCreatePage() {
       orderNo: orderNoVal as number,
       companyId: +form.companyId,
       shipFrom: form.shipFrom,
-      shipTo: { district: form.district, province: prov.name },
-      cargoType: form.cargoType,
+      shipTo: {
+        district: form.district,
+        province: prov.name,
+        addressLine: form.addressLine.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+      },
+      cargoType: 'order',
+      deliveryNote: form.deliveryNote.trim(),
       referenceId: form.referenceId,
       packageNo: form.packageNo,
       customerName: form.customerName.trim(),
@@ -220,33 +234,56 @@ export function ShipmentCreatePage() {
                 />
                 {errors.district ? <p className="form-error">{errors.district}</p> : null}
               </div>
+              <div className="col-span-2">
+                <label className="form-label">
+                  {t('shipmentCreate.address_line')} <span className="text-[#fb3748]">*</span>
+                </label>
+                <textarea
+                  className={`form-input ${errors.addressLine ? 'error' : ''}`}
+                  rows={2}
+                  value={form.addressLine}
+                  placeholder={t('shipmentCreate.address_line_placeholder')}
+                  onChange={(e) => setField('addressLine', e.target.value)}
+                />
+                {errors.addressLine ? <p className="form-error">{errors.addressLine}</p> : null}
+              </div>
+              <div>
+                <label className="form-label">
+                  {t('shipmentCreate.recipient_phone')} <span className="text-[#fb3748]">*</span>
+                </label>
+                <input
+                  type="text"
+                  className={`form-input ${errors.phone ? 'error' : ''}`}
+                  value={form.phone}
+                  placeholder="+90 5xx xxx xx xx"
+                  onChange={(e) => setField('phone', e.target.value)}
+                />
+                {errors.phone ? <p className="form-error">{errors.phone}</p> : null}
+              </div>
+              <div>
+                <label className="form-label">
+                  {t('shipmentCreate.recipient_email')}{' '}
+                  <span className="font-normal normal-case text-neutral-400">{t('shipmentCreate.reference_optional')}</span>
+                </label>
+                <input type="text" className="form-input" value={form.email} onChange={(e) => setField('email', e.target.value)} />
+              </div>
             </div>
           </div>
 
           <div className="col-span-2">
             <div className="h-px bg-neutral-100 my-1" />
-            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-4 mb-4">{t('shipmentCreate.section_type')}</p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                className={`p-4 rounded-lg border text-left transition-colors ${form.cargoType === 'order' ? 'border-primary bg-primary-lighter' : 'border-neutral-200 bg-white hover:bg-neutral-50'}`}
-                onClick={() => setField('cargoType', 'order')}
-              >
-                <p className={`text-sm font-medium ${form.cargoType === 'order' ? 'text-primary-darker' : 'text-neutral-700'}`}>
-                  {t('shipmentCreate.type_order')}
-                </p>
-                <p className="text-xs text-neutral-400 mt-0.5">{t('shipmentCreate.type_order_desc')}</p>
-              </button>
-              <button
-                type="button"
-                className={`p-4 rounded-lg border text-left transition-colors ${form.cargoType === 'return' ? 'border-primary bg-primary-lighter' : 'border-neutral-200 bg-white hover:bg-neutral-50'}`}
-                onClick={() => setField('cargoType', 'return')}
-              >
-                <p className={`text-sm font-medium ${form.cargoType === 'return' ? 'text-primary-darker' : 'text-neutral-700'}`}>
-                  {t('shipmentCreate.type_return')}
-                </p>
-                <p className="text-xs text-neutral-400 mt-0.5">{t('shipmentCreate.type_return_desc')}</p>
-              </button>
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-4 mb-4">{t('shipmentCreate.section_notes')}</p>
+            <div>
+              <label className="form-label">
+                {t('shipmentCreate.delivery_note')}{' '}
+                <span className="font-normal normal-case text-neutral-400">{t('shipmentCreate.reference_optional')}</span>
+              </label>
+              <textarea
+                className="form-input"
+                rows={3}
+                value={form.deliveryNote}
+                onChange={(e) => setField('deliveryNote', e.target.value)}
+              />
             </div>
           </div>
         </div>

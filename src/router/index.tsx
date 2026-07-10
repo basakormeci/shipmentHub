@@ -5,6 +5,7 @@ import { TabGuard } from './TabGuard'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { NodesPage } from '../pages/nodes/NodesPage'
+import { NodeWizardPage } from '../pages/nodes/NodeWizardPage'
 import { DashboardPage } from '../pages/DashboardPage'
 import { UsersPage } from '../pages/users/UsersPage'
 import { PermissionsPage } from '../pages/PermissionsPage'
@@ -57,6 +58,8 @@ export const router = createBrowserRouter([
       { path: 'contracts/new', element: <ContractWizardPage /> },
       { path: 'contracts/:contractId/edit', element: <ContractWizardPage /> },
       { path: 'nodes', element: <NodesPage /> },
+      { path: 'nodes/new', element: <NodeWizardPage /> },
+      { path: 'nodes/:nodeId/edit', element: <NodeWizardPage /> },
       { path: 'transfers', element: <TransfersPage /> },
       { path: 'transfers/new', element: <TransferCreatePage /> },
       { path: 'transfers/:transferId', element: <TransferDetailPage /> },

@@ -3,6 +3,7 @@ import { SHIPMENT_STATUS, type Shipment, type ShipmentStatus } from '../../data/
 import { useT } from '../../hooks/useT'
 import { openShipmentBarcodePrint } from '../../lib/barcodePrint'
 import { toast } from '../../lib/toast'
+import { recipientAddressLine, recipientEmail, recipientPhone } from '../../lib/shipments'
 import { Dropdown } from '../../components/ui/Dropdown'
 
 export function CancelShipmentModal({
@@ -159,12 +160,23 @@ export function EditShipmentModal({
 }: {
   shipment: Shipment | null
   onClose: () => void
-  onSave: (patch: { customerName: string; district: string; province: string; deliveryNote: string }) => void
+  onSave: (patch: {
+    customerName: string
+    district: string
+    province: string
+    addressLine: string
+    phone: string
+    email: string
+    deliveryNote: string
+  }) => void
 }) {
   const t = useT()
   const [customerName, setCustomerName] = useState(shipment?.customerName ?? '')
   const [district, setDistrict] = useState(shipment?.shipTo.district ?? '')
   const [province, setProvince] = useState(shipment?.shipTo.province ?? '')
+  const [addressLine, setAddressLine] = useState(shipment ? recipientAddressLine(shipment) : '')
+  const [phone, setPhone] = useState(shipment ? recipientPhone(shipment) : '')
+  const [email, setEmail] = useState(shipment ? recipientEmail(shipment) : '')
   const [deliveryNote, setDeliveryNote] = useState(shipment?.deliveryNote ?? '')
 
   if (!shipment) return null
@@ -201,6 +213,20 @@ export function EditShipmentModal({
             </div>
           </div>
           <div>
+            <label className="form-label">{t('editShipmentModal.address_line')}</label>
+            <textarea className="form-input" rows={2} value={addressLine} onChange={(e) => setAddressLine(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="form-label">{t('editShipmentModal.recipient_phone')}</label>
+              <input type="text" className="form-input" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+            <div>
+              <label className="form-label">{t('editShipmentModal.recipient_email')}</label>
+              <input type="text" className="form-input" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+          </div>
+          <div>
             <label className="form-label">{t('editShipmentModal.delivery_note')}</label>
             <textarea className="form-input" rows={3} value={deliveryNote} onChange={(e) => setDeliveryNote(e.target.value)} />
           </div>
@@ -213,7 +239,17 @@ export function EditShipmentModal({
             className="primary-btn"
             type="button"
             disabled={!customerName.trim()}
-            onClick={() => onSave({ customerName: customerName.trim(), district: district.trim(), province: province.trim(), deliveryNote })}
+            onClick={() =>
+              onSave({
+                customerName: customerName.trim(),
+                district: district.trim(),
+                province: province.trim(),
+                addressLine: addressLine.trim(),
+                phone: phone.trim(),
+                email: email.trim(),
+                deliveryNote,
+              })
+            }
           >
             {t('common.save')}
           </button>

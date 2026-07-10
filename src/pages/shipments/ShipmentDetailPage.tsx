@@ -13,7 +13,7 @@ import { useT } from '../../hooks/useT'
 import { copyToClipboard } from '../../lib/clipboard'
 import { fmtDateTimeStr, relativeTimeTr } from '../../lib/format'
 import { toast } from '../../lib/toast'
-import { desiKgFor, emailFor, packageItemsFor, phoneFor } from '../../lib/shipments'
+import { desiKgFor, packageItemsFor, recipientAddressLine, recipientEmail, recipientPhone } from '../../lib/shipments'
 import {
   CancelShipmentModal,
   EditShipmentModal,
@@ -235,11 +235,19 @@ export function ShipmentDetailPage() {
     setRecallOpen(false)
   }
 
-  function applyEdit(form: { customerName: string; district: string; province: string; deliveryNote: string }) {
+  function applyEdit(form: {
+    customerName: string
+    district: string
+    province: string
+    addressLine: string
+    phone: string
+    email: string
+    deliveryNote: string
+  }) {
     const updated = updateShipment(shipment!.id, {
       customerName: form.customerName,
       deliveryNote: form.deliveryNote,
-      shipTo: { district: form.district, province: form.province },
+      shipTo: { district: form.district, province: form.province, addressLine: form.addressLine, phone: form.phone, email: form.email },
     })
     if (updated) toast(t('toast.shipment_updated', { no: updated.shipmentNo }), 'success')
     setEditOpen(false)
@@ -395,6 +403,7 @@ export function ShipmentDetailPage() {
           fields={[
             { label: t('shipmentDetail.field_reference_id'), value: shipment.referenceId || '-', copy: shipment.referenceId || '-' },
             { label: t('shipmentDetail.field_cargo_type'), value: <span className="font-semibold">{cargoTypeLabel(shipment.cargoType)}</span> },
+            { label: t('shipmentDetail.field_delivery_note'), value: shipment.deliveryNote || '-' },
           ]}
         />
         <DetailSection
@@ -407,21 +416,10 @@ export function ShipmentDetailPage() {
           }
           fields={[
             { label: '', value: <span className="font-semibold">{shipment.customerName}</span> },
-            { label: t('shipmentDetail.field_email'), value: emailFor(shipment.customerName) },
-            { label: t('shipmentDetail.field_phone'), value: phoneFor(shipment.id) },
+            { label: t('shipmentDetail.field_email'), value: recipientEmail(shipment) },
+            { label: t('shipmentDetail.field_phone'), value: recipientPhone(shipment) },
+            { label: t('shipmentDetail.field_address_line'), value: recipientAddressLine(shipment), copy: recipientAddressLine(shipment) },
           ]}
-          actionBtn={
-            <button
-              type="button"
-              className="w-8 h-8 rounded-lg bg-primary-lighter hover:bg-primary-light text-primary flex items-center justify-center flex-shrink-0 transition-colors"
-              title={t('shipmentDetail.customer_detail_tooltip')}
-              onClick={() => toast(t('shipmentDetail.customer_detail_soon'), 'info')}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          }
         />
         <DetailSection
           title={t('shipmentDetail.section_package')}

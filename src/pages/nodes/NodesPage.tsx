@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useDataStore } from '../../stores/dataStore'
 import { useUiStore } from '../../stores/uiStore'
 import { useT } from '../../hooks/useT'
@@ -7,82 +7,6 @@ import { toast } from '../../lib/toast'
 import { getNodeUsage } from '../../lib/contracts'
 import type { StockNode } from '../../data/seed'
 import { SearchInput } from '../../components/ui/SearchInput'
-
-function NodeCreateModal({
-  open,
-  onClose,
-}: {
-  open: boolean
-  onClose: () => void
-}) {
-  const t = useT()
-  const addNode = useDataStore((s) => s.addNode)
-  const [name, setName] = useState('')
-  const [code, setCode] = useState('')
-
-  if (!open) return null
-
-  const canSave = name.trim() && code.trim()
-
-  function save() {
-    if (!canSave) return
-    const node = addNode(name, code)
-    toast(t('nodes.toast_created', { name: node.name }), 'success')
-    setName('')
-    setCode('')
-    onClose()
-  }
-
-  return (
-    <div
-      className="overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div className="modal-box w-full max-w-md p-6">
-        <h3 className="font-semibold text-neutral-950 mb-4">{t('nodes.create_title')}</h3>
-        <div className="flex flex-col gap-4">
-          <div>
-            <label className="form-label">
-              {t('nodes.field_name')} <span className="text-[#fb3748]">*</span>
-            </label>
-            <input
-              type="text"
-              className="form-input"
-              value={name}
-              placeholder={t('nodes.name_placeholder')}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="form-label">
-              {t('nodes.field_code')} <span className="text-[#fb3748]">*</span>
-            </label>
-            <input
-              type="text"
-              className="form-input"
-              value={code}
-              placeholder={t('nodes.code_placeholder')}
-              onChange={(e) => setCode(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="flex justify-end gap-3 mt-6">
-          <button className="secondary-btn" type="button" onClick={onClose}>
-            {t('common.cancel')}
-          </button>
-          <button className="primary-btn" type="button" onClick={save} disabled={!canSave}>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            {t('common.create')}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function NodeDeleteModal({
   node,
@@ -191,6 +115,20 @@ function NodeRow({ node }: { node: StockNode }) {
                 {t('nodes.not_linked')}
               </span>
             )}
+            <Link
+              to={`/nodes/${node.id}/edit`}
+              className="text-neutral-300 hover:text-primary transition-colors p-1 rounded"
+              title={t('nodes.edit_title')}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
+            </Link>
             <button
               type="button"
               className="text-neutral-300 hover:text-[#fb3748] transition-colors p-1 rounded"
@@ -269,10 +207,10 @@ function NodeRow({ node }: { node: StockNode }) {
 
 export function NodesPage() {
   const t = useT()
+  const navigate = useNavigate()
   const nodes = useDataStore((s) => s.nodes)
   const search = useUiStore((s) => s.nodeListSearch)
   const setSearch = useUiStore((s) => s.setNodeListSearch)
-  const [createOpen, setCreateOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
@@ -284,7 +222,7 @@ export function NodesPage() {
     <div className="page-container">
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-neutral-500">{t('nodes.count', { n: nodes.length })}</p>
-        <button className="primary-btn" type="button" onClick={() => setCreateOpen(true)}>
+        <button className="primary-btn" type="button" onClick={() => navigate('/nodes/new')}>
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
@@ -316,8 +254,6 @@ export function NodesPage() {
           filtered.map((node) => <NodeRow key={node.id} node={node} />)
         )}
       </div>
-
-      <NodeCreateModal open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
   )
 }

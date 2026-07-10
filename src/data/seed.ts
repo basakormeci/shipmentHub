@@ -11,10 +11,35 @@ export interface User {
   lastLogin: string
 }
 
+export type NodeType = 'store' | 'warehouse'
+
+export interface NodeWorkingHours {
+  day: number // 0=Pazartesi .. 6=Pazar
+  enabled: boolean
+  start: string
+  end: string
+  shippingDeadline: string
+}
+
+export interface NodeFulfillment {
+  pickupFromStore: boolean
+  pickupPoint: boolean
+  shipFromStore: boolean
+}
+
 export interface StockNode {
   id: number
   name: string
   code: string
+  type?: NodeType
+  country?: string
+  provinceId?: number
+  district?: string
+  address?: string
+  group?: string
+  dailyAssignmentLimit?: number
+  workingHours?: NodeWorkingHours[]
+  fulfillment?: NodeFulfillment
 }
 
 export interface NodeUsage {

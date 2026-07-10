@@ -31,6 +31,10 @@ export type ShipmentColumnKey =
   | 'packageNo'
   | 'customerName'
   | 'channel'
+  | 'addressLine'
+  | 'recipientPhone'
+  | 'recipientEmail'
+  | 'deliveryNote'
 
 export const SHIPMENT_COLUMNS: { key: ShipmentColumnKey }[] = [
   { key: 'shipmentNo' },
@@ -46,6 +50,10 @@ export const SHIPMENT_COLUMNS: { key: ShipmentColumnKey }[] = [
   { key: 'packageNo' },
   { key: 'customerName' },
   { key: 'channel' },
+  { key: 'addressLine' },
+  { key: 'recipientPhone' },
+  { key: 'recipientEmail' },
+  { key: 'deliveryNote' },
 ]
 
 export type ShipmentSearchField = (typeof SHIPMENT_SEARCH_FIELDS)[number]['key']
@@ -101,6 +109,27 @@ export function emailFor(name: string) {
 
 export function phoneFor(shipmentId: number) {
   return `+90 5${String(30000000 + shipmentId * 777).padStart(8, '0')}`
+}
+
+const STREET_POOL = ['Atatürk', 'Cumhuriyet', 'İstiklal', 'Barış', 'Gül', 'Menekşe', 'Çınar', 'Papatya']
+
+export function addressLineFor(shipmentId: number, district: string) {
+  const street = STREET_POOL[shipmentId % STREET_POOL.length]
+  const no = 1 + (shipmentId % 60)
+  const daire = 1 + (shipmentId % 8)
+  return `${district} Mahallesi, ${street} Sokak No: ${no} Daire: ${daire}`
+}
+
+export function recipientAddressLine(shipment: Shipment) {
+  return shipment.shipTo.addressLine || addressLineFor(shipment.id, shipment.shipTo.district)
+}
+
+export function recipientPhone(shipment: Shipment) {
+  return shipment.shipTo.phone || phoneFor(shipment.id)
+}
+
+export function recipientEmail(shipment: Shipment) {
+  return shipment.shipTo.email || emailFor(shipment.customerName)
 }
 
 export function generateTrackingNo(companyId: number) {
@@ -170,6 +199,10 @@ export function exportShipmentsCsv(
     s.packageNo,
     s.customerName,
     s.channel,
+    recipientAddressLine(s),
+    recipientPhone(s),
+    recipientEmail(s),
+    s.deliveryNote || '',
   ])
   const csv = [headers, ...rows].map((r) => r.map(csvEscape).join(';')).join('\r\n')
   const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })

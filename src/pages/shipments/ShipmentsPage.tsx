@@ -14,6 +14,9 @@ import {
   exportShipmentsCsv,
   filterShipments,
   getStatusTabs,
+  recipientAddressLine,
+  recipientEmail,
+  recipientPhone,
   type ShipmentColumnKey,
   type ShipmentSearchField,
 } from '../../lib/shipments'
@@ -103,6 +106,18 @@ function ShipmentCell({
       return <span className="text-neutral-600">{shipment.customerName}</span>
     case 'channel':
       return <span className="text-neutral-500">{shipment.channel}</span>
+    case 'addressLine':
+      return (
+        <span className="text-neutral-500 text-xs" title={recipientAddressLine(shipment)}>
+          {recipientAddressLine(shipment)}
+        </span>
+      )
+    case 'recipientPhone':
+      return <span className="text-neutral-500 text-xs font-mono">{recipientPhone(shipment)}</span>
+    case 'recipientEmail':
+      return <span className="text-neutral-500 text-xs">{recipientEmail(shipment)}</span>
+    case 'deliveryNote':
+      return <span className="text-neutral-500 text-xs">{shipment.deliveryNote || '-'}</span>
     default:
       return null
   }

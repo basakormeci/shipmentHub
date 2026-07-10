@@ -60,7 +60,7 @@ interface DataState {
   barcodeTemplates: BarcodeTemplate[]
   contracts: Contract[]
 
-  addNode: (name: string, code: string) => StockNode
+  upsertNode: (input: Omit<StockNode, 'id'> & { id?: number | null }) => StockNode
   removeNode: (id: number) => StockNode | null
 
   upsertUser: (input: Omit<User, 'id' | 'lastLogin'> & { id?: number | null; lastLogin?: string }) => User
@@ -147,10 +147,16 @@ export const useDataStore = create<DataState>()(
       barcodeTemplates: SEED_BARCODE_TEMPLATES,
       contracts: SEED_CONTRACTS,
 
-      addNode: (name, code) => {
-        const node: StockNode = { id: nextId(get().nodes), name: name.trim(), code: code.trim().toUpperCase() }
-        set({ nodes: [...get().nodes, node] })
-        return node
+      upsertNode: (input) => {
+        if (input.id == null) {
+          const node: StockNode = { ...input, id: nextId(get().nodes) } as StockNode
+          set({ nodes: [...get().nodes, node] })
+          return node
+        }
+        set({
+          nodes: get().nodes.map((n) => (n.id === input.id ? ({ ...n, ...input, id: n.id } as StockNode) : n)),
+        })
+        return get().nodes.find((n) => n.id === input.id)!
       },
       removeNode: (id) => {
         const node = get().nodes.find((n) => n.id === id) ?? null

@@ -129,7 +129,7 @@ export interface Shipment {
   companyId: number
   trackingNo: string
   shipFrom: string
-  shipTo: { district: string; province: string }
+  shipTo: { district: string; province: string; addressLine?: string; phone?: string; email?: string }
   shipTime: string
   status: ShipmentStatus
   cargoType: 'order' | 'return'
