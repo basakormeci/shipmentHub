@@ -10,6 +10,7 @@ import {
   RETURN_COLUMNS,
   RETURN_REASONS,
   RETURN_SEARCH_FIELDS,
+  exportReturnsCsv,
   filterReturns,
   getOriginalShipment,
   getReturnCompanyId,
@@ -71,6 +72,7 @@ export function ReturnsPage() {
   const returns = useDataStore((s) => s.returns)
   const shipments = useDataStore((s) => s.shipments)
   const cancelReturn = useDataStore((s) => s.cancelReturn)
+  const lang = useUiStore((s) => s.lang)
 
   const search = useUiStore((s) => s.returnsSearch)
   const searchField = useUiStore((s) => s.returnsSearchField)
@@ -130,6 +132,15 @@ export function ReturnsPage() {
     toast(t('returns.barcode_soon'), 'info')
   }
 
+  function handleExportCsv() {
+    if (list.length === 0) {
+      toast(t('toast.returns_csv_none'), 'info')
+      return
+    }
+    exportReturnsCsv(list, shipments, statusLabel, reasonLabel, columnLabel, lang)
+    toast(t('toast.returns_csv_done', { n: list.length }), 'success')
+  }
+
   const setHeaderSlot = useHeaderSlotStore((s) => s.setHeaderSlot)
   const clearHeaderSlot = useHeaderSlotStore((s) => s.clearHeaderSlot)
 
@@ -137,12 +148,20 @@ export function ReturnsPage() {
     setHeaderSlot({
       subtitle: t('returns.count', { n: list.length }),
       actions: (
-        <button className="secondary-btn" type="button" onClick={() => navigate('/returns/new')}>
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          {t('returns.create_btn')}
-        </button>
+        <>
+          <button className="secondary-btn" type="button" onClick={() => navigate('/returns/new')}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            {t('returns.create_btn')}
+          </button>
+          <button className="secondary-btn" type="button" onClick={handleExportCsv}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+            </svg>
+            {t('returns.export_csv')}
+          </button>
+        </>
       ),
     })
     return () => clearHeaderSlot()

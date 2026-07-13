@@ -15,21 +15,38 @@ function Toggle({
   label,
   desc,
   onToggle,
+  defaultChecked,
+  onDefaultToggle,
+  defaultLabel,
 }: {
   val: boolean
   label: string
   desc: string
   onToggle: () => void
+  defaultChecked?: boolean
+  onDefaultToggle?: () => void
+  defaultLabel?: string
 }) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-lg border border-neutral-100 bg-neutral-50/50">
-      <div>
-        <p className="text-sm font-medium text-neutral-950">{label}</p>
-        <p className="text-xs text-neutral-400 mt-0.5">{desc}</p>
+    <div className="rounded-lg border border-neutral-100 bg-neutral-50/50 overflow-hidden">
+      <div className="flex items-center justify-between p-4">
+        <div>
+          <p className="text-sm font-medium text-neutral-950">{label}</p>
+          <p className="text-xs text-neutral-400 mt-0.5">{desc}</p>
+        </div>
+        <button type="button" className={`toggle-track ${val ? 'on' : 'off'}`} onClick={onToggle}>
+          <div className="toggle-thumb" />
+        </button>
       </div>
-      <button type="button" className={`toggle-track ${val ? 'on' : 'off'}`} onClick={onToggle}>
-        <div className="toggle-thumb" />
-      </button>
+      {val && onDefaultToggle ? (
+        <label className="flex items-center gap-2 px-4 py-2.5 border-t border-neutral-100 bg-white cursor-pointer">
+          <input type="checkbox" checked={!!defaultChecked} onChange={onDefaultToggle} />
+          <svg className="w-3.5 h-3.5 text-[#f0b429] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+          <span className="text-xs text-neutral-600">{defaultLabel}</span>
+        </label>
+      ) : null}
     </div>
   )
 }
@@ -66,15 +83,6 @@ export function ContractStep1({
           options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
         />
         {errors.companyId ? <p className="form-error">{errors.companyId}</p> : null}
-      </div>
-
-      <div className="col-span-2">
-        <Toggle
-          val={f.isDefault}
-          label={t('step1.default_label')}
-          desc={t('step1.default_desc')}
-          onToggle={() => onChange({ isDefault: !f.isDefault })}
-        />
       </div>
 
       <div className="col-span-2">
@@ -160,19 +168,37 @@ export function ContractStep1({
             val={f.orderShipping}
             label={t('step1.order_shipping_label')}
             desc={t('step1.order_shipping_desc')}
-            onToggle={() => onChange({ orderShipping: !f.orderShipping })}
+            onToggle={() =>
+              onChange({ orderShipping: !f.orderShipping, ...(f.orderShipping ? { isDefaultOrder: false } : {}) })
+            }
+            defaultChecked={f.isDefaultOrder}
+            onDefaultToggle={() => onChange({ isDefaultOrder: !f.isDefaultOrder })}
+            defaultLabel={t('step1.default_order_label')}
           />
           <Toggle
             val={f.returnShipping}
             label={t('step1.return_shipping_label')}
             desc={t('step1.return_shipping_desc')}
-            onToggle={() => onChange({ returnShipping: !f.returnShipping })}
+            onToggle={() =>
+              onChange({ returnShipping: !f.returnShipping, ...(f.returnShipping ? { isDefaultReturn: false } : {}) })
+            }
+            defaultChecked={f.isDefaultReturn}
+            onDefaultToggle={() => onChange({ isDefaultReturn: !f.isDefaultReturn })}
+            defaultLabel={t('step1.default_return_label')}
           />
           <Toggle
             val={f.transferShipping}
             label={t('step1.transfer_shipping_label')}
             desc={t('step1.transfer_shipping_desc')}
-            onToggle={() => onChange({ transferShipping: !f.transferShipping })}
+            onToggle={() =>
+              onChange({
+                transferShipping: !f.transferShipping,
+                ...(f.transferShipping ? { isDefaultTransfer: false } : {}),
+              })
+            }
+            defaultChecked={f.isDefaultTransfer}
+            onDefaultToggle={() => onChange({ isDefaultTransfer: !f.isDefaultTransfer })}
+            defaultLabel={t('step1.default_transfer_label')}
           />
         </div>
       </div>

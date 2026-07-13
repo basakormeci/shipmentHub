@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { COMPANIES, PROVINCES } from '../../data/catalog'
 import { useDataStore } from '../../stores/dataStore'
 import { useT } from '../../hooks/useT'
 import { toast } from '../../lib/toast'
 import { SHIPMENT_CHANNELS } from '../../lib/shipments'
+import { getDefaultCompanyId, getEligibleCompanyIds } from '../../lib/contracts'
 import { Dropdown } from '../../components/ui/Dropdown'
 
 function getProvince(id: number) {
@@ -15,29 +16,35 @@ type FormErrors = Partial<
   Record<'orderNo' | 'companyId' | 'customerName' | 'shipFrom' | 'provinceId' | 'district' | 'addressLine' | 'phone', string>
 >
 
-const INITIAL = {
-  orderNo: '',
-  companyId: '',
-  customerName: '',
-  shipFrom: '',
-  provinceId: '',
-  district: '',
-  addressLine: '',
-  phone: '',
-  email: '',
-  deliveryNote: '',
-  referenceId: '',
-  packageNo: '',
-  channel: 'Kendi Web Sitesi',
+function buildInitial(defaultCompanyId: number | null) {
+  return {
+    orderNo: '',
+    companyId: defaultCompanyId != null ? String(defaultCompanyId) : '',
+    customerName: '',
+    shipFrom: '',
+    provinceId: '',
+    district: '',
+    addressLine: '',
+    phone: '',
+    email: '',
+    deliveryNote: '',
+    referenceId: '',
+    packageNo: '',
+    channel: 'Kendi Web Sitesi',
+  }
 }
 
 export function ShipmentCreatePage() {
   const t = useT()
   const navigate = useNavigate()
   const nodes = useDataStore((s) => s.nodes)
+  const contracts = useDataStore((s) => s.contracts)
   const addShipment = useDataStore((s) => s.addShipment)
 
-  const [form, setForm] = useState(INITIAL)
+  const eligibleCompanyIds = new Set(getEligibleCompanyIds(contracts, 'orderShipping'))
+  const companyOptions = COMPANIES.filter((c) => eligibleCompanyIds.has(c.id))
+  const defaultCompanyId = getDefaultCompanyId(contracts, 'orderShipping')
+  const [form, setForm] = useState(() => buildInitial(defaultCompanyId))
   const [errors, setErrors] = useState<FormErrors>({})
 
   const province = form.provinceId ? getProvince(+form.provinceId) : undefined
@@ -65,7 +72,7 @@ export function ShipmentCreatePage() {
   }
 
   function reset() {
-    setForm(INITIAL)
+    setForm(buildInitial(defaultCompanyId))
     setErrors({})
   }
 
@@ -115,6 +122,23 @@ export function ShipmentCreatePage() {
 
   return (
     <div className="page-container">
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+        <div className="flex items-center gap-2 text-xs text-neutral-400">
+          <Link to="/shipments" className="hover:text-neutral-600">
+            {t('shipmentDetail.breadcrumb')}
+          </Link>
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
+          </svg>
+          <span className="text-neutral-600 font-medium">{t('shipments.create_btn')}</span>
+        </div>
+        <Link to="/shipments" className="secondary-btn py-2 px-3">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          {t('shipmentDetail.back')}
+        </Link>
+      </div>
       <div className="bg-white rounded-lg border border-neutral-200 p-6">
         <div className="grid grid-cols-2 gap-6">
           <div className="col-span-2">
@@ -176,9 +200,19 @@ export function ShipmentCreatePage() {
                   value={form.companyId}
                   onChange={(v) => setField('companyId', v)}
                   placeholder={t('shipmentCreate.company_placeholder')}
-                  options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
+                  options={companyOptions.map((c) => ({ value: String(c.id), label: c.name }))}
                 />
-                {errors.companyId ? <p className="form-error">{errors.companyId}</p> : null}
+                {errors.companyId ? (
+                  <p className="form-error">{errors.companyId}</p>
+                ) : defaultCompanyId != null && form.companyId === String(defaultCompanyId) ? (
+                  <p className="text-[11px] text-primary-darker mt-1.5 flex items-center gap-1">
+                    <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="12" cy="12" r="9" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
+                    </svg>
+                    {t('common.default_carrier_hint')}
+                  </p>
+                ) : null}
               </div>
               <div>
                 <label className="form-label">

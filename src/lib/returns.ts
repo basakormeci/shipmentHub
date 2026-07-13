@@ -1,4 +1,4 @@
-import { RETURN_STATUS, type ReturnItem, type ReturnStatus, type Shipment } from '../data/catalog'
+import { RETURN_STATUS, getCompany, type ReturnItem, type ReturnStatus, type Shipment } from '../data/catalog'
 
 export function getReturnStatusTabs(): { key: ReturnStatus | 'all' }[] {
   return [{ key: 'all' }, ...(Object.keys(RETURN_STATUS) as ReturnStatus[]).map((key) => ({ key }))]
@@ -67,4 +67,43 @@ export function filterReturns(returns: ReturnItem[], shipments: Shipment[], filt
     if (q && !searchValueFor(x, shipments, filters.searchField).toLowerCase().includes(q)) return false
     return true
   })
+}
+
+function csvEscape(val: unknown) {
+  const s = String(val ?? '')
+  return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+}
+
+export function exportReturnsCsv(
+  list: ReturnItem[],
+  shipments: Shipment[],
+  statusLabel: (key: ReturnStatus) => string,
+  reasonLabel: (key: string) => string,
+  columnLabel: (key: ReturnColumnKey) => string,
+  lang: 'tr' | 'en',
+) {
+  const headers = RETURN_COLUMNS.map((c) => columnLabel(c.key))
+  const rows = list.map((x) => {
+    const orig = getOriginalShipment(shipments, x.originalShipmentId)
+    const companyId = getReturnCompanyId(x, shipments)
+    const co = companyId != null ? getCompany(companyId) : null
+    return [
+      x.returnNo,
+      orig ? `#${orig.shipmentNo}` : '',
+      co ? co.name : '',
+      reasonLabel(x.reason),
+      x.requestDate,
+      statusLabel(x.status),
+    ]
+  })
+  const csv = [headers, ...rows].map((r) => r.map(csvEscape).join(';')).join('\r\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${lang === 'tr' ? 'iadeler' : 'returns'}_${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }

@@ -68,3 +68,34 @@ export function filterTransfers(transfers: TransferItem[], nodes: StockNode[], f
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }
+
+function csvEscape(val: unknown) {
+  const s = String(val ?? '')
+  return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+}
+
+export function exportTransfersCsv(
+  list: TransferItem[],
+  nodes: StockNode[],
+  statusLabel: (key: TransferStatus) => string,
+  columnLabel: (key: TransferColumnKey) => string,
+  lang: 'tr' | 'en',
+) {
+  const headers = TRANSFER_COLUMNS.map((c) => columnLabel(c.key))
+  const rows = list.map((x) => {
+    const from = getNode(nodes, x.fromNodeId)
+    const to = getNode(nodes, x.toNodeId)
+    const co = getCompany(x.companyId)
+    return [x.transferNo, from ? from.name : '', to ? to.name : '', co ? co.name : '', x.desi, statusLabel(x.status), x.createdAt]
+  })
+  const csv = [headers, ...rows].map((r) => r.map(csvEscape).join(';')).join('\r\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${lang === 'tr' ? 'transferler' : 'transfers'}_${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}

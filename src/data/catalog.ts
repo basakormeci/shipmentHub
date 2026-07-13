@@ -6721,7 +6721,9 @@ export interface Contract {
   maxOrderAmount: number | ''
   coveredRegions: CoveredRegion[]
   credentials: ContractCredential[]
-  isDefault?: boolean
+  isDefaultOrder?: boolean
+  isDefaultReturn?: boolean
+  isDefaultTransfer?: boolean
   productTypes?: string[]
   customerSegments?: string[]
   packageTypes?: string[]
@@ -6732,7 +6734,9 @@ export interface Contract {
 export interface ContractForm {
   companyId: number | ''
   name: string
-  isDefault: boolean
+  isDefaultOrder: boolean
+  isDefaultReturn: boolean
+  isDefaultTransfer: boolean
   minDesi: string | number
   maxDesi: string | number
   minOrderAmount: string | number

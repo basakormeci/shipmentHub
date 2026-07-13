@@ -13,6 +13,7 @@ const tr: Dict = {
   'common.back': 'Geri',
   'common.save': 'Kaydet',
   'common.create': 'Oluştur',
+  'common.default_carrier_hint': 'Kurallarınıza göre varsayılan kargo firmanız seçili geldi. Buradan değiştirebilirsiniz.',
   'coming_soon.title': 'Yakında',
   'coming_soon.desc': 'Bu sayfa sonraki fazlarda taşınacak.',
 
@@ -323,6 +324,8 @@ const tr: Dict = {
   'contracts.row_delete': 'Sil',
   'contracts.shipping_order': 'Sipariş',
   'contracts.shipping_return': 'İade',
+  'contracts.shipping_transfer': 'Transfer',
+  'contracts.default_for': '{type} için varsayılan kargo firması',
   'contracts.csv_export': 'CSV Olarak İndir',
 
   'wizard.edit_title': 'Sözleşme Düzenle',
@@ -355,8 +358,9 @@ const tr: Dict = {
   'step1.return_shipping_desc': 'Bu sözleşme iade gönderimlerinde kullanılsın',
   'step1.transfer_shipping_label': 'Transfer Gönderisi',
   'step1.transfer_shipping_desc': 'Bu sözleşme depolar/mağazalar arası transfer gönderimlerinde kullanılsın',
-  'step1.default_label': 'Varsayılan Kargo Firması',
-  'step1.default_desc': 'Birden fazla uygun kargo firması bulunduğunda öncelikli tercih edilir',
+  'step1.default_order_label': 'Sipariş gönderileri için varsayılan yap',
+  'step1.default_return_label': 'İade gönderileri için varsayılan yap',
+  'step1.default_transfer_label': 'Transfer gönderileri için varsayılan yap',
   'step1.extra_rules': 'Ek Kurallar',
   'step1.extra_rules_hint': '(isteğe bağlı — boş bırakılırsa kısıt uygulanmaz)',
 
@@ -499,6 +503,7 @@ const tr: Dict = {
   'returns.clear_filters': 'Filtreleri temizle',
   'returns.filters': 'Filtreler',
   'returns.edit_table': 'Tabloyu Düzenle',
+  'returns.export_csv': 'CSV Olarak İndir',
 
   'returnDetail.breadcrumb': 'İade Yönetimi',
   'returnDetail.title': 'İade #{no}',
@@ -527,16 +532,24 @@ const tr: Dict = {
   'returnDetail.pickup_yes': 'Evet',
   'returnDetail.pickup_no': 'Hayır',
 
+  'returnCreate.section_detail': 'İade Bilgileri',
+  'returnCreate.section_carrier': 'Kargo ve Teslim Alma',
+  'returnCreate.section_pickup_address': 'Teslim Alma Adresi',
+  'returnCreate.section_notes': 'Notlar',
   'returnCreate.original_shipment': 'Orijinal Gönderi',
   'returnCreate.shipment_placeholder': 'Gönderi seçin...',
   'returnCreate.reason': 'İade Nedeni',
+  'returnCreate.company': 'Kargo Firması',
+  'returnCreate.company_placeholder': 'Firma seçin...',
   'returnCreate.pickup_title': 'Adresten İade Toplama',
   'returnCreate.pickup_desc': 'Kurye müşteri adresinden ürünü teslim alsın',
+  'returnCreate.pickup_address_hint': 'Boş bırakılırsa orijinal gönderi adresi kullanılır.',
   'returnCreate.note': 'Not',
   'returnCreate.note_optional': '(isteğe bağlı)',
   'returnCreate.reset': 'Temizle',
   'returnCreate.submit': 'İade Talebi Oluştur',
   'returnCreate.err_shipment': 'Orijinal gönderi seçilmelidir.',
+  'returnCreate.err_company': 'Kargo firması seçilmelidir.',
   'returnCreate.toast_created': 'İade #{no} talebi oluşturuldu.',
 
   'cancelReturnModal.title': 'İade Talebini İptal Et',
@@ -588,6 +601,7 @@ const tr: Dict = {
   'transfers.clear_filters': 'Filtreleri temizle',
   'transfers.filters': 'Filtreler',
   'transfers.edit_table': 'Tabloyu Düzenle',
+  'transfers.export_csv': 'CSV Olarak İndir',
 
   'transferDetail.breadcrumb': 'Transfer',
   'transferDetail.title': 'Transfer #{no}',
@@ -658,6 +672,10 @@ const tr: Dict = {
   'toast.transfer_recalled': 'Transfer #{no} geri çağrıldı.',
   'toast.transfer_carrier_updated': 'Transfer #{no} kargo firması "{carrier}" olarak güncellendi.',
   'toast.transfer_nodes_updated': 'Transfer #{no} node bilgisi güncellendi.',
+  'toast.returns_csv_none': 'Dışa aktarılacak iade talebi bulunamadı.',
+  'toast.returns_csv_done': '{n} iade talebi CSV olarak indirildi.',
+  'toast.transfers_csv_none': 'Dışa aktarılacak transfer bulunamadı.',
+  'toast.transfers_csv_done': '{n} transfer CSV olarak indirildi.',
 }
 
 const en: Dict = {
@@ -671,6 +689,7 @@ const en: Dict = {
   'common.back': 'Back',
   'common.save': 'Save',
   'common.create': 'Create',
+  'common.default_carrier_hint': 'Your default carrier was pre-selected based on your rules. You can change it here.',
   'coming_soon.title': 'Coming soon',
   'coming_soon.desc': 'This page will be migrated in upcoming phases.',
 
@@ -1030,6 +1049,7 @@ const en: Dict = {
   'returns.clear_filters': 'Clear filters',
   'returns.filters': 'Filters',
   'returns.edit_table': 'Edit table',
+  'returns.export_csv': 'Export CSV',
 
   'returnDetail.breadcrumb': 'Returns',
   'returnDetail.title': 'Return #{no}',
@@ -1058,16 +1078,24 @@ const en: Dict = {
   'returnDetail.pickup_yes': 'Yes',
   'returnDetail.pickup_no': 'No',
 
+  'returnCreate.section_detail': 'Return information',
+  'returnCreate.section_carrier': 'Carrier & pickup',
+  'returnCreate.section_pickup_address': 'Pickup address',
+  'returnCreate.section_notes': 'Notes',
   'returnCreate.original_shipment': 'Original shipment',
   'returnCreate.shipment_placeholder': 'Select shipment...',
   'returnCreate.reason': 'Return reason',
+  'returnCreate.company': 'Carrier',
+  'returnCreate.company_placeholder': 'Select carrier...',
   'returnCreate.pickup_title': 'Pickup from address',
   'returnCreate.pickup_desc': 'Carrier picks up product from customer address',
+  'returnCreate.pickup_address_hint': 'Original shipment address will be used if left blank.',
   'returnCreate.note': 'Note',
   'returnCreate.note_optional': '(optional)',
   'returnCreate.reset': 'Clear',
   'returnCreate.submit': 'Create return request',
   'returnCreate.err_shipment': 'Original shipment is required.',
+  'returnCreate.err_company': 'Carrier must be selected.',
   'returnCreate.toast_created': 'Return #{no} created.',
 
   'cancelReturnModal.title': 'Cancel return request',
@@ -1119,6 +1147,7 @@ const en: Dict = {
   'transfers.clear_filters': 'Clear filters',
   'transfers.filters': 'Filters',
   'transfers.edit_table': 'Edit table',
+  'transfers.export_csv': 'Export CSV',
 
   'transferDetail.breadcrumb': 'Transfers',
   'transferDetail.title': 'Transfer #{no}',
@@ -1189,6 +1218,10 @@ const en: Dict = {
   'toast.transfer_recalled': 'Transfer #{no} recalled.',
   'toast.transfer_carrier_updated': 'Transfer #{no} carrier updated to "{carrier}".',
   'toast.transfer_nodes_updated': 'Transfer #{no} nodes updated.',
+  'toast.returns_csv_none': 'No return requests to export.',
+  'toast.returns_csv_done': '{n} return requests exported as CSV.',
+  'toast.transfers_csv_none': 'No transfers to export.',
+  'toast.transfers_csv_done': '{n} transfers exported as CSV.',
 
   'toast.contract_activated': '"{name}" activated.',
   'toast.contract_deactivated': '"{name}" deactivated.',
@@ -1219,6 +1252,8 @@ const en: Dict = {
   'contracts.row_delete': 'Delete',
   'contracts.shipping_order': 'Order',
   'contracts.shipping_return': 'Return',
+  'contracts.shipping_transfer': 'Transfer',
+  'contracts.default_for': 'Default carrier for {type}',
   'contracts.csv_export': 'Download CSV',
 
   'wizard.edit_title': 'Edit Contract',
@@ -1251,8 +1286,9 @@ const en: Dict = {
   'step1.return_shipping_desc': 'Use this contract for return shipments',
   'step1.transfer_shipping_label': 'Transfer Shipment',
   'step1.transfer_shipping_desc': 'Use this contract for inter-warehouse transfers',
-  'step1.default_label': 'Default Carrier',
-  'step1.default_desc': 'Preferred when multiple carriers are eligible',
+  'step1.default_order_label': 'Set as default for order shipments',
+  'step1.default_return_label': 'Set as default for return shipments',
+  'step1.default_transfer_label': 'Set as default for transfer shipments',
   'step1.extra_rules': 'Extra Rules',
   'step1.extra_rules_hint': '(optional — no restriction if left empty)',
 

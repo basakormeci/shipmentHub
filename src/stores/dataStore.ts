@@ -422,9 +422,13 @@ export const useDataStore = create<DataState>()(
       recallTransfer: (id) => get().updateTransfer(id, { status: 'recalled' }),
 
       upsertContract: (input) => {
-        if (input.isDefault) {
+        const clearDefaults: Partial<Pick<Contract, 'isDefaultOrder' | 'isDefaultReturn' | 'isDefaultTransfer'>> = {}
+        if (input.isDefaultOrder) clearDefaults.isDefaultOrder = false
+        if (input.isDefaultReturn) clearDefaults.isDefaultReturn = false
+        if (input.isDefaultTransfer) clearDefaults.isDefaultTransfer = false
+        if (Object.keys(clearDefaults).length) {
           set({
-            contracts: get().contracts.map((c) => ({ ...c, isDefault: false })),
+            contracts: get().contracts.map((c) => ({ ...c, ...clearDefaults })),
           })
         }
         if (input.id == null) {

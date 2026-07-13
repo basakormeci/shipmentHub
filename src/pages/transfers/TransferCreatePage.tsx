@@ -1,28 +1,35 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { COMPANIES } from '../../data/catalog'
 import { useDataStore } from '../../stores/dataStore'
 import { useT } from '../../hooks/useT'
 import { toast } from '../../lib/toast'
+import { getDefaultCompanyId, getEligibleCompanyIds } from '../../lib/contracts'
 import { Dropdown } from '../../components/ui/Dropdown'
 
 type FormErrors = Partial<Record<'fromNodeId' | 'toNodeId' | 'companyId' | 'desi', string>>
 
-const INITIAL = {
-  fromNodeId: '',
-  toNodeId: '',
-  companyId: '',
-  desi: '',
-  note: '',
+function buildInitial(defaultCompanyId: number | null) {
+  return {
+    fromNodeId: '',
+    toNodeId: '',
+    companyId: defaultCompanyId != null ? String(defaultCompanyId) : '',
+    desi: '',
+    note: '',
+  }
 }
 
 export function TransferCreatePage() {
   const t = useT()
   const navigate = useNavigate()
   const nodes = useDataStore((s) => s.nodes)
+  const contracts = useDataStore((s) => s.contracts)
   const addTransfer = useDataStore((s) => s.addTransfer)
 
-  const [form, setForm] = useState(INITIAL)
+  const eligibleCompanyIds = new Set(getEligibleCompanyIds(contracts, 'transferShipping'))
+  const companyOptions = COMPANIES.filter((c) => eligibleCompanyIds.has(c.id))
+  const defaultCompanyId = getDefaultCompanyId(contracts, 'transferShipping')
+  const [form, setForm] = useState(() => buildInitial(defaultCompanyId))
   const [errors, setErrors] = useState<FormErrors>({})
 
   function setField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -62,13 +69,30 @@ export function TransferCreatePage() {
       note: form.note,
     })
     toast(t('transferCreate.toast_created', { no: created.transferNo }), 'success')
-    setForm(INITIAL)
+    setForm(buildInitial(defaultCompanyId))
     setErrors({})
     navigate(`/transfers/${created.id}`)
   }
 
   return (
     <div className="page-container">
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+        <div className="flex items-center gap-2 text-xs text-neutral-400">
+          <Link to="/transfers" className="hover:text-neutral-600">
+            {t('transferDetail.breadcrumb')}
+          </Link>
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
+          </svg>
+          <span className="text-neutral-600 font-medium">{t('transfers.create_btn')}</span>
+        </div>
+        <Link to="/transfers" className="secondary-btn py-2 px-3">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          {t('transferDetail.back')}
+        </Link>
+      </div>
       <div className="bg-white rounded-lg border border-neutral-200 p-6">
         <div className="grid grid-cols-2 gap-5">
           <div>
@@ -106,9 +130,19 @@ export function TransferCreatePage() {
               value={form.companyId}
               onChange={(v) => setField('companyId', v)}
               placeholder={t('transferCreate.company_placeholder')}
-              options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
+              options={companyOptions.map((c) => ({ value: String(c.id), label: c.name }))}
             />
-            {errors.companyId ? <p className="form-error">{errors.companyId}</p> : null}
+            {errors.companyId ? (
+              <p className="form-error">{errors.companyId}</p>
+            ) : defaultCompanyId != null && form.companyId === String(defaultCompanyId) ? (
+              <p className="text-[11px] text-primary-darker mt-1.5 flex items-center gap-1">
+                <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="12" cy="12" r="9" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
+                </svg>
+                {t('common.default_carrier_hint')}
+              </p>
+            ) : null}
           </div>
           <div>
             <label className="form-label">
