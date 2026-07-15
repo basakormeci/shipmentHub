@@ -392,31 +392,13 @@ export function ReturnDetailPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5 mb-3 text-sm">
+      <div className="flex items-center gap-2.5 mb-5 text-sm">
         <svg className="w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="9" />
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3" />
         </svg>
         <span className="text-neutral-500">{fmtDateTimeStr(item.requestDate)}</span>
         <span className={`badge ${st.badge}`}>{statusLabel(item.status)}</span>
-      </div>
-
-      <div className="flex items-center gap-1.5 mb-5 overflow-x-auto pb-1">
-        {(item.statusHistory ?? []).map((h, i) => (
-          <div key={i} className="flex items-center gap-1.5 flex-shrink-0">
-            {i > 0 ? (
-              <svg className="w-3 h-3 text-neutral-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            ) : null}
-            <div className="flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-neutral-50 flex-shrink-0">
-              <span className={`badge ${RETURN_STATUS[h.status].badge}`} style={{ fontSize: 11 }}>
-                {statusLabel(h.status)}
-              </span>
-              <span className="text-[10px] text-neutral-400 whitespace-nowrap">{fmtDateTimeStr(h.at)}</span>
-            </div>
-          </div>
-        ))}
       </div>
 
       <div className="flex flex-col gap-3">
