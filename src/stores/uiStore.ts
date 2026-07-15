@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { Lang } from '../data/seed'
 import type { ShipmentColumnKey, ShipmentSearchField } from '../lib/shipments'
-import type { ContractForm, ReturnStatus, RoutingCargoType, ShipmentStatus, TransferStatus } from '../data/catalog'
+import type { ContractForm, ReturnStatus, RoutingCargoType, ShipmentStatus } from '../data/catalog'
 import { emptyContractForm, type ContractFilterStatus } from '../lib/contracts'
 import { emptyNodeForm, type NodeForm } from '../lib/nodes'
 import type { ReturnColumnKey, ReturnSearchField } from '../lib/returns'
@@ -26,7 +26,14 @@ interface UiState {
     cargoType: RoutingCargoType | ''
     resultId: number | null | false
   }
-  routingWeights: { cost: number; deliveryTime: number; successRate: number }
+  routingWeights: {
+    cost: number
+    deliveryTime: number
+    successRate: number
+    damagedRate: number
+    avgPickupHours: number
+    costDiffPct: number
+  }
   shipmentsSearch: string
   shipmentsSearchField: ShipmentSearchField
   shipmentsFilterStatus: ShipmentStatus | 'all'
@@ -46,7 +53,7 @@ interface UiState {
   returnsVisibleColumns: Partial<Record<ReturnColumnKey, boolean>>
   transfersSearch: string
   transfersSearchField: TransferSearchField
-  transfersFilterStatus: TransferStatus | 'all'
+  transfersFilterStatus: ShipmentStatus | 'all'
   transfersFilterCompanyId: string
   transfersDateFrom: string
   transfersDateTo: string
@@ -133,7 +140,7 @@ export const useUiStore = create<UiState>()(
       reportsCompanyId: '',
       reportsProvinceId: '',
       routingSimulator: { desi: '', provinceId: '', amount: '', cargoType: '', resultId: null },
-      routingWeights: { cost: 34, deliveryTime: 33, successRate: 33 },
+      routingWeights: { cost: 25, deliveryTime: 20, successRate: 25, damagedRate: 10, avgPickupHours: 10, costDiffPct: 10 },
       shipmentsSearch: '',
       shipmentsSearchField: 'shipmentNo',
       shipmentsFilterStatus: 'all',
@@ -254,7 +261,7 @@ export const useUiStore = create<UiState>()(
         contractWizard: s.contractWizard,
         nodeWizard: s.nodeWizard,
       }),
-      version: 5,
+      version: 6,
     },
   ),
 )

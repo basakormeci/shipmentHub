@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { COMPANIES, TRANSFER_STATUS, getCompany, type TransferItem, type TransferStatus } from '../../data/catalog'
+import { COMPANIES, SHIPMENT_STATUS, getCompany, type TransferItem, type ShipmentStatus } from '../../data/catalog'
 import { useDataStore } from '../../stores/dataStore'
 import { useUiStore } from '../../stores/uiStore'
 import { useT } from '../../hooks/useT'
@@ -12,7 +12,6 @@ import {
   exportTransfersCsv,
   filterTransfers,
   getNode,
-  getTransferStatusTabs,
   type TransferColumnKey,
   type TransferSearchField,
 } from '../../lib/transfers'
@@ -21,6 +20,7 @@ import { ColumnPanelModal } from '../../components/ui/ColumnPanelModal'
 import { Dropdown } from '../../components/ui/Dropdown'
 import { useHeaderSlotStore } from '../../stores/headerSlotStore'
 import type { StockNode } from '../../data/seed'
+import { CancelTransferModal } from './TransferModals'
 
 function TransferCell({
   colKey,
@@ -31,13 +31,13 @@ function TransferCell({
   colKey: TransferColumnKey
   item: TransferItem
   nodes: StockNode[]
-  statusLabel: (s: TransferStatus) => string
+  statusLabel: (s: ShipmentStatus) => string
 }) {
   const t = useT()
   const from = getNode(nodes, item.fromNodeId)
   const to = getNode(nodes, item.toNodeId)
   const co = getCompany(item.companyId)
-  const st = TRANSFER_STATUS[item.status]
+  const st = SHIPMENT_STATUS[item.status]
 
   switch (colKey) {
     case 'transferNo':
@@ -68,6 +68,7 @@ export function TransfersPage() {
   const navigate = useNavigate()
   const transfers = useDataStore((s) => s.transfers)
   const nodes = useDataStore((s) => s.nodes)
+  const cancelTransfer = useDataStore((s) => s.cancelTransfer)
   const lang = useUiStore((s) => s.lang)
 
   const search = useUiStore((s) => s.transfersSearch)
@@ -82,8 +83,9 @@ export function TransfersPage() {
 
   const [showFilters, setShowFilters] = useState(false)
   const [showColumnPanel, setShowColumnPanel] = useState(false)
+  const [cancelId, setCancelId] = useState<number | null>(null)
 
-  const statusLabel = (key: TransferStatus) => t(`transferStatus.${key}`)
+  const statusLabel = (key: ShipmentStatus) => t(`status.${key}`)
   const columnLabel = (key: TransferColumnKey) => {
     switch (key) {
       case 'transferNo':
@@ -114,6 +116,7 @@ export function TransfersPage() {
   const activeCols = TRANSFER_COLUMNS.filter((c) => visibleColumns[c.key] !== false)
   const extraFiltersActive = !!(filterCompanyId || dateFrom || dateTo)
   const filtersActive = !!(search || filterStatus !== 'all' || extraFiltersActive)
+  const cancelTarget = cancelId != null ? transfers.find((tr) => tr.id === cancelId) ?? null : null
 
   function handleExportCsv() {
     if (list.length === 0) {
@@ -122,6 +125,17 @@ export function TransfersPage() {
     }
     exportTransfersCsv(list, nodes, statusLabel, columnLabel, lang)
     toast(t('toast.transfers_csv_done', { n: list.length }), 'success')
+  }
+
+  function handleBarcode() {
+    toast(t('transfers.barcode_soon'), 'info')
+  }
+
+  function confirmCancel() {
+    if (cancelId == null) return
+    const updated = cancelTransfer(cancelId)
+    if (updated) toast(t('toast.transfer_cancelled', { no: updated.transferNo }), 'info')
+    setCancelId(null)
   }
 
   const setHeaderSlot = useHeaderSlotStore((s) => s.setHeaderSlot)
@@ -153,23 +167,6 @@ export function TransfersPage() {
   return (
     <div className="page-container">
       <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
-        <div className="flex items-center gap-1.5 px-5 py-3 border-b border-neutral-100 flex-wrap">
-          {getTransferStatusTabs().map((tab) => {
-            const count = tab.key === 'all' ? transfers.length : transfers.filter((x) => x.status === tab.key).length
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                className={`filter-tab ${filterStatus === tab.key ? 'active' : ''}`}
-                onClick={() => setTransfersFilter({ transfersFilterStatus: tab.key })}
-              >
-                {tab.key === 'all' ? t('common.all') : statusLabel(tab.key)}
-                <span className="ml-1 text-xs opacity-60">{count}</span>
-              </button>
-            )
-          })}
-        </div>
-
         <div className="flex items-center gap-3 px-5 py-3 border-b border-neutral-100 flex-wrap">
           <Dropdown
             wrapperStyle={{ width: 190 }}
@@ -283,13 +280,34 @@ export function TransfersPage() {
                       >
                         <div className="flex justify-end gap-1">
                           <button
-                            className="action-btn"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0"
                             type="button"
                             title={t('transfers.detail_tooltip')}
                             onClick={() => navigate(`/transfers/${x.id}`)}
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                          <button
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0"
+                            type="button"
+                            title={t('transfers.barcode_tooltip')}
+                            onClick={handleBarcode}
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" d="M4 5v14M8 5v14M11 5v14M15 5v14M18 5v14M21 5v14" />
+                            </svg>
+                          </button>
+                          <button
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[#ad1f2b] hover:bg-[#ffebec] transition-colors flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+                            type="button"
+                            title={t('transfers.cancel_tooltip')}
+                            disabled={x.status === 'ShipmentCanceled'}
+                            onClick={() => setCancelId(x.id)}
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                           </button>
                         </div>
@@ -321,6 +339,8 @@ export function TransfersPage() {
           onClose={() => setShowColumnPanel(false)}
         />
       ) : null}
+
+      {cancelId != null ? <CancelTransferModal item={cancelTarget} onClose={() => setCancelId(null)} onConfirm={confirmCancel} /> : null}
     </div>
   )
 }

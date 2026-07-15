@@ -1,6 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
+  CARRIER_METRIC_KEYS,
+  CARRIER_METRIC_LABELS,
+  INVOICE_STATUS,
   SHIPMENT_STATUS,
   actualDeliveryDate,
   getCompany,
@@ -11,7 +14,7 @@ import {
 import { useDataStore } from '../../stores/dataStore'
 import { useT } from '../../hooks/useT'
 import { copyToClipboard } from '../../lib/clipboard'
-import { fmtDateTimeStr, relativeTimeTr } from '../../lib/format'
+import { fmtDate, fmtDateTimeStr, relativeTimeTr } from '../../lib/format'
 import { toast } from '../../lib/toast'
 import { desiKgFor, packageItemsFor, recipientAddressLine, recipientEmail, recipientPhone } from '../../lib/shipments'
 import {
@@ -121,9 +124,11 @@ function ActionMenu({
 }) {
   const t = useT()
   const [open, setOpen] = useState(false)
-  const editDisabled = ['delivered', 'cancelled', 'returned', 'recalled'].includes(shipment.status)
-  const recallDisabled = shipment.status !== 'in_transit'
-  const cancelDisabled = shipment.status === 'cancelled'
+  const editDisabled = ['DeliveredToCustomer', 'DeliveredToStore', 'ShipmentCanceled', 'ReturnToSender', 'OnTheWayBackToSender'].includes(
+    shipment.status,
+  )
+  const recallDisabled = shipment.status !== 'OnTheWay'
+  const cancelDisabled = shipment.status === 'ShipmentCanceled'
 
   const items = [
     { label: t('shipmentDetail.status_update'), onClick: onStatus, disabled: false, danger: false },
@@ -182,6 +187,7 @@ export function ShipmentDetailPage() {
   const id = Number(shipmentId)
 
   const shipments = useDataStore((s) => s.shipments)
+  const carrierInvoices = useDataStore((s) => s.carrierInvoices)
   const updateShipment = useDataStore((s) => s.updateShipment)
   const cancelShipment = useDataStore((s) => s.cancelShipment)
   const recallShipment = useDataStore((s) => s.recallShipment)
@@ -207,7 +213,7 @@ export function ShipmentDetailPage() {
   const st = SHIPMENT_STATUS[shipment.status]
   const contentItems = packageItemsFor(shipment.id)
   const totalQty = contentItems.reduce((sum, it) => sum + it.qty, 0)
-  const dk = desiKgFor(shipment.id)
+  const dk = shipment.desi != null ? { ...desiKgFor(shipment.id), desi: shipment.desi } : desiKgFor(shipment.id)
   const planned = plannedDeliveryDate(shipment)
   const actual = actualDeliveryDate(shipment)
   const statusLabel = (key: ShipmentStatus) => t(`status.${key}`)
@@ -336,6 +342,137 @@ export function ShipmentDetailPage() {
     </div>
   )
 
+  const routing = shipment.routingDecision
+  const routingFields =
+    !routing
+      ? [{ label: '', value: <span className="text-neutral-400">{t('shipmentDetail.routing_legacy')}</span> }]
+      : routing.mode === 'manual'
+        ? [{ label: t('shipmentDetail.field_routing_mode'), value: <span className="font-semibold">{t('shipmentDetail.routing_mode_manual')}</span> }]
+        : [
+            { label: t('shipmentDetail.field_routing_mode'), value: <span className="font-semibold">{t('shipmentDetail.routing_mode_auto')}</span> },
+            { label: '', value: t('shipmentDetail.routing_default_scoring') },
+          ]
+
+  const routingExpanded =
+    routing && routing.mode === 'auto' ? (
+      <div className="flex flex-col gap-4">
+        <div>
+          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">
+            1. {t('shipmentDetail.routing_step_eligibility')}
+          </p>
+          <p className="text-xs text-neutral-600">
+            {t('shipmentDetail.routing_step_eligibility_desc', { n: routing.contractEligibleCompanyIds.length })}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">
+            2. {t('shipmentDetail.routing_step_rule')}
+          </p>
+          {routing.matchedRuleName ? (
+            <p className="text-xs text-neutral-600">
+              {t('shipmentDetail.routing_step_rule_matched', { name: routing.matchedRuleName, summary: routing.matchedRuleSummary ?? '' })}
+              {routing.ruleNarrowedCompanyIds
+                ? ' ' + t('shipmentDetail.routing_step_rule_narrowed', { n: routing.ruleNarrowedCompanyIds.length })
+                : ''}
+            </p>
+          ) : (
+            <p className="text-xs text-neutral-400">{t('shipmentDetail.routing_step_rule_none')}</p>
+          )}
+        </div>
+
+        <div>
+          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5">
+            3. {t('shipmentDetail.routing_step_scoring')}
+          </p>
+          <div className="bg-white border border-neutral-200 rounded-lg overflow-x-auto">
+            <table className="w-full text-xs" style={{ minWidth: 640 }}>
+              <thead>
+                <tr className="border-b border-neutral-100 text-left">
+                  <th className="px-3 py-2 text-neutral-400 font-semibold uppercase tracking-wider">{t('shipmentDetail.routing_th_carrier')}</th>
+                  {CARRIER_METRIC_KEYS.map((k) => (
+                    <th key={k} className="px-2 py-2 text-neutral-400 font-semibold uppercase tracking-wider text-right whitespace-nowrap">
+                      {CARRIER_METRIC_LABELS[k]}
+                      <span className="block font-normal normal-case text-neutral-300">%{Math.round(routing.weights[k] * 100)}</span>
+                    </th>
+                  ))}
+                  <th className="px-3 py-2 text-neutral-400 font-semibold uppercase tracking-wider text-right">{t('shipmentDetail.routing_th_score')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {routing.scores.map((s) => (
+                  <tr key={s.companyId} className={s.companyId === routing.chosenCompanyId ? 'bg-primary-lighter/30' : ''}>
+                    <td className="px-3 py-2 font-medium text-neutral-700 whitespace-nowrap">
+                      {s.companyName}
+                      {s.companyId === routing.chosenCompanyId ? (
+                        <span className="ml-1.5 text-primary text-[10px] font-semibold">{t('shipmentDetail.routing_chosen')}</span>
+                      ) : null}
+                    </td>
+                    {CARRIER_METRIC_KEYS.map((k) => (
+                      <td key={k} className="px-2 py-2 text-right text-neutral-500">
+                        {(s.metrics[k] * 100).toFixed(0)}
+                      </td>
+                    ))}
+                    <td className="px-3 py-2 text-right font-semibold text-neutral-800">{(s.combined * 100).toFixed(1)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">
+            4. {t('shipmentDetail.routing_step_result')}
+          </p>
+          <p className="text-xs text-neutral-600">
+            {t('shipmentDetail.routing_step_result_desc', { name: getCompany(routing.chosenCompanyId)?.name ?? '' })}
+            {routing.tieBreakUsedDefault ? ' ' + t('shipmentDetail.routing_tiebreak_note') : ''}
+          </p>
+        </div>
+      </div>
+    ) : null
+
+  const invoice = carrierInvoices.find((inv) => inv.shipmentNo === shipment.shipmentNo) ?? null
+  const costDiff = invoice ? invoice.realCost - invoice.expectedCost : 0
+  const costDiffPct = invoice && invoice.expectedCost ? (costDiff / invoice.expectedCost) * 100 : 0
+
+  const financeFields = !invoice
+    ? [{ label: '', value: <span className="text-neutral-400">{t('shipmentDetail.finance_no_invoice')}</span> }]
+    : [
+        { label: t('shipmentDetail.finance_expected'), value: `₺${invoice.expectedCost.toLocaleString('tr-TR')}` },
+        { label: t('shipmentDetail.finance_real'), value: `₺${invoice.realCost.toLocaleString('tr-TR')}` },
+        {
+          label: t('shipmentDetail.finance_diff'),
+          value: (
+            <span className={costDiff <= 0 ? 'font-semibold text-[#1a8245]' : 'font-semibold text-[#ad1f2b]'}>
+              {costDiff >= 0 ? '+' : ''}
+              ₺{costDiff.toLocaleString('tr-TR')} ({costDiffPct >= 0 ? '+' : ''}
+              {costDiffPct.toFixed(1)}%)
+            </span>
+          ),
+        },
+      ]
+
+  const financeExpanded = invoice ? (
+    <div className="flex items-center gap-6 bg-white border border-neutral-200 rounded-lg p-3.5 flex-wrap">
+      <div className="flex-1" style={{ minWidth: 120 }}>
+        <p className="text-xs text-neutral-400 mb-1">{t('shipmentDetail.finance_invoice_no')}</p>
+        <p className="text-sm font-semibold text-neutral-800 font-mono">{invoice.invoiceNo}</p>
+      </div>
+      <div className="w-px h-8 bg-neutral-200" />
+      <div className="flex-1" style={{ minWidth: 120 }}>
+        <p className="text-xs text-neutral-400 mb-1">{t('shipmentDetail.finance_invoice_date')}</p>
+        <p className="text-sm font-semibold text-neutral-800">{fmtDate(invoice.invoiceDate)}</p>
+      </div>
+      <div className="w-px h-8 bg-neutral-200" />
+      <div className="flex-1" style={{ minWidth: 120 }}>
+        <p className="text-xs text-neutral-400 mb-1">{t('shipmentDetail.finance_status')}</p>
+        <span className={`badge ${INVOICE_STATUS[invoice.status].badge}`}>{INVOICE_STATUS[invoice.status].label}</span>
+      </div>
+    </div>
+  ) : null
+
   return (
     <div className="page-container">
       <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
@@ -368,7 +505,7 @@ export function ShipmentDetailPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5 mb-5 text-sm">
+      <div className="flex items-center gap-2.5 mb-3 text-sm">
         <svg className="w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="9" />
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3" />
@@ -377,6 +514,24 @@ export function ShipmentDetailPage() {
           {fmtDateTimeStr(shipment.shipTime)} · {relativeTimeTr(shipment.shipTime)}
         </span>
         <span className={`badge ${st.badge}`}>{statusLabel(shipment.status)}</span>
+      </div>
+
+      <div className="flex items-center gap-1.5 mb-5 overflow-x-auto pb-1">
+        {(shipment.statusHistory ?? []).map((h, i) => (
+          <div key={i} className="flex items-center gap-1.5 flex-shrink-0">
+            {i > 0 ? (
+              <svg className="w-3 h-3 text-neutral-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            ) : null}
+            <div className="flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-neutral-50 flex-shrink-0">
+              <span className={`badge ${SHIPMENT_STATUS[h.status].badge}`} style={{ fontSize: 11 }}>
+                {statusLabel(h.status)}
+              </span>
+              <span className="text-[10px] text-neutral-400 whitespace-nowrap">{fmtDateTimeStr(h.at)}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="flex flex-col gap-3">
@@ -483,6 +638,37 @@ export function ShipmentDetailPage() {
             },
           ]}
           expandedContent={deliveryExpanded}
+        />
+        <DetailSection
+          title={t('shipmentDetail.section_routing')}
+          expandable={!!routingExpanded}
+          expanded={!!expanded.rotalama}
+          onToggle={() => toggleSection('rotalama')}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
+              />
+            </svg>
+          }
+          fields={routingFields}
+          expandedContent={routingExpanded}
+        />
+        <DetailSection
+          title={t('shipmentDetail.section_finance')}
+          expandable={!!invoice}
+          expanded={!!expanded.finans}
+          onToggle={() => toggleSection('finans')}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 2v8m0 0v2m0-2c-1.11 0-2.08-.402-2.599-1" />
+              <circle cx="12" cy="12" r="9" />
+            </svg>
+          }
+          fields={financeFields}
+          expandedContent={financeExpanded}
         />
       </div>
 

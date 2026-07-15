@@ -68,10 +68,12 @@ export function StatusUpdateModal({
   onConfirm: (status: ShipmentStatus) => void
 }) {
   const t = useT()
-  const [value, setValue] = useState<ShipmentStatus>(shipment?.status ?? 'preparing')
+  const [value, setValue] = useState<ShipmentStatus>(shipment?.status ?? 'DispatchLabelCreated')
   if (!shipment) return null
 
-  const options = (Object.keys(SHIPMENT_STATUS) as ShipmentStatus[]).filter((k) => k !== 'cancelled')
+  const options = (Object.keys(SHIPMENT_STATUS) as ShipmentStatus[]).filter(
+    (k) => k !== 'ShipmentCanceled' && k !== 'OnTheWayBackToSender',
+  )
 
   return (
     <div

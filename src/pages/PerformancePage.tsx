@@ -1,60 +1,8 @@
 import { useMemo } from 'react'
 import { useDataStore } from '../stores/dataStore'
-import {
-  getCompany,
-  isDamagedFor,
-  pickupTimeHoursFor,
-  plannedDeliveryDate,
-  actualDeliveryDate,
-  type Shipment,
-} from '../data/catalog'
+import { isDamagedFor, pickupTimeHoursFor, plannedDeliveryDate, actualDeliveryDate } from '../data/catalog'
 import { StatTile } from '../components/ui/StatTile'
-
-export function computeCarrierPerformance(
-  shipments: Shipment[],
-  carrierInvoices: { companyId: number; realCost: number; expectedCost: number }[],
-) {
-  const byCompany: Record<
-    number,
-    { total: number; delivered: number; damaged: number; onTime: number; pickupSum: number }
-  > = {}
-
-  shipments.forEach((s) => {
-    if (!byCompany[s.companyId]) {
-      byCompany[s.companyId] = { total: 0, delivered: 0, damaged: 0, onTime: 0, pickupSum: 0 }
-    }
-    const b = byCompany[s.companyId]
-    b.total++
-    b.pickupSum += pickupTimeHoursFor(s.id)
-    if (s.status === 'delivered' || s.status === 'returned') {
-      b.delivered++
-      if (isDamagedFor(s.id)) b.damaged++
-      const actual = actualDeliveryDate(s)
-      if (actual && new Date(actual) <= new Date(plannedDeliveryDate(s))) b.onTime++
-    }
-  })
-
-  return Object.keys(byCompany)
-    .map((cid) => {
-      const b = byCompany[+cid]
-      const co = getCompany(+cid)
-      const invoices = carrierInvoices.filter((i) => i.companyId === +cid)
-      const costBalance = invoices.reduce((sum, i) => sum + (i.realCost - i.expectedCost), 0)
-      const totalExpected = invoices.reduce((sum, i) => sum + i.expectedCost, 0)
-      const costDiffPct = totalExpected ? (costBalance / totalExpected) * 100 : 0
-      return {
-        companyId: +cid,
-        companyName: co ? co.name : 'Bilinmiyor',
-        total: b.total,
-        successRate: b.total ? b.delivered / b.total : 0,
-        damagedRate: b.delivered ? b.damaged / b.delivered : 0,
-        otdRate: b.delivered ? b.onTime / b.delivered : 0,
-        avgPickupHours: b.total ? b.pickupSum / b.total : 0,
-        costDiffPct,
-      }
-    })
-    .sort((a, b) => b.total - a.total)
-}
+import { computeCarrierPerformance } from '../lib/carrierScoring'
 
 export function PerformancePage() {
   const shipments = useDataStore((s) => s.shipments)
@@ -66,12 +14,12 @@ export function PerformancePage() {
   )
 
   const totalShipments = shipments.length
-  const totalDelivered = shipments.filter((s) => s.status === 'delivered' || s.status === 'returned').length
+  const totalDelivered = shipments.filter((s) => s.status === 'DeliveredToCustomer' || s.status === 'DeliveredToStore' || s.status === 'ReturnToSender').length
   const totalDamaged = shipments.filter(
-    (s) => isDamagedFor(s.id) && (s.status === 'delivered' || s.status === 'returned'),
+    (s) => isDamagedFor(s.id) && (s.status === 'DeliveredToCustomer' || s.status === 'DeliveredToStore' || s.status === 'ReturnToSender'),
   ).length
   const totalOnTime = shipments.filter((s) => {
-    if (s.status !== 'delivered' && s.status !== 'returned') return false
+    if (s.status !== 'DeliveredToCustomer' && s.status !== 'DeliveredToStore' && s.status !== 'ReturnToSender') return false
     const actual = actualDeliveryDate(s)
     return actual && new Date(actual) <= new Date(plannedDeliveryDate(s))
   }).length

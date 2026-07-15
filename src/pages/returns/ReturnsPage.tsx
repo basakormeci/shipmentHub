@@ -14,7 +14,6 @@ import {
   filterReturns,
   getOriginalShipment,
   getReturnCompanyId,
-  getReturnStatusTabs,
   type ReturnColumnKey,
   type ReturnSearchField,
 } from '../../lib/returns'
@@ -170,23 +169,6 @@ export function ReturnsPage() {
   return (
     <div className="page-container">
       <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
-        <div className="flex items-center gap-1.5 px-5 py-3 border-b border-neutral-100 flex-wrap">
-          {getReturnStatusTabs().map((tab) => {
-            const count = tab.key === 'all' ? returns.length : returns.filter((x) => x.status === tab.key).length
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                className={`filter-tab ${filterStatus === tab.key ? 'active' : ''}`}
-                onClick={() => setReturnsFilter({ returnsFilterStatus: tab.key })}
-              >
-                {tab.key === 'all' ? t('common.all') : statusLabel(tab.key)}
-                <span className="ml-1 text-xs opacity-60">{count}</span>
-              </button>
-            )
-          })}
-        </div>
-
         <div className="flex items-center gap-3 px-5 py-3 border-b border-neutral-100 flex-wrap">
           <Dropdown
             wrapperStyle={{ width: 190 }}
@@ -309,7 +291,7 @@ export function ReturnsPage() {
                       >
                         <div className="flex justify-end gap-1">
                           <button
-                            className="action-btn"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0"
                             type="button"
                             title={t('returns.detail_tooltip')}
                             onClick={() => navigate(`/returns/${x.id}`)}
@@ -318,16 +300,21 @@ export function ReturnsPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
                             </svg>
                           </button>
-                          <button className="action-btn" type="button" title={t('returns.barcode_tooltip')} onClick={handleBarcode}>
+                          <button
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0"
+                            type="button"
+                            title={t('returns.barcode_tooltip')}
+                            onClick={handleBarcode}
+                          >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                               <path strokeLinecap="round" d="M4 5v14M8 5v14M11 5v14M15 5v14M18 5v14M21 5v14" />
                             </svg>
                           </button>
                           <button
-                            className="action-btn hover:text-[#ad1f2b] hover:bg-[#ffebec] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[#ad1f2b] hover:bg-[#ffebec] transition-colors flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
                             type="button"
                             title={t('returns.cancel_tooltip')}
-                            disabled={x.status === 'cancelled' || x.status === 'completed'}
+                            disabled={x.status === 'ReturnShipmentError' || x.status === 'ReceivedByReturnCenter'}
                             onClick={() => setCancelId(x.id)}
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">

@@ -25,7 +25,6 @@ import {
   type ReturnItem,
   type ReturnStatus,
   type TransferItem,
-  type TransferStatus,
   type RoutingRule,
   type RoutingHistoryItem,
   type CarrierPricing,
@@ -92,7 +91,7 @@ interface DataState {
 
   updateShipment: (id: number, patch: Partial<Shipment>) => Shipment | null
   addShipment: (
-    input: Omit<Shipment, 'id' | 'shipmentNo' | 'trackingNo' | 'shipTime' | 'status'> & {
+    input: Omit<Shipment, 'id' | 'shipmentNo' | 'trackingNo' | 'shipTime' | 'status' | 'statusHistory'> & {
       trackingNo?: string
       status?: ShipmentStatus
     },
@@ -102,16 +101,16 @@ interface DataState {
 
   updateReturn: (id: number, patch: Partial<ReturnItem>) => ReturnItem | null
   addReturn: (
-    input: Omit<ReturnItem, 'id' | 'returnNo' | 'requestDate' | 'status'> & { status?: ReturnStatus },
+    input: Omit<ReturnItem, 'id' | 'returnNo' | 'requestDate' | 'status' | 'statusHistory'> & { status?: ReturnStatus },
   ) => ReturnItem
   cancelReturn: (id: number) => ReturnItem | null
   recallReturn: (id: number) => ReturnItem | null
 
   updateTransfer: (id: number, patch: Partial<TransferItem>) => TransferItem | null
   addTransfer: (
-    input: Omit<TransferItem, 'id' | 'transferNo' | 'trackingNo' | 'status' | 'createdAt'> & {
+    input: Omit<TransferItem, 'id' | 'transferNo' | 'trackingNo' | 'status' | 'createdAt' | 'statusHistory'> & {
       trackingNo?: string
-      status?: TransferStatus
+      status?: ShipmentStatus
     },
   ) => TransferItem
   cancelTransfer: (id: number) => TransferItem | null
@@ -340,7 +339,11 @@ export const useDataStore = create<DataState>()(
       updateShipment: (id, patch) => {
         const existing = get().shipments.find((s) => s.id === id)
         if (!existing) return null
-        const updated = { ...existing, ...patch, id: existing.id, shipTo: patch.shipTo ?? existing.shipTo }
+        const statusHistory =
+          patch.status && patch.status !== existing.status
+            ? [...existing.statusHistory, { status: patch.status, at: new Date().toISOString() }]
+            : existing.statusHistory
+        const updated = { ...existing, ...patch, id: existing.id, shipTo: patch.shipTo ?? existing.shipTo, statusHistory }
         set({ shipments: get().shipments.map((s) => (s.id === id ? updated : s)) })
         return updated
       },
@@ -349,29 +352,36 @@ export const useDataStore = create<DataState>()(
         const id = nextId(get().shipments)
         const shipmentNo = Math.max(0, ...get().shipments.map((s) => s.shipmentNo)) + 1
         const orderNoVal = Number.isNaN(Number(input.orderNo)) ? input.orderNo : Number(input.orderNo)
+        const shipTime = new Date().toISOString()
+        const status = input.status ?? 'DispatchLabelCreated'
         const shipment: Shipment = {
           ...input,
           id,
           shipmentNo,
           orderNo: orderNoVal as number,
           trackingNo: input.trackingNo ?? generateTrackingNo(input.companyId),
-          shipTime: new Date().toISOString(),
-          status: input.status ?? 'preparing',
+          shipTime,
+          status,
           referenceId: input.referenceId || `REF-${Math.floor(Math.random() * 90000) + 10000}`,
           packageNo: input.packageNo || `PKT-${String(id).padStart(6, '0')}`,
+          statusHistory: [{ status, at: shipTime }],
         }
         set({ shipments: [...get().shipments, shipment] })
         return shipment
       },
 
-      cancelShipment: (id) => get().updateShipment(id, { status: 'cancelled' }),
+      cancelShipment: (id) => get().updateShipment(id, { status: 'ShipmentCanceled' }),
 
-      recallShipment: (id) => get().updateShipment(id, { status: 'recalled' }),
+      recallShipment: (id) => get().updateShipment(id, { status: 'OnTheWayBackToSender' }),
 
       updateReturn: (id, patch) => {
         const existing = get().returns.find((r) => r.id === id)
         if (!existing) return null
-        const updated = { ...existing, ...patch, id: existing.id }
+        const statusHistory =
+          patch.status && patch.status !== existing.status
+            ? [...existing.statusHistory, { status: patch.status, at: new Date().toISOString() }]
+            : existing.statusHistory
+        const updated = { ...existing, ...patch, id: existing.id, statusHistory }
         set({ returns: get().returns.map((r) => (r.id === id ? updated : r)) })
         return updated
       },
@@ -379,25 +389,32 @@ export const useDataStore = create<DataState>()(
       addReturn: (input) => {
         const id = nextId(get().returns)
         const returnNo = Math.max(9300000, ...get().returns.map((r) => r.returnNo)) + 1
+        const requestDate = new Date().toISOString()
+        const status = input.status ?? 'ReturnCodeCreated'
         const item: ReturnItem = {
           ...input,
           id,
           returnNo,
-          requestDate: new Date().toISOString(),
-          status: input.status ?? 'requested',
+          requestDate,
+          status,
+          statusHistory: [{ status, at: requestDate }],
         }
         set({ returns: [item, ...get().returns] })
         return item
       },
 
-      cancelReturn: (id) => get().updateReturn(id, { status: 'cancelled' }),
+      cancelReturn: (id) => get().updateReturn(id, { status: 'ReturnShipmentError' }),
 
-      recallReturn: (id) => get().updateReturn(id, { status: 'recalled' }),
+      recallReturn: (id) => get().updateReturn(id, { status: 'ReturnCodeExpired' }),
 
       updateTransfer: (id, patch) => {
         const existing = get().transfers.find((t) => t.id === id)
         if (!existing) return null
-        const updated = { ...existing, ...patch, id: existing.id }
+        const statusHistory =
+          patch.status && patch.status !== existing.status
+            ? [...existing.statusHistory, { status: patch.status, at: new Date().toISOString() }]
+            : existing.statusHistory
+        const updated = { ...existing, ...patch, id: existing.id, statusHistory }
         set({ transfers: get().transfers.map((t) => (t.id === id ? updated : t)) })
         return updated
       },
@@ -405,21 +422,24 @@ export const useDataStore = create<DataState>()(
       addTransfer: (input) => {
         const id = nextId(get().transfers)
         const transferNo = Math.max(0, ...get().transfers.map((t) => t.transferNo)) + 1
+        const createdAt = new Date().toISOString()
+        const status = input.status ?? 'DispatchLabelCreated'
         const item: TransferItem = {
           ...input,
           id,
           transferNo,
           trackingNo: input.trackingNo ?? generateTransferTrackingNo(input.companyId),
-          status: input.status ?? 'preparing',
-          createdAt: new Date().toISOString(),
+          status,
+          createdAt,
+          statusHistory: [{ status, at: createdAt }],
         }
         set({ transfers: [item, ...get().transfers] })
         return item
       },
 
-      cancelTransfer: (id) => get().updateTransfer(id, { status: 'cancelled' }),
+      cancelTransfer: (id) => get().updateTransfer(id, { status: 'ShipmentCanceled' }),
 
-      recallTransfer: (id) => get().updateTransfer(id, { status: 'recalled' }),
+      recallTransfer: (id) => get().updateTransfer(id, { status: 'OnTheWayBackToSender' }),
 
       upsertContract: (input) => {
         const clearDefaults: Partial<Pick<Contract, 'isDefaultOrder' | 'isDefaultReturn' | 'isDefaultTransfer'>> = {}
@@ -465,7 +485,7 @@ export const useDataStore = create<DataState>()(
     {
       name: 'shipment-hub:v1',
       storage: createJSONStorage(() => localStorage),
-      version: 4,
+      version: 7,
       migrate: (persisted, version) => {
         const state = persisted as DataState
         if (version < 3) {
@@ -474,7 +494,69 @@ export const useDataStore = create<DataState>()(
         if (version < 4) {
           return { ...state, contracts: state.contracts ?? SEED_CONTRACTS }
         }
+        if (version < 6) {
+          const shipmentStatusMap: Record<string, ShipmentStatus> = {
+            preparing: 'DispatchLabelCreated',
+            in_transit: 'OnTheWay',
+            delivered: 'DeliveredToCustomer',
+            returned: 'ReturnToSender',
+            cancelled: 'ShipmentCanceled',
+            recalled: 'OnTheWayBackToSender',
+          }
+          const returnStatusMap: Record<string, ReturnStatus> = {
+            requested: 'ReturnCodeCreated',
+            picked_up: 'ReturnOnTheWay',
+            in_warehouse: 'ReturnReceivedByProvider',
+            completed: 'ReceivedByReturnCenter',
+            cancelled: 'ReturnShipmentError',
+            recalled: 'ReturnCodeExpired',
+          }
+          const transferStatusMap: Record<string, ShipmentStatus> = {
+            preparing: 'DispatchLabelCreated',
+            in_transit: 'OnTheWay',
+            delivered: 'DeliveredToStore',
+            cancelled: 'ShipmentCanceled',
+            recalled: 'OnTheWayBackToSender',
+          }
+          return {
+            ...state,
+            shipments: (state.shipments ?? []).map((s) => ({
+              ...s,
+              status: shipmentStatusMap[s.status as string] ?? s.status,
+            })),
+            returns: (state.returns ?? []).map((r) => ({
+              ...r,
+              status: returnStatusMap[r.status as string] ?? r.status,
+            })),
+            transfers: (state.transfers ?? []).map((tr) => ({
+              ...tr,
+              status: transferStatusMap[tr.status as string] ?? tr.status,
+            })),
+          }
+        }
         return state
+      },
+      // Runs on every load (unlike migrate, which only fires on a version mismatch) so a
+      // record written by a stale browser tab / older bundle can never crash the app by
+      // missing a field the current schema requires (e.g. statusHistory).
+      merge: (persisted, current) => {
+        const merged = { ...current, ...(persisted as Partial<DataState>) } as DataState
+        const now = new Date().toISOString()
+        return {
+          ...merged,
+          shipments: (merged.shipments ?? []).map((s) => ({
+            ...s,
+            statusHistory: s.statusHistory?.length ? s.statusHistory : [{ status: s.status, at: now }],
+          })),
+          returns: (merged.returns ?? []).map((r) => ({
+            ...r,
+            statusHistory: r.statusHistory?.length ? r.statusHistory : [{ status: r.status, at: now }],
+          })),
+          transfers: (merged.transfers ?? []).map((tr) => ({
+            ...tr,
+            statusHistory: tr.statusHistory?.length ? tr.statusHistory : [{ status: tr.status, at: now }],
+          })),
+        }
       },
     },
   ),

@@ -103,23 +103,66 @@ export const COMPANIES = [
 export type Company = (typeof COMPANIES)[number]
 
 export const SHIPMENT_STATUS = {
-  preparing: { badge: 'badge-warning' },
-  in_transit: { badge: 'badge-info' },
-  delivered: { badge: 'badge-active' },
-  returned: { badge: 'badge-passive' },
-  cancelled: { badge: 'badge-danger' },
-  recalled: { badge: 'badge-danger' },
+  ShipmentCanceled: { code: 50, badge: 'badge-danger' },
+  OnTheWayForPickUp: { code: 385, badge: 'badge-warning' },
+  OnPickUpAddress: { code: 390, badge: 'badge-warning' },
+  CreateShipmentError: { code: 400, badge: 'badge-danger' },
+  DispatchLabelCreated: { code: 410, badge: 'badge-warning' },
+  ReceivedByProvider: { code: 415, badge: 'badge-info' },
+  OnTheWay: { code: 420, badge: 'badge-info' },
+  ProviderReceivedThePackage: { code: 425, badge: 'badge-info' },
+  DeliveredToCustomer: { code: 540, badge: 'badge-active' },
+  DeliveredToStore: { code: 560, badge: 'badge-active' },
+  ShipmentFailed: { code: 510, badge: 'badge-danger' },
+  OnDeliveryAddress: { code: 515, badge: 'badge-info' },
+  OnTheWayBackToSender: { code: 520, badge: 'badge-danger' },
+  ReturnToSender: { code: 530, badge: 'badge-passive' },
 } as const
 
 export type ShipmentStatus = keyof typeof SHIPMENT_STATUS
 
 export const STATUS_CHART_COLORS: Record<ShipmentStatus, string> = {
-  preparing: '#f0a869',
-  in_transit: '#85a0f2',
-  delivered: '#7ecca0',
-  returned: '#aab3c2',
-  cancelled: '#f28d97',
-  recalled: '#bb717a',
+  ShipmentCanceled: '#f28d97',
+  OnTheWayForPickUp: '#f0c869',
+  OnPickUpAddress: '#f0a869',
+  CreateShipmentError: '#d9748a',
+  DispatchLabelCreated: '#e8b86d',
+  ReceivedByProvider: '#8fb0f5',
+  OnTheWay: '#85a0f2',
+  ProviderReceivedThePackage: '#6f8fe0',
+  DeliveredToCustomer: '#7ecca0',
+  DeliveredToStore: '#5fb389',
+  ShipmentFailed: '#bb4b5a',
+  OnDeliveryAddress: '#a9c2f7',
+  OnTheWayBackToSender: '#bb717a',
+  ReturnToSender: '#aab3c2',
+}
+
+export const STATUS_GROUPS: { key: string; label: string; statuses: ShipmentStatus[] }[] = [
+  { key: 'preparing', label: 'Hazırlanıyor', statuses: ['DispatchLabelCreated', 'OnTheWayForPickUp', 'OnPickUpAddress'] },
+  { key: 'transit', label: 'Yolda', statuses: ['ReceivedByProvider', 'OnTheWay', 'ProviderReceivedThePackage', 'OnDeliveryAddress'] },
+  { key: 'delivered', label: 'Teslim Edildi', statuses: ['DeliveredToCustomer', 'DeliveredToStore'] },
+  { key: 'failed', label: 'İptal / Sorunlu', statuses: ['ShipmentCanceled', 'CreateShipmentError', 'ShipmentFailed'] },
+  { key: 'returning', label: 'Geri Dönüyor', statuses: ['OnTheWayBackToSender', 'ReturnToSender'] },
+]
+
+export interface ShipmentRoutingDecision {
+  mode: 'auto' | 'manual'
+  /** Step 1: companies with an active order-shipping contract. */
+  contractEligibleCompanyIds: number[]
+  /** Step 2: active routing rule matching desi/province/amount, if any. */
+  matchedRuleId: number | null
+  matchedRuleName: string | null
+  matchedRuleSummary: string | null
+  /** Companies left after the matched rule narrowed the pool; null if no rule narrowed it. */
+  ruleNarrowedCompanyIds: number[] | null
+  /** Step 3: normalized weights (fractions summing to 1) used to compute `combined`, snapshotted at decision time. */
+  weights: Record<CarrierMetricKey, number>
+  /** Per-carrier, per-metric normalized scores (0-1) for every company in the final eligible pool, sorted by `combined` desc. */
+  scores: { companyId: number; companyName: string; metrics: Record<CarrierMetricKey, number>; combined: number }[]
+  /** Step 4: final pick. */
+  chosenCompanyId: number
+  tieBreakUsedDefault: boolean
 }
 
 export interface Shipment {
@@ -138,6 +181,10 @@ export interface Shipment {
   customerName: string
   channel: string
   deliveryNote?: string
+  desi?: number
+  orderAmount?: number
+  routingDecision?: ShipmentRoutingDecision
+  statusHistory: { status: ShipmentStatus; at: string }[]
 }
 
 export const SEED_SHIPMENTS: Shipment[] = [
@@ -153,12 +200,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Antalya"
     },
     "shipTime": "2026-04-10T07:41:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70013",
     "packageNo": "PKT-000001",
     "customerName": "Ahmet Güneş",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-10T04:41:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-10T06:25:24.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-10T09:38:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-10T12:50:36.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-10T16:03:12.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-10T19:15:48.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-10T22:28:24.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-11T01:41:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 2,
@@ -172,12 +307,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-04-11T11:56:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70026",
     "packageNo": "PKT-000002",
     "customerName": "Aslı Aydın",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-11T08:56:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-11T11:11:46.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-11T14:46:44.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-11T18:21:42.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-11T21:56:41.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-12T01:31:39.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-12T05:06:37.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-12T06:56:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 3,
@@ -191,12 +401,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-04-12T07:47:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70039",
     "packageNo": "PKT-000003",
     "customerName": "Gizem Aksoy",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-12T04:47:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-12T07:36:32.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-12T11:35:05.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-12T15:33:37.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-12T19:32:10.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-12T19:36:06.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-12T23:34:39.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-13T03:33:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 4,
@@ -210,12 +495,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-04-12T11:16:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70052",
     "packageNo": "PKT-000004",
     "customerName": "Selin Kurt",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-12T08:16:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-12T11:41:42.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-12T16:05:01.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-12T20:28:20.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-12T20:46:51.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-13T01:10:10.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-13T05:33:29.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-13T08:16:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 5,
@@ -229,12 +602,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Antalya"
     },
     "shipTime": "2026-04-14T07:05:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70065",
     "packageNo": "PKT-000005",
     "customerName": "Furkan Aksoy",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-14T04:05:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-14T08:09:17.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-14T12:58:34.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-14T13:32:51.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-14T18:22:08.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-14T23:11:25.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-14T23:45:42.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-15T04:35:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 6,
@@ -248,12 +709,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-04-14T09:48:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70078",
     "packageNo": "PKT-000006",
     "customerName": "Onur Bulut",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-14T06:48:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-14T11:33:15.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-14T12:24:30.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-14T17:40:58.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-14T22:57:25.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-14T23:48:41.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-15T05:05:08.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-15T08:48:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 7,
@@ -267,12 +816,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-04-15T07:27:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70091",
     "packageNo": "PKT-000007",
     "customerName": "Doğan Yıldız",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-15T04:27:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-15T09:55:37.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-15T11:05:03.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-15T16:49:53.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-15T17:59:18.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-15T23:44:08.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-16T05:28:58.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-16T06:38:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 8,
@@ -286,12 +910,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-04-15T11:11:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70104",
     "packageNo": "PKT-000008",
     "customerName": "Gül Bulut",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-15T08:11:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-15T14:25:24.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-15T15:54:12.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-15T22:08:36.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-15T23:37:24.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-16T05:51:48.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-16T07:20:36.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-16T12:11:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 9,
@@ -305,12 +1004,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-04-16T08:22:00",
-    "status": "returned",
+    "status": "ReturnToSender",
     "cargoType": "return",
     "referenceId": "REF-70117",
     "packageNo": "PKT-000009",
     "customerName": "Burak Kaya",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-16T05:22:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-16T07:28:46.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-16T14:13:56.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-16T16:03:18.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-16T22:48:29.142Z"
+      },
+      {
+        "status": "ShipmentFailed",
+        "at": "2026-04-17T00:37:51.428Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-04-17T07:23:01.714Z"
+      },
+      {
+        "status": "ReturnToSender",
+        "at": "2026-04-17T09:12:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 10,
@@ -324,12 +1111,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-04-16T11:01:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70130",
     "packageNo": "PKT-000010",
     "customerName": "Kerem Kaya",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-16T08:01:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-16T10:48:08.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-16T18:05:17.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-16T20:16:25.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-17T03:33:34.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-17T05:44:42.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-17T07:55:51.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-17T14:01:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 11,
@@ -343,12 +1218,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-04-16T11:41:00",
-    "status": "returned",
+    "status": "ReturnToSender",
     "cargoType": "order",
     "referenceId": "REF-70143",
     "packageNo": "PKT-000011",
     "customerName": "Mustafa Erdoğan",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-16T08:41:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-16T12:10:54.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-16T20:01:13.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-16T22:35:20.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-17T01:09:27.428Z"
+      },
+      {
+        "status": "ShipmentFailed",
+        "at": "2026-04-17T08:59:46.285Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-04-17T11:33:53.142Z"
+      },
+      {
+        "status": "ReturnToSender",
+        "at": "2026-04-17T14:08:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 12,
@@ -362,12 +1312,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-04-18T12:51:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70156",
     "packageNo": "PKT-000012",
     "customerName": "Zeynep Yılmaz",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-18T09:51:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-18T14:06:05.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-18T17:04:22.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-19T01:29:03.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-19T04:27:20.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-19T07:25:37.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-19T15:50:18.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-19T17:51:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 13,
@@ -381,12 +1419,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Konya"
     },
     "shipTime": "2026-04-18T13:55:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70169",
     "packageNo": "PKT-000013",
     "customerName": "Fatma Yıldız",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-18T10:55:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-18T15:57:39.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-18T19:21:18.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-18T22:44:58.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-19T07:45:13.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-19T11:08:53.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-19T14:32:32.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-19T17:56:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 14,
@@ -400,12 +1526,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Gaziantep"
     },
     "shipTime": "2026-04-19T08:27:00",
-    "status": "recalled",
+    "status": "OnTheWayBackToSender",
     "cargoType": "order",
     "referenceId": "REF-70182",
     "packageNo": "PKT-000014",
     "customerName": "Serkan Demir",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-19T05:27:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-13T15:05:02.400Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-01T19:13:30.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-20T23:21:57.600Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-07-10T03:30:25.200Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 15,
@@ -419,12 +1621,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-04-21T12:16:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70195",
     "packageNo": "PKT-000015",
     "customerName": "Barış Arslan",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-21T09:16:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-21T16:01:00.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-21T20:19:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-22T00:37:00.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-22T04:55:00.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-22T09:13:00.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-22T13:31:00.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-22T17:49:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 16,
@@ -438,12 +1728,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-04-22T11:05:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70208",
     "packageNo": "PKT-000016",
     "customerName": "Onur Arslan",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-22T08:05:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-22T15:44:46.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-22T20:31:44.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-23T01:18:42.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-23T06:05:41.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-23T10:52:39.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-23T15:39:37.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-23T20:05:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 17,
@@ -457,12 +1835,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-04-22T13:28:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70221",
     "packageNo": "PKT-000017",
     "customerName": "Deniz Öztürk",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-22T10:28:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-22T12:47:32.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-22T18:04:41.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-22T23:21:49.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-23T04:38:58.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-23T09:56:06.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-23T15:13:15.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-23T20:30:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 18,
@@ -476,12 +1942,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Gaziantep"
     },
     "shipTime": "2026-04-23T07:51:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70234",
     "packageNo": "PKT-000018",
     "customerName": "Mehmet Doğan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-23T04:51:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-23T07:59:54.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-23T13:48:25.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-23T19:36:56.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-24T01:25:27.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-24T07:13:58.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-24T13:02:29.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-24T18:51:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 19,
@@ -495,12 +2049,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-04-23T08:35:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70247",
     "packageNo": "PKT-000019",
     "customerName": "Elif Yavuz",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-23T05:35:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-23T09:35:41.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-23T15:56:46.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-23T22:17:51.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-24T04:38:56.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-24T11:00:01.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-24T17:21:06.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-24T20:35:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 20,
@@ -514,12 +2156,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Antalya"
     },
     "shipTime": "2026-04-23T09:40:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70260",
     "packageNo": "PKT-000020",
     "customerName": "Aslı Bulut",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-23T06:40:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-23T11:34:51.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-23T18:29:42.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-24T01:24:34.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-24T08:19:25.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-24T08:26:17.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-24T15:21:08.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-24T22:16:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 21,
@@ -533,12 +2250,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-04-23T14:40:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70273",
     "packageNo": "PKT-000021",
     "customerName": "İrem Özdemir",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-23T11:40:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-23T17:31:25.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-24T01:01:15.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-24T08:31:05.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-24T09:02:42.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-24T16:32:32.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-25T00:02:22.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-25T04:40:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 22,
@@ -552,12 +2344,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-04-24T10:19:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70286",
     "packageNo": "PKT-000022",
     "customerName": "Gül Erdoğan",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-24T07:19:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-24T14:09:24.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-24T22:15:24.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-24T23:13:00.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-25T07:19:00.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-25T15:25:00.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-25T16:22:36.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-26T00:28:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 23,
@@ -571,12 +2451,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-04-25T06:06:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70299",
     "packageNo": "PKT-000023",
     "customerName": "Gizem Şimşek",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-25T03:06:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-25T10:57:46.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-25T12:22:32.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-25T21:05:54.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-26T05:49:17.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-26T07:14:03.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-26T15:57:25.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-26T22:06:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 24,
@@ -590,12 +2558,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-04-26T05:12:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70312",
     "packageNo": "PKT-000024",
     "customerName": "Deniz Arslan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-26T02:12:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-26T11:07:32.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-26T13:00:41.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-26T22:22:37.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-27T00:15:46.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-27T09:37:42.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-27T18:59:39.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-27T20:52:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 25,
@@ -609,12 +2665,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-04-26T09:21:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70325",
     "packageNo": "PKT-000025",
     "customerName": "Kaan Güneş",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-26T06:21:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-26T16:22:42.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-26T18:45:25.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-27T04:47:08.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-27T07:09:51.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-27T17:11:34.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-27T19:34:17.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-28T03:21:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 26,
@@ -628,12 +2759,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Gaziantep"
     },
     "shipTime": "2026-04-28T05:40:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70338",
     "packageNo": "PKT-000026",
     "customerName": "Deniz Yılmaz",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-28T02:40:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-28T06:01:05.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-28T16:43:46.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-28T19:37:15.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-29T06:19:56.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-29T09:13:25.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-29T19:56:06.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-29T22:49:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 27,
@@ -647,12 +2853,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-04-28T07:24:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70351",
     "packageNo": "PKT-000027",
     "customerName": "Merve Koç",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-28T04:24:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-28T08:45:51.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-28T20:10:42.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-28T23:36:10.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-29T11:01:01.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-29T14:26:29.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-29T17:51:56.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-30T03:24:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 28,
@@ -666,12 +2947,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-04-28T08:09:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70364",
     "packageNo": "PKT-000028",
     "customerName": "Doğan Özdemir",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-28T05:09:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-28T10:34:01.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-28T22:42:15.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-29T02:40:53.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-29T06:39:30.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-29T18:47:44.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-29T22:46:22.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-30T02:45:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 29,
@@ -685,12 +3054,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Antalya"
     },
     "shipTime": "2026-04-28T08:14:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70377",
     "packageNo": "PKT-000029",
     "customerName": "Ebru Yavuz",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-28T05:14:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-28T11:44:36.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-28T16:17:36.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-29T05:10:24.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-29T09:43:24.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-29T14:16:24.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-30T03:09:12.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-30T06:14:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 30,
@@ -704,12 +3148,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Konya"
     },
     "shipTime": "2026-04-28T12:41:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70390",
     "packageNo": "PKT-000030",
     "customerName": "Cem Erdoğan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-28T09:41:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-28T12:44:25.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-28T14:47:51.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-28T16:51:17.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-28T22:18:42.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-29T00:22:08.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-29T02:25:34.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-29T04:29:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 8,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 31,
@@ -723,12 +3255,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-04-29T10:21:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70403",
     "packageNo": "PKT-000031",
     "customerName": "Serkan Erdoğan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-29T07:21:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-29T10:58:48.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-29T13:21:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-29T15:43:12.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-29T18:05:24.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-30T00:01:48.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-30T02:24:00.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-30T04:21:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 32,
@@ -742,12 +3362,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-04-29T12:35:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70416",
     "packageNo": "PKT-000032",
     "customerName": "Kerem Doğan",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-29T09:35:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-29T13:49:34.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-29T16:31:44.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-29T19:13:54.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-29T21:56:05.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-30T00:38:15.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-30T03:20:25.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-30T06:02:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 33,
@@ -761,12 +3469,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-04-29T13:51:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "return",
     "referenceId": "REF-70429",
     "packageNo": "PKT-000033",
     "customerName": "Ayşe Polat",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-29T10:51:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-29T15:44:44.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-29T18:48:05.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-29T21:51:25.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-30T00:54:46.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-30T03:58:06.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-30T07:01:27.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-04-30T09:51:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 34,
@@ -780,12 +3576,76 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-05-02T07:19:00",
-    "status": "cancelled",
+    "status": "ShipmentCanceled",
     "cargoType": "order",
     "referenceId": "REF-70442",
     "packageNo": "PKT-000034",
     "customerName": "Burak Aksoy",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-02T04:19:00.000Z"
+      },
+      {
+        "status": "ShipmentCanceled",
+        "at": "2026-05-02T09:50:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 35,
@@ -799,12 +3659,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-05-02T10:35:00",
-    "status": "returned",
+    "status": "ReturnToSender",
     "cargoType": "order",
     "referenceId": "REF-70455",
     "packageNo": "PKT-000035",
     "customerName": "Gül Doğan",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-02T07:35:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-02T09:39:17.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-02T13:28:34.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-02T17:17:51.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-02T21:07:08.571Z"
+      },
+      {
+        "status": "ShipmentFailed",
+        "at": "2026-05-03T00:56:25.714Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-05-03T04:45:42.857Z"
+      },
+      {
+        "status": "ReturnToSender",
+        "at": "2026-05-03T08:35:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 36,
@@ -818,12 +3766,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-05-02T12:59:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70468",
     "packageNo": "PKT-000036",
     "customerName": "Hakan Özdemir",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-02T09:59:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-02T12:39:27.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-02T16:53:30.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-02T21:07:34.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-03T01:21:37.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-03T05:35:41.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-03T09:49:44.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-03T11:59:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 37,
@@ -837,12 +3873,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İzmir"
     },
     "shipTime": "2026-05-02T13:39:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70481",
     "packageNo": "PKT-000037",
     "customerName": "Selin Yavuz",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-02T10:39:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-02T13:58:01.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-02T18:38:03.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-02T23:18:05.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-03T03:58:06.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-03T04:02:44.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-03T08:42:46.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-03T13:22:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 38,
@@ -856,12 +3980,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-03T05:24:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "return",
     "referenceId": "REF-70494",
     "packageNo": "PKT-000038",
     "customerName": "Fatma Özdemir",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-03T02:24:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-03T06:24:00.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-03T11:31:12.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-03T16:38:24.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-03T17:00:00.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-03T22:07:12.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-04T03:14:24.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-04T06:24:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 39,
@@ -875,12 +4074,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-03T06:29:00",
-    "status": "returned",
+    "status": "ReturnToSender",
     "cargoType": "order",
     "referenceId": "REF-70507",
     "packageNo": "PKT-000039",
     "customerName": "Hakan Aksoy",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-03T03:29:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-03T08:12:22.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-03T13:47:56.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-03T14:27:42.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-03T20:03:17.142Z"
+      },
+      {
+        "status": "ShipmentFailed",
+        "at": "2026-05-04T01:38:51.428Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-05-04T02:18:37.714Z"
+      },
+      {
+        "status": "ReturnToSender",
+        "at": "2026-05-04T07:54:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 40,
@@ -894,12 +4181,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-05-03T07:05:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "return",
     "referenceId": "REF-70520",
     "packageNo": "PKT-000040",
     "customerName": "Mustafa Güneş",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-03T04:05:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-03T09:34:08.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-03T10:33:17.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-03T16:38:25.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-03T22:43:34.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-03T23:42:42.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-04T05:47:51.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-04T10:05:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 41,
@@ -913,12 +4275,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Konya"
     },
     "shipTime": "2026-05-04T13:25:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70533",
     "packageNo": "PKT-000041",
     "customerName": "Yusuf Kaya",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-04T10:25:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-04T16:42:18.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-04T18:02:01.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-05T00:37:56.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-05T01:57:39.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-05T08:33:34.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-05T15:09:29.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-05T16:29:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 42,
@@ -932,12 +4382,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-05-04T14:34:00",
-    "status": "returned",
+    "status": "ReturnToSender",
     "cargoType": "order",
     "referenceId": "REF-70546",
     "packageNo": "PKT-000042",
     "customerName": "Ceren Polat",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-04T11:34:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-04T18:41:53.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-04T20:23:22.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-05T03:31:15.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-05T05:12:44.571Z"
+      },
+      {
+        "status": "ShipmentFailed",
+        "at": "2026-05-05T12:20:37.714Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-05-05T14:02:06.857Z"
+      },
+      {
+        "status": "ReturnToSender",
+        "at": "2026-05-05T19:34:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 43,
@@ -951,12 +4476,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-05-06T05:29:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70559",
     "packageNo": "PKT-000043",
     "customerName": "Zeynep Öztürk",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-06T02:29:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-06T04:53:15.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-06T12:34:18.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-06T14:38:46.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-06T22:19:49.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-07T00:24:17.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-07T08:05:20.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-07T10:09:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 44,
@@ -970,12 +4570,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-05-06T05:50:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "return",
     "referenceId": "REF-70572",
     "packageNo": "PKT-000044",
     "customerName": "Deniz Polat",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-06T02:50:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-06T05:59:25.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-06T14:14:51.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-06T16:43:29.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-07T00:58:54.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-07T03:27:32.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-07T05:56:10.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-07T12:50:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 45,
@@ -989,12 +4664,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İzmir"
     },
     "shipTime": "2026-05-06T09:54:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70585",
     "packageNo": "PKT-000045",
     "customerName": "İrem Aksoy",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-06T06:54:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-06T10:51:00.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-06T19:42:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-06T22:36:00.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-07T01:30:00.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-07T10:21:00.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-07T13:15:00.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-07T16:09:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 46,
@@ -1008,12 +4771,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-05-07T09:54:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70598",
     "packageNo": "PKT-000046",
     "customerName": "Mehmet Öztürk",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-07T06:54:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-07T11:40:58.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-07T15:01:32.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-08T00:29:18.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-08T03:49:53.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-08T07:10:27.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-08T16:38:13.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-08T18:54:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 47,
@@ -1027,12 +4865,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-05-07T13:38:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70611",
     "packageNo": "PKT-000047",
     "customerName": "Cem Doğan",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-07T10:38:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-07T16:17:20.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-07T20:05:41.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-07T23:54:01.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-08T09:59:46.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-08T13:48:06.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-08T17:36:27.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-08T21:24:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 48,
@@ -1046,12 +4972,76 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-09T08:37:00",
-    "status": "cancelled",
+    "status": "ShipmentCanceled",
     "cargoType": "order",
     "referenceId": "REF-70624",
     "packageNo": "PKT-000048",
     "customerName": "Mustafa Aydın",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-09T05:37:00.000Z"
+      },
+      {
+        "status": "ShipmentCanceled",
+        "at": "2026-05-09T10:37:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 49,
@@ -1065,12 +5055,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-05-09T12:16:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70637",
     "packageNo": "PKT-000049",
     "customerName": "Kaan Bulut",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-09T09:16:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-09T16:47:17.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-09T21:34:46.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-10T02:22:15.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-10T07:09:44.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-10T11:57:13.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-10T16:44:42.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-10T21:32:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 50,
@@ -1084,12 +5149,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-10T10:01:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70650",
     "packageNo": "PKT-000050",
     "customerName": "İrem Erdoğan",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-10T07:01:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-10T15:31:51.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-10T20:50:42.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-11T02:09:34.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-11T07:28:25.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-11T12:47:17.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-11T18:06:08.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-11T23:01:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 51,
@@ -1103,12 +5256,76 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-10T13:34:00",
-    "status": "cancelled",
+    "status": "ShipmentCanceled",
     "cargoType": "order",
     "referenceId": "REF-70663",
     "packageNo": "PKT-000051",
     "customerName": "Onur Yılmaz",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-10T10:34:00.000Z"
+      },
+      {
+        "status": "ShipmentCanceled",
+        "at": "2026-05-10T13:19:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 8,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 52,
@@ -1122,12 +5339,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-05-11T06:55:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70676",
     "packageNo": "PKT-000052",
     "customerName": "Kaan Koç",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-11T03:55:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-11T07:23:48.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-11T13:49:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-11T20:14:12.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-12T02:39:24.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-12T09:04:36.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-12T15:29:48.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-12T21:55:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 53,
@@ -1141,12 +5433,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-05-12T06:12:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70689",
     "packageNo": "PKT-000053",
     "customerName": "Aslı Aksoy",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-12T03:12:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-12T07:37:22.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-12T14:37:32.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-12T21:37:42.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-13T04:37:53.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-13T11:38:03.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-13T18:38:13.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-13T22:12:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 54,
@@ -1160,12 +5540,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Gaziantep"
     },
     "shipTime": "2026-05-12T10:44:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70702",
     "packageNo": "PKT-000054",
     "customerName": "Furkan Koç",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-12T07:44:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-12T13:08:20.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-12T20:44:41.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-13T04:21:01.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-13T11:57:22.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-13T12:04:54.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-13T19:41:15.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-14T03:17:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 55,
@@ -1179,12 +5634,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-05-12T11:14:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70715",
     "packageNo": "PKT-000055",
     "customerName": "Ebru Yılmaz",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-12T08:14:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-12T14:39:42.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-12T22:53:25.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-13T07:07:08.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-13T07:41:51.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-13T15:55:34.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-14T00:09:17.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-14T05:14:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 56,
@@ -1198,12 +5728,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-05-12T12:23:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "return",
     "referenceId": "REF-70728",
     "packageNo": "PKT-000056",
     "customerName": "Gül Aksoy",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-12T09:23:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-12T16:52:29.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-13T01:44:46.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-13T02:47:51.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-13T11:40:08.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-13T20:32:25.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-13T21:35:30.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-14T06:27:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 57,
@@ -1217,12 +5835,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-13T07:58:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70741",
     "packageNo": "PKT-000057",
     "customerName": "Fatma Özdemir",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-13T04:58:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-13T13:33:39.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-13T15:06:18.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-14T00:38:22.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-14T10:10:25.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-14T11:43:05.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-14T21:15:08.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-15T03:58:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 58,
@@ -1236,12 +5942,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-14T07:00:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70754",
     "packageNo": "PKT-000058",
     "customerName": "Tuğçe Kurt",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-14T04:00:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-14T13:44:13.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-14T15:47:39.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-15T02:00:41.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-15T04:04:06.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-15T14:17:08.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-16T00:30:10.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-16T02:33:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 59,
@@ -1255,12 +6049,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-14T12:41:00",
-    "status": "returned",
+    "status": "ReturnToSender",
     "cargoType": "return",
     "referenceId": "REF-70767",
     "packageNo": "PKT-000059",
     "customerName": "Merve Çelik",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-14T09:41:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-14T20:36:12.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-14T23:11:36.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-15T10:06:48.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-15T12:42:12.000Z"
+      },
+      {
+        "status": "ShipmentFailed",
+        "at": "2026-05-15T23:37:24.000Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-05-16T02:12:48.000Z"
+      },
+      {
+        "status": "ReturnToSender",
+        "at": "2026-05-16T10:41:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 60,
@@ -1274,12 +6156,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-15T09:41:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70780",
     "packageNo": "PKT-000060",
     "customerName": "Yusuf Koç",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-15T06:41:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-15T08:08:25.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-15T12:47:51.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-15T14:03:17.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-15T18:42:42.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-15T19:58:08.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-16T00:37:34.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-16T01:53:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 61,
@@ -1293,12 +6263,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-15T12:50:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70793",
     "packageNo": "PKT-000061",
     "customerName": "Aslı Demir",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-15T09:50:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-15T11:47:00.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-15T16:53:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-15T18:24:48.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-15T23:30:48.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-16T01:02:36.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-16T02:34:24.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-16T06:50:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 62,
@@ -1312,12 +6370,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-05-19T07:44:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "return",
     "referenceId": "REF-70806",
     "packageNo": "PKT-000062",
     "customerName": "Pınar Yılmaz",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-19T04:44:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-19T07:12:58.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-19T12:46:44.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-19T14:36:06.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-19T16:25:29.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-19T21:59:15.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-19T23:48:37.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-20T01:38:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 63,
@@ -1331,12 +6477,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-20T05:04:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70819",
     "packageNo": "PKT-000063",
     "customerName": "Barış Güneş",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-20T02:04:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-20T05:07:20.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-20T07:15:29.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-20T13:18:13.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-20T15:26:22.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-20T17:34:30.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-20T23:37:15.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-21T01:04:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 64,
@@ -1350,12 +6584,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-05-20T05:31:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70832",
     "packageNo": "PKT-000064",
     "customerName": "Ebru Demir",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-20T02:31:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-20T06:11:06.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-20T08:39:13.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-20T11:07:20.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-20T17:40:15.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-20T20:08:22.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-20T22:36:29.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-21T01:04:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 65,
@@ -1369,12 +6691,63 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-05-20T09:46:00",
-    "status": "cancelled",
+    "status": "ShipmentCanceled",
     "cargoType": "return",
     "referenceId": "REF-70845",
     "packageNo": "PKT-000065",
     "customerName": "Gül Yavuz",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-20T06:46:00.000Z"
+      },
+      {
+        "status": "ShipmentCanceled",
+        "at": "2026-05-20T08:46:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 66,
@@ -1388,12 +6761,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-05-20T14:33:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70858",
     "packageNo": "PKT-000066",
     "customerName": "Mehmet Koç",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-20T11:33:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-20T16:33:51.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-20T19:45:30.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-20T22:57:10.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-21T02:08:49.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-21T05:20:29.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-21T08:32:08.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-21T11:43:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 67,
@@ -1407,12 +6868,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-05-21T08:07:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70871",
     "packageNo": "PKT-000067",
     "customerName": "Serkan Bulut",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-21T05:07:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-21T10:51:49.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-21T14:27:03.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-21T18:02:17.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-21T21:37:30.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-22T01:12:44.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-22T04:47:58.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-22T08:07:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 68,
@@ -1426,12 +6975,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-21T09:33:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70884",
     "packageNo": "PKT-000068",
     "customerName": "Kaan Bulut",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-21T06:33:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-21T08:18:36.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-21T12:18:36.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-21T16:18:36.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-21T20:18:36.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-22T00:18:36.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-22T04:18:36.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-22T08:18:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 69,
@@ -1445,12 +7069,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-05-21T12:53:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70897",
     "packageNo": "PKT-000069",
     "customerName": "İrem Polat",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-21T09:53:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-21T12:17:10.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-21T16:43:08.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-21T21:09:06.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-22T01:35:05.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-22T06:01:03.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-22T10:27:01.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-22T14:53:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 70,
@@ -1464,12 +7176,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-22T05:23:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70910",
     "packageNo": "PKT-000070",
     "customerName": "Gizem Bulut",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-22T02:23:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-22T05:28:08.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-22T10:21:17.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-22T15:14:25.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-22T20:07:34.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-23T01:00:42.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-23T05:53:51.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-23T08:23:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 71,
@@ -1483,12 +7283,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-05-22T07:01:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70923",
     "packageNo": "PKT-000071",
     "customerName": "Doğan Kurt",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-22T04:01:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-22T07:49:30.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-22T13:11:01.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-22T18:32:32.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-22T23:54:03.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-22T23:59:22.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-23T05:20:53.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-23T10:42:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 72,
@@ -1502,12 +7377,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-05-23T06:20:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "return",
     "referenceId": "REF-70936",
     "packageNo": "PKT-000072",
     "customerName": "Gizem Bulut",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-23T03:20:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-23T07:54:17.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-23T13:45:22.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-23T19:36:27.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-23T20:01:08.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-24T01:52:13.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-24T07:43:18.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-24T11:20:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 8,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 73,
@@ -1521,12 +7484,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Konya"
     },
     "shipTime": "2026-05-23T07:54:00",
-    "status": "returned",
+    "status": "ReturnToSender",
     "cargoType": "order",
     "referenceId": "REF-70949",
     "packageNo": "PKT-000073",
     "customerName": "Fatma Çelik",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-23T04:54:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-23T10:16:27.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-23T16:38:18.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-23T17:23:34.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-23T23:45:25.714Z"
+      },
+      {
+        "status": "ShipmentFailed",
+        "at": "2026-05-24T06:07:17.142Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-05-24T06:52:32.571Z"
+      },
+      {
+        "status": "ReturnToSender",
+        "at": "2026-05-24T13:14:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 74,
@@ -1540,12 +7578,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-05-23T10:48:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70962",
     "packageNo": "PKT-000074",
     "customerName": "Aslı Aksoy",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-23T07:48:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-23T14:01:01.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-23T15:08:03.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-23T22:01:53.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-24T04:55:42.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-24T06:02:44.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-24T12:56:34.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-24T17:48:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 75,
@@ -1559,12 +7685,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Konya"
     },
     "shipTime": "2026-05-23T12:06:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70975",
     "packageNo": "PKT-000075",
     "customerName": "Fatma Aydın",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-23T09:06:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-23T16:12:00.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-23T17:42:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-24T01:09:00.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-24T02:39:00.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-24T10:06:00.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-24T17:33:00.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-24T19:03:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 76,
@@ -1578,12 +7779,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-05-23T14:05:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-70988",
     "packageNo": "PKT-000076",
     "customerName": "Gül Öztürk",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-23T11:05:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-23T19:06:22.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-23T21:00:32.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-24T05:01:54.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-24T06:56:05.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-24T14:57:27.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-24T16:51:37.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-24T23:05:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 77,
@@ -1597,12 +7886,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-05-24T07:55:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71001",
     "packageNo": "PKT-000077",
     "customerName": "Onur Arslan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-24T04:55:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-24T07:36:44.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-24T16:13:41.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-24T18:33:13.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-25T03:10:10.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-25T05:29:42.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-25T14:06:39.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-25T16:26:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 78,
@@ -1616,12 +7980,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Gaziantep"
     },
     "shipTime": "2026-05-24T14:55:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71014",
     "packageNo": "PKT-000078",
     "customerName": "İrem Şahin",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-24T11:55:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-24T15:26:42.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-25T00:40:25.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-25T03:26:32.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-25T12:40:15.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-25T15:26:22.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-25T18:12:29.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-26T01:55:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 79,
@@ -1635,12 +8087,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İzmir"
     },
     "shipTime": "2026-05-25T05:21:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71027",
     "packageNo": "PKT-000079",
     "customerName": "Kerem Bulut",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-25T02:21:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-25T06:45:05.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-25T16:36:46.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-25T19:50:39.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-25T23:04:32.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-26T08:56:13.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-26T12:10:06.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-26T15:24:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 80,
@@ -1654,12 +8181,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-05-25T06:17:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71040",
     "packageNo": "PKT-000080",
     "customerName": "Aslı Aksoy",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-25T03:17:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-25T08:35:51.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-25T12:18:42.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-25T22:49:34.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-26T02:32:25.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-26T06:15:17.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-26T16:46:08.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-26T19:17:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 81,
@@ -1673,12 +8275,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-26T10:17:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71053",
     "packageNo": "PKT-000081",
     "customerName": "Gül Erdoğan",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-26T07:17:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-26T13:33:01.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-26T17:46:03.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-26T21:59:05.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-27T09:10:18.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-27T13:23:20.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-27T17:36:22.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-27T21:49:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 82,
@@ -1692,12 +8382,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Konya"
     },
     "shipTime": "2026-05-26T13:44:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "return",
     "referenceId": "REF-71066",
     "packageNo": "PKT-000082",
     "customerName": "Mehmet Koç",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-26T10:44:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-26T17:59:36.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-26T22:44:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-27T03:28:24.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-27T08:12:48.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-27T20:05:36.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-28T00:50:00.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-28T04:44:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 83,
@@ -1711,12 +8476,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-05-27T11:17:00",
-    "status": "returned",
+    "status": "ReturnToSender",
     "cargoType": "order",
     "referenceId": "REF-71079",
     "packageNo": "PKT-000083",
     "customerName": "Ebru Aksoy",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-27T08:17:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-27T16:34:34.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-27T21:51:32.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-28T03:08:30.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-28T08:25:29.142Z"
+      },
+      {
+        "status": "ShipmentFailed",
+        "at": "2026-05-28T13:42:27.428Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-05-28T18:59:25.714Z"
+      },
+      {
+        "status": "ReturnToSender",
+        "at": "2026-05-29T00:16:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 8,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 84,
@@ -1730,12 +8583,63 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-05-27T12:56:00",
-    "status": "cancelled",
+    "status": "ShipmentCanceled",
     "cargoType": "order",
     "referenceId": "REF-71092",
     "packageNo": "PKT-000084",
     "customerName": "Doğan Aksoy",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-27T09:56:00.000Z"
+      },
+      {
+        "status": "ShipmentCanceled",
+        "at": "2026-05-27T15:56:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 85,
@@ -1749,12 +8653,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-05-28T11:45:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "return",
     "referenceId": "REF-71105",
     "packageNo": "PKT-000085",
     "customerName": "Selin Doğan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-28T08:45:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-28T11:34:42.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-28T18:00:25.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-29T00:26:08.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-29T06:51:51.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-29T13:17:34.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-29T19:43:17.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-30T02:09:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 86,
@@ -1768,12 +8760,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-05-28T13:10:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71118",
     "packageNo": "PKT-000086",
     "customerName": "Onur Arslan",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-28T10:10:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-28T13:58:41.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-28T21:00:34.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-29T04:02:27.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-29T11:04:20.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-29T18:06:13.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-30T01:08:06.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-30T08:10:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 87,
@@ -1787,12 +8867,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Konya"
     },
     "shipTime": "2026-05-29T07:58:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71131",
     "packageNo": "PKT-000087",
     "customerName": "Emre Yıldız",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-29T04:58:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-29T09:48:03.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-29T17:27:18.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-30T01:06:34.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-30T08:45:49.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-30T16:25:05.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-31T00:04:20.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-31T03:58:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 88,
@@ -1806,12 +8974,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-05-29T11:11:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71144",
     "packageNo": "PKT-000088",
     "customerName": "Mehmet Kaya",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-29T08:11:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-29T14:04:49.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-29T22:22:39.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-30T06:40:29.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-30T14:58:18.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-30T15:06:32.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-30T23:24:22.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-31T07:42:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 89,
@@ -1825,12 +9068,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-05-29T11:52:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71157",
     "packageNo": "PKT-000089",
     "customerName": "Elif Şahin",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-29T08:52:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-29T15:52:00.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-30T00:49:36.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-30T09:47:12.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-30T10:25:00.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-30T19:22:36.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-31T04:20:12.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-31T09:52:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 90,
@@ -1844,12 +9162,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Gaziantep"
     },
     "shipTime": "2026-05-30T11:14:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71170",
     "packageNo": "PKT-000090",
     "customerName": "Kerem Özdemir",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-30T08:14:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-30T11:29:25.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-30T15:20:51.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-30T15:48:17.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-30T19:39:42.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-30T23:31:08.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-30T23:58:34.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-05-31T03:50:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 91,
@@ -1863,12 +9269,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-05-31T14:16:00",
-    "status": "returned",
+    "status": "ReturnToSender",
     "cargoType": "order",
     "referenceId": "REF-71183",
     "packageNo": "PKT-000091",
     "customerName": "Gül Özdemir",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-31T11:16:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-31T15:06:24.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-31T15:47:48.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-31T20:03:24.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-01T00:19:00.000Z"
+      },
+      {
+        "status": "ShipmentFailed",
+        "at": "2026-06-01T01:00:24.000Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-06-01T05:16:00.000Z"
+      },
+      {
+        "status": "ReturnToSender",
+        "at": "2026-06-01T08:16:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 92,
@@ -1882,12 +9376,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-06-01T09:28:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71196",
     "packageNo": "PKT-000092",
     "customerName": "İrem Erdoğan",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-01T06:28:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-01T10:55:46.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-01T11:52:20.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-01T16:33:18.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-01T17:29:53.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-01T22:10:51.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-02T02:51:49.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-02T03:48:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 93,
@@ -1901,12 +9470,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-06-02T13:04:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71209",
     "packageNo": "PKT-000093",
     "customerName": "Ceren Yıldız",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-02T10:04:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-02T15:11:32.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-02T16:24:29.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-02T21:32:01.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-02T22:44:58.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-03T03:52:30.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-03T05:05:27.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-03T09:04:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 94,
@@ -1920,12 +9577,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-03T06:33:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71222",
     "packageNo": "PKT-000094",
     "customerName": "Ayşe Doğan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-03T03:33:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-03T05:17:54.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-03T10:53:13.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-03T12:23:44.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-03T17:59:03.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-03T19:29:34.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-04T01:04:53.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-04T02:35:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 95,
@@ -1939,12 +9684,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Antalya"
     },
     "shipTime": "2026-06-03T08:40:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71235",
     "packageNo": "PKT-000095",
     "customerName": "Merve Çelik",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-03T05:40:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-03T07:59:17.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-03T14:03:34.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-03T15:52:51.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-03T21:57:08.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-03T23:46:25.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-04T01:35:42.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-04T06:40:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 96,
@@ -1958,12 +9791,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-03T10:42:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71248",
     "packageNo": "PKT-000096",
     "customerName": "Serkan Kurt",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-03T07:42:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-03T10:38:03.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-03T17:12:30.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-03T19:21:46.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-03T21:31:01.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-04T04:05:29.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-04T06:14:44.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-04T08:24:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 97,
@@ -1977,12 +9898,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İzmir"
     },
     "shipTime": "2026-06-03T12:00:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "return",
     "referenceId": "REF-71261",
     "packageNo": "PKT-000097",
     "customerName": "Serkan Doğan",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-03T09:00:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-03T12:35:13.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-03T15:05:39.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-03T22:11:29.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-04T00:41:54.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-04T03:12:20.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-04T10:18:10.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-04T12:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 98,
@@ -1996,12 +10005,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İzmir"
     },
     "shipTime": "2026-06-05T13:13:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71274",
     "packageNo": "PKT-000098",
     "customerName": "Zeynep Demir",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-05T10:13:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-05T14:29:48.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-05T17:22:36.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-05T20:15:24.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-06T03:53:48.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-06T06:46:36.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-06T09:39:24.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-06T12:32:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 99,
@@ -2015,12 +10099,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-05T14:38:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71287",
     "packageNo": "PKT-000099",
     "customerName": "Tuğçe Özdemir",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-05T11:38:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-05T16:38:46.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-05T19:55:08.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-05T23:11:30.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-06T02:27:53.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-06T10:40:03.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-06T13:56:25.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-06T16:38:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 100,
@@ -2034,12 +10206,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-06-06T08:00:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71300",
     "packageNo": "PKT-000100",
     "customerName": "Serkan Koç",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-06T05:00:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-06T10:47:08.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-06T14:28:17.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-06T18:09:25.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-06T21:50:34.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-07T01:31:42.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-07T05:12:51.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-07T08:54:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 101,
@@ -2053,12 +10313,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-06-06T12:22:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71313",
     "packageNo": "PKT-000101",
     "customerName": "Kerem Aydın",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-06T09:22:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-06T15:57:54.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-06T20:05:01.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-07T00:12:08.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-07T04:19:15.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-07T08:26:22.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-07T12:33:29.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-07T16:22:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 102,
@@ -2072,12 +10420,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-06-08T05:30:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71326",
     "packageNo": "PKT-000102",
     "customerName": "Barış Bulut",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-08T02:30:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-08T04:30:41.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-08T09:04:58.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-08T13:39:15.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-08T18:13:32.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-08T22:47:49.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-09T03:22:06.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-09T07:56:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 103,
@@ -2091,12 +10527,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-06-11T05:43:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71339",
     "packageNo": "PKT-000103",
     "customerName": "Onur Kurt",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-11T02:43:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-11T05:27:03.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-11T10:29:42.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-11T15:32:22.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-11T20:35:01.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-12T01:37:41.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-12T06:40:20.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-12T11:43:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 104,
@@ -2110,12 +10621,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Konya"
     },
     "shipTime": "2026-06-11T06:01:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71352",
     "packageNo": "PKT-000104",
     "customerName": "Yusuf Yıldız",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-11T03:01:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-11T06:30:49.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-11T12:03:03.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-11T17:35:17.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-11T23:07:30.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-12T04:39:44.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-12T10:11:58.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-12T13:01:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 105,
@@ -2129,12 +10728,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-06-11T07:10:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71365",
     "packageNo": "PKT-000105",
     "customerName": "Barış Polat",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-11T04:10:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-11T08:28:00.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-11T14:31:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-11T20:34:00.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-12T02:37:00.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-12T02:43:00.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-12T08:46:00.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-12T14:49:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 106,
@@ -2148,12 +10835,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-06-11T08:25:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71378",
     "packageNo": "PKT-000106",
     "customerName": "Deniz Erdoğan",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-11T05:25:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-11T10:33:34.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-11T17:08:32.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-11T23:43:30.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-12T00:11:17.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-12T06:46:15.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-12T13:21:13.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-12T17:25:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 107,
@@ -2167,12 +10929,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-11T10:06:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71391",
     "packageNo": "PKT-000107",
     "customerName": "Gül Demir",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-11T07:06:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-11T13:07:32.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-11T20:15:41.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-11T21:06:25.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-12T04:14:34.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-12T11:22:42.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-12T12:13:27.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-12T19:21:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 108,
@@ -2186,12 +11036,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-11T12:29:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71404",
     "packageNo": "PKT-000108",
     "customerName": "Barış Özdemir",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-11T09:29:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-11T16:25:54.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-11T17:40:49.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-12T01:23:20.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-12T09:05:51.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-12T10:20:46.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-12T18:03:17.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-12T23:29:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 109,
@@ -2205,12 +11143,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-06-12T05:20:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71417",
     "packageNo": "PKT-000109",
     "customerName": "Hakan Şimşek",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-12T02:20:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-12T10:14:41.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-12T11:54:58.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-12T20:13:03.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-12T21:53:20.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-13T06:11:25.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-13T14:29:30.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-13T16:09:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 110,
@@ -2224,12 +11237,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Antalya"
     },
     "shipTime": "2026-06-12T07:59:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71430",
     "packageNo": "PKT-000110",
     "customerName": "Burak Aydın",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-12T04:59:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-12T13:53:51.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-12T16:00:42.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-13T00:55:34.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-13T03:02:25.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-13T11:57:17.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-13T14:04:08.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-13T20:59:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 111,
@@ -2243,12 +11331,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Konya"
     },
     "shipTime": "2026-06-12T08:49:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71443",
     "packageNo": "PKT-000111",
     "customerName": "Serkan Arslan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-12T05:49:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-12T08:48:13.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-12T18:21:03.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-12T20:55:41.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-13T06:28:30.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-13T09:03:08.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-13T18:35:58.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-13T21:10:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 112,
@@ -2262,12 +11425,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-06-12T08:54:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71456",
     "packageNo": "PKT-000112",
     "customerName": "Barış Polat",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-12T05:54:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-12T09:48:00.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-12T20:00:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-12T23:03:36.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-13T09:15:36.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-13T12:19:12.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-13T15:22:48.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-13T23:54:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 113,
@@ -2281,12 +11532,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-13T12:26:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71469",
     "packageNo": "PKT-000113",
     "customerName": "Yusuf Şahin",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-13T09:26:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-13T14:17:10.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-14T01:09:32.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-14T04:43:18.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-14T08:17:05.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-14T19:09:27.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-14T22:43:13.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-15T02:17:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 114,
@@ -2300,12 +11639,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-06-14T09:31:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71482",
     "packageNo": "PKT-000114",
     "customerName": "Pınar Çelik",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-14T06:31:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-14T12:21:44.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-14T16:26:53.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-15T04:00:49.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-15T08:05:58.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-15T12:11:06.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-15T23:45:03.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-16T02:31:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 115,
@@ -2319,12 +11746,114 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-06-15T11:39:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71495",
     "packageNo": "PKT-000115",
     "customerName": "Kerem Koç",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-15T08:39:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-15T15:31:42.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-15T20:09:25.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-16T00:47:08.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-16T13:03:51.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-16T17:41:34.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-16T22:19:17.142Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-17T02:57:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 1,
+      "matchedRuleName": "İstanbul İçi Ekonomik",
+      "matchedRuleSummary": "0–10 desi · İstanbul",
+      "ruleNarrowedCompanyIds": [
+        8,
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 116,
@@ -2338,12 +11867,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-06-16T07:36:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71508",
     "packageNo": "PKT-000116",
     "customerName": "Deniz Kurt",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-16T04:36:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-16T12:33:05.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-16T17:44:34.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-16T22:56:03.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-17T04:07:32.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-17T17:08:13.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-17T22:19:42.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-18T02:36:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 117,
@@ -2357,12 +11974,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-06-16T09:32:00",
-    "status": "recalled",
+    "status": "OnTheWayBackToSender",
     "cargoType": "order",
     "referenceId": "REF-71521",
     "packageNo": "PKT-000117",
     "customerName": "Tuğçe Kaya",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-16T06:32:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-25T00:04:24.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-01T16:43:14.400Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-08T09:22:04.800Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-07-15T02:00:55.200Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 118,
@@ -2376,12 +12056,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-06-16T10:41:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71534",
     "packageNo": "PKT-000118",
     "customerName": "Kerem Bulut",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-16T07:41:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-16T17:54:01.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-17T00:16:39.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-17T06:39:17.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-17T13:01:54.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-17T19:24:32.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-18T01:47:10.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-18T07:41:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 119,
@@ -2395,12 +12163,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-06-16T12:41:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71547",
     "packageNo": "PKT-000119",
     "customerName": "Doğan Bulut",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-16T09:41:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-16T12:45:48.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-16T19:45:48.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-17T02:45:48.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-17T09:45:48.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-17T16:45:48.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-17T23:45:48.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-18T06:45:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 120,
@@ -2414,12 +12257,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İzmir"
     },
     "shipTime": "2026-06-17T06:31:00",
-    "status": "returned",
+    "status": "ReturnToSender",
     "cargoType": "return",
     "referenceId": "REF-71560",
     "packageNo": "PKT-000120",
     "customerName": "Barış Yıldız",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-17T03:31:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-17T05:10:25.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-17T08:13:51.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-17T11:17:17.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-17T14:20:42.857Z"
+      },
+      {
+        "status": "ShipmentFailed",
+        "at": "2026-06-17T17:24:08.571Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-06-17T20:27:34.285Z"
+      },
+      {
+        "status": "ReturnToSender",
+        "at": "2026-06-17T23:31:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 121,
@@ -2433,12 +12351,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Gaziantep"
     },
     "shipTime": "2026-06-17T10:39:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71573",
     "packageNo": "PKT-000121",
     "customerName": "Hakan Yavuz",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-17T07:39:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-17T09:48:36.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-17T13:13:48.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-17T16:39:00.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-17T20:04:12.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-17T23:29:24.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-18T02:54:36.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-18T04:39:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 122,
@@ -2452,12 +12458,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-06-17T12:20:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71586",
     "packageNo": "PKT-000122",
     "customerName": "Serkan Demir",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-17T09:20:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-17T12:02:10.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-17T15:50:20.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-17T19:38:30.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-17T23:26:41.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-17T23:30:27.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-18T03:18:37.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-18T07:06:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 123,
@@ -2471,12 +12565,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İzmir"
     },
     "shipTime": "2026-06-17T14:16:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71599",
     "packageNo": "PKT-000123",
     "customerName": "Ceren Öztürk",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-17T11:16:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-17T14:33:08.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-17T18:45:29.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-17T22:57:49.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-17T23:15:34.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-18T03:27:54.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-18T07:40:15.428Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-18T10:16:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 124,
@@ -2490,12 +12672,63 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-18T06:45:00",
-    "status": "cancelled",
+    "status": "ShipmentCanceled",
     "cargoType": "order",
     "referenceId": "REF-71612",
     "packageNo": "PKT-000124",
     "customerName": "Ayşe Kaya",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-18T03:45:00.000Z"
+      },
+      {
+        "status": "ShipmentCanceled",
+        "at": "2026-06-18T09:45:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 125,
@@ -2509,12 +12742,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-06-18T14:02:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71625",
     "packageNo": "PKT-000125",
     "customerName": "Burak Bulut",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-18T11:02:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-18T15:36:17.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-18T16:25:34.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-18T21:29:51.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-19T02:34:08.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-19T03:23:25.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-19T08:27:42.857Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-19T12:02:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 126,
@@ -2528,12 +12849,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-19T06:03:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71638",
     "packageNo": "PKT-000126",
     "customerName": "Emre Koç",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-19T03:03:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-19T08:19:27.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-19T09:26:18.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-19T14:58:22.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-19T16:05:13.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-19T21:37:17.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-20T03:09:20.571Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-20T04:16:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 127,
@@ -2547,12 +12956,87 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-06-20T06:40:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71651",
     "packageNo": "PKT-000127",
     "customerName": "Ceren Erdoğan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-20T03:40:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-20T09:41:01.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-20T11:06:39.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-20T17:07:41.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-20T18:33:18.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-21T00:34:20.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-21T01:59:58.285Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-21T06:40:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 128,
@@ -2566,12 +13050,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-06-20T12:06:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71664",
     "packageNo": "PKT-000128",
     "customerName": "Ceren Öztürk",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-20T09:06:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-20T11:08:24.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-20T17:39:36.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-20T19:25:12.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-21T01:56:24.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-21T03:42:00.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-21T10:13:12.000Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-21T11:58:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 129,
@@ -2585,12 +13157,100 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İzmir"
     },
     "shipTime": "2026-06-21T10:55:00",
-    "status": "delivered",
+    "status": "DeliveredToCustomer",
     "cargoType": "order",
     "referenceId": "REF-71677",
     "packageNo": "PKT-000129",
     "customerName": "Ceren Şimşek",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-21T07:55:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-21T10:36:34.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-21T17:39:08.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-21T19:45:54.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-22T02:48:29.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-22T04:55:15.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-22T07:02:01.714Z"
+      },
+      {
+        "status": "DeliveredToCustomer",
+        "at": "2026-06-22T12:55:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 130,
@@ -2604,12 +13264,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-06-21T12:04:00",
-    "status": "recalled",
+    "status": "OnTheWayBackToSender",
     "cargoType": "order",
     "referenceId": "REF-71690",
     "packageNo": "PKT-000130",
     "customerName": "Gizem Çelik",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-21T09:04:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-26T15:46:19.200Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-05T07:06:28.800Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-09T20:32:07.200Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-07-14T09:57:45.600Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 8,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 131,
@@ -2623,12 +13359,72 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-21T13:05:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-71703",
     "packageNo": "PKT-000131",
     "customerName": "Burak Güneş",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-21T10:05:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 132,
@@ -2642,12 +13438,72 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-22T12:16:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-71716",
     "packageNo": "PKT-000132",
     "customerName": "Serkan Koç",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-22T09:16:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 133,
@@ -2661,12 +13517,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-06-22T14:34:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-71729",
     "packageNo": "PKT-000133",
     "customerName": "Emre Öztürk",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-22T11:34:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-28T21:24:28.800Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-03T22:17:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-08T23:09:31.200Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-14T00:02:02.400Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 134,
@@ -2680,12 +13599,72 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-23T06:08:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-71742",
     "packageNo": "PKT-000134",
     "customerName": "Deniz Koç",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-23T03:08:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 135,
@@ -2699,12 +13678,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-06-23T08:44:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-71755",
     "packageNo": "PKT-000135",
     "customerName": "Kerem Özdemir",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-23T05:44:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-30T07:44:19.200Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-05T15:14:33.600Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-10T22:44:48.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 136,
@@ -2718,12 +13760,72 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Konya"
     },
     "shipTime": "2026-06-23T13:37:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-71768",
     "packageNo": "PKT-000136",
     "customerName": "Gül Demir",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-23T10:37:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 137,
@@ -2737,12 +13839,72 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Konya"
     },
     "shipTime": "2026-06-24T07:40:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-71781",
     "packageNo": "PKT-000137",
     "customerName": "Yusuf Polat",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-24T04:40:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 138,
@@ -2756,12 +13918,72 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Antalya"
     },
     "shipTime": "2026-06-24T09:58:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-71794",
     "packageNo": "PKT-000138",
     "customerName": "Elif Demir",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-24T06:58:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 139,
@@ -2775,12 +13997,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Gaziantep"
     },
     "shipTime": "2026-06-25T09:14:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-71807",
     "packageNo": "PKT-000139",
     "customerName": "Serkan Çelik",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-25T06:14:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-29T21:16:10.800Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-05T12:26:39.600Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-11T03:37:08.400Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 140,
@@ -2794,12 +14092,72 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-06-27T06:05:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-71820",
     "packageNo": "PKT-000140",
     "customerName": "Emre Yıldız",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-27T03:05:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 141,
@@ -2813,12 +14171,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-06-28T07:03:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-71833",
     "packageNo": "PKT-000141",
     "customerName": "Mustafa Koç",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-28T04:03:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-02T19:32:47.400Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-07T23:25:53.400Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-10T05:06:54.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 142,
@@ -2832,12 +14253,72 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İzmir"
     },
     "shipTime": "2026-06-28T07:29:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-71846",
     "packageNo": "PKT-000142",
     "customerName": "Furkan Demir",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-28T04:29:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 143,
@@ -2851,12 +14332,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-28T11:37:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-71859",
     "packageNo": "PKT-000143",
     "customerName": "Kaan Aksoy",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-28T08:37:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-03T15:12:55.800Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-06T04:28:22.800Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-11T15:09:20.400Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-14T04:24:47.400Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 144,
@@ -2870,12 +14414,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-06-29T08:08:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-71872",
     "packageNo": "PKT-000144",
     "customerName": "Ceren Yılmaz",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-29T05:08:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-04T13:07:45.600Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-07T03:11:16.800Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-12T11:11:02.400Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T01:14:33.600Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 145,
@@ -2889,12 +14496,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-06-29T10:45:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-71885",
     "packageNo": "PKT-000145",
     "customerName": "Aslı Çelik",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-29T07:45:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-02T05:05:42.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-07T16:04:48.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-10T09:34:21.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 146,
@@ -2908,12 +14578,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-06-30T06:26:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-71898",
     "packageNo": "PKT-000146",
     "customerName": "Yusuf Yavuz",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-30T03:26:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-03T04:32:48.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-08T12:29:42.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-11T06:17:49.200Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 147,
@@ -2927,12 +14673,72 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-06-30T11:10:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-71911",
     "packageNo": "PKT-000147",
     "customerName": "Pınar Şimşek",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-30T08:10:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 148,
@@ -2946,12 +14752,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İzmir"
     },
     "shipTime": "2026-07-01T06:08:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-71924",
     "packageNo": "PKT-000148",
     "customerName": "Merve Kurt",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-01T03:08:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-04T13:10:52.800Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-07T09:33:16.800Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-12T16:02:43.200Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 149,
@@ -2965,12 +14847,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Gaziantep"
     },
     "shipTime": "2026-07-01T07:47:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-71937",
     "packageNo": "PKT-000149",
     "customerName": "Gül Polat",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-01T04:47:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-04T21:14:22.800Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-07T20:41:06.600Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-10T20:07:50.400Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 150,
@@ -2984,12 +14929,59 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-07-01T11:34:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-71950",
     "packageNo": "PKT-000150",
     "customerName": "Cem Koç",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-01T08:34:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 151,
@@ -3003,12 +14995,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Konya"
     },
     "shipTime": "2026-07-01T14:02:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-71963",
     "packageNo": "PKT-000151",
     "customerName": "Ahmet Arslan",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-01T11:02:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-05T15:13:24.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-08T20:02:08.400Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-12T00:50:52.800Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T05:39:37.200Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 152,
@@ -3022,12 +15077,59 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-07-02T05:08:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-71976",
     "packageNo": "PKT-000152",
     "customerName": "Pınar Aksoy",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-02T02:08:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 153,
@@ -3041,12 +15143,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-07-02T09:25:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-71989",
     "packageNo": "PKT-000153",
     "customerName": "Serkan Demir",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-02T06:25:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-04T11:53:45.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-07T18:32:30.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-11T01:11:15.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-14T07:50:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 154,
@@ -3060,12 +15238,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-07-02T14:18:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72002",
     "packageNo": "PKT-000154",
     "customerName": "Onur Şimşek",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-02T11:18:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-04T22:08:34.800Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-08T06:39:54.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-11T15:11:13.200Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-14T23:42:32.400Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 155,
@@ -3079,12 +15320,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-07-03T05:47:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72015",
     "packageNo": "PKT-000155",
     "customerName": "Yusuf Çelik",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-03T02:47:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-05T16:34:07.800Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-09T00:00:26.400Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-12T07:26:45.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 156,
@@ -3098,12 +15415,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Trabzon"
     },
     "shipTime": "2026-07-03T06:27:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72028",
     "packageNo": "PKT-000156",
     "customerName": "Elif Şahin",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-03T03:27:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-05T22:57:59.400Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-09T09:09:37.800Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-12T19:21:16.200Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 157,
@@ -3117,12 +15510,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Antalya"
     },
     "shipTime": "2026-07-03T10:21:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72041",
     "packageNo": "PKT-000157",
     "customerName": "Burak Aydın",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-03T07:21:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-06T07:45:45.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-09T19:45:39.600Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-13T07:45:34.200Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-14T18:31:03.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 158,
@@ -3136,12 +15592,72 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Gaziantep"
     },
     "shipTime": "2026-07-03T13:13:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-72054",
     "packageNo": "PKT-000158",
     "customerName": "Gül Koç",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-03T10:13:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 159,
@@ -3155,12 +15671,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Ankara"
     },
     "shipTime": "2026-07-04T11:35:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72067",
     "packageNo": "PKT-000159",
     "customerName": "Emre Erdoğan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-04T08:35:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-07T13:15:51.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-09T02:16:57.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-12T12:15:06.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 160,
@@ -3174,12 +15766,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-07-04T13:33:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72080",
     "packageNo": "PKT-000160",
     "customerName": "Cem Bulut",
-    "channel": "Hepsiburada"
+    "channel": "Hepsiburada",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-04T10:33:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-07T19:54:34.200Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-09T11:16:37.200Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-12T23:15:39.600Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-14T14:37:42.600Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 161,
@@ -3193,12 +15861,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-07-04T13:46:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72093",
     "packageNo": "PKT-000161",
     "customerName": "Furkan Doğan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-04T10:46:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-08T01:18:13.200Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-09T19:15:39.600Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-13T09:47:52.800Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T03:45:19.200Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 162,
@@ -3212,12 +15956,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-07-05T05:15:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72106",
     "packageNo": "PKT-000162",
     "customerName": "Doğan Doğan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-05T02:15:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-06T22:39:54.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-10T10:33:36.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-12T04:30:27.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 163,
@@ -3231,12 +16038,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Antalya"
     },
     "shipTime": "2026-07-05T08:04:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72119",
     "packageNo": "PKT-000163",
     "customerName": "Barış Doğan",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-05T05:04:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-07T05:51:12.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-10T19:13:48.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-12T15:08:16.800Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 164,
@@ -3250,12 +16120,72 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-07-05T10:04:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-72132",
     "packageNo": "PKT-000164",
     "customerName": "Gül Çelik",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-05T07:04:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 165,
@@ -3269,12 +16199,102 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İstanbul"
     },
     "shipTime": "2026-07-06T05:16:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72145",
     "packageNo": "PKT-000165",
     "customerName": "Barış Arslan",
-    "channel": "Kendi Web Sitesi"
+    "channel": "Kendi Web Sitesi",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-06T02:16:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-08T07:43:21.600Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-10T04:16:09.600Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-13T14:40:50.400Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 1,
+      "matchedRuleName": "İstanbul İçi Ekonomik",
+      "matchedRuleSummary": "0–10 desi · İstanbul",
+      "ruleNarrowedCompanyIds": [
+        8,
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 166,
@@ -3288,12 +16308,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Kayseri"
     },
     "shipTime": "2026-07-06T14:35:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72158",
     "packageNo": "PKT-000166",
     "customerName": "Selin Şahin",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-06T11:35:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-08T19:04:18.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-10T15:53:21.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-12T12:42:24.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 167,
@@ -3307,12 +16390,72 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Bursa"
     },
     "shipTime": "2026-07-07T08:56:00",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "cargoType": "order",
     "referenceId": "REF-72171",
     "packageNo": "PKT-000167",
     "customerName": "Fatma Güneş",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-07T05:56:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 168,
@@ -3326,12 +16469,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Antalya"
     },
     "shipTime": "2026-07-07T12:43:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72184",
     "packageNo": "PKT-000168",
     "customerName": "Hakan Yılmaz",
-    "channel": "Trendyol"
+    "channel": "Trendyol",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-07T09:43:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-09T19:06:06.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-11T15:05:48.600Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-13T11:05:31.200Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T07:05:13.800Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 169,
@@ -3345,12 +16564,88 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "Adana"
     },
     "shipTime": "2026-07-07T12:54:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72197",
     "packageNo": "PKT-000169",
     "customerName": "Hakan Aksoy",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-07T09:54:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-09T23:03:07.200Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-11T20:54:57.600Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-13T18:46:48.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 170,
@@ -3364,12 +16659,75 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "province": "İzmir"
     },
     "shipTime": "2026-07-08T11:21:00",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "cargoType": "order",
     "referenceId": "REF-72210",
     "packageNo": "PKT-000170",
     "customerName": "Ebru Şahin",
-    "channel": "N11"
+    "channel": "N11",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-08T08:21:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-09T13:01:13.800Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-11T07:10:58.800Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-13T01:20:43.800Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-14T19:30:28.800Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   }
 ]
 
@@ -3381,25 +16739,41 @@ export const RETURN_REASONS: Record<string, string> = {
   diger: 'Diğer',
 }
 
-export type ReturnStatus = 'requested' | 'picked_up' | 'in_warehouse' | 'completed' | 'cancelled' | 'recalled'
+export type ReturnStatus =
+  | 'ReturnCodeCreated'
+  | 'ReturnOnTheWay'
+  | 'OnReturnAddress'
+  | 'ReturnReceivedByProvider'
+  | 'ReceivedByReturnCenter'
+  | 'ReturnShipmentError'
+  | 'ReturnCodeExpired'
 
-export const RETURN_STATUS: Record<ReturnStatus, { badge: string }> = {
-  requested: { badge: 'badge-info' },
-  picked_up: { badge: 'badge-warning' },
-  in_warehouse: { badge: 'badge-passive' },
-  completed: { badge: 'badge-active' },
-  cancelled: { badge: 'badge-danger' },
-  recalled: { badge: 'badge-danger' },
+export const RETURN_STATUS: Record<ReturnStatus, { code: number; badge: string }> = {
+  ReturnCodeCreated: { code: 575, badge: 'badge-info' },
+  ReturnOnTheWay: { code: 580, badge: 'badge-warning' },
+  OnReturnAddress: { code: 582, badge: 'badge-warning' },
+  ReturnReceivedByProvider: { code: 585, badge: 'badge-passive' },
+  ReceivedByReturnCenter: { code: 590, badge: 'badge-active' },
+  ReturnShipmentError: { code: 600, badge: 'badge-danger' },
+  ReturnCodeExpired: { code: 570, badge: 'badge-danger' },
 }
 
 export const RETURN_STATUS_CHART_COLORS: Record<ReturnStatus, string> = {
-  requested: '#85a0f2',
-  picked_up: '#f0a869',
-  in_warehouse: '#aab3c2',
-  completed: '#7ecca0',
-  cancelled: '#f28d97',
-  recalled: '#bb717a',
+  ReturnCodeCreated: '#85a0f2',
+  ReturnOnTheWay: '#f0a869',
+  OnReturnAddress: '#e8b86d',
+  ReturnReceivedByProvider: '#aab3c2',
+  ReceivedByReturnCenter: '#7ecca0',
+  ReturnShipmentError: '#f28d97',
+  ReturnCodeExpired: '#bb717a',
 }
+
+export const RETURN_STATUS_GROUPS: { key: string; label: string; statuses: ReturnStatus[] }[] = [
+  { key: 'started', label: 'İade Başladı', statuses: ['ReturnCodeCreated'] },
+  { key: 'transit', label: 'Yolda', statuses: ['ReturnOnTheWay', 'OnReturnAddress', 'ReturnReceivedByProvider'] },
+  { key: 'completed', label: 'Tamamlandı', statuses: ['ReceivedByReturnCenter'] },
+  { key: 'failed', label: 'Sorunlu', statuses: ['ReturnShipmentError', 'ReturnCodeExpired'] },
+]
 
 export interface ReturnItem {
   id: number
@@ -3412,6 +16786,8 @@ export interface ReturnItem {
   note: string
   companyId?: number
   pickupAddress?: { district: string; province: string }
+  routingDecision?: ShipmentRoutingDecision
+  statusHistory: { status: ReturnStatus; at: string }[]
 }
 
 export const SEED_RETURNS: ReturnItem[] = [
@@ -3420,440 +16796,3297 @@ export const SEED_RETURNS: ReturnItem[] = [
     "returnNo": 9300001,
     "originalShipmentId": 2,
     "reason": "kusurlu",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-04-14T01:06:29",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-04-13T22:06:29.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-04-14T11:47:17.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-04-15T06:30:29.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-04-16T01:13:41.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-04-16T19:56:53.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 2,
     "returnNo": 9300002,
     "originalShipmentId": 4,
     "reason": "degisim",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-04-21T21:09:36",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-04-21T18:09:36.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-04-22T14:19:12.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-04-23T16:14:24.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-04-24T18:09:36.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-04-25T18:09:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 3,
     "returnNo": 9300003,
     "originalShipmentId": 13,
     "reason": "kusurlu",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-04-23T09:25:03",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-04-23T06:25:03.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-04-24T10:01:03.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-04-25T19:37:03.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-04-27T05:13:03.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-04-28T06:25:03.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 4,
     "returnNo": 9300004,
     "originalShipmentId": 20,
     "reason": "diger",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-04-27T14:11:44",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-04-27T11:11:44.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-04-28T23:11:44.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-04-30T16:57:20.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-02T10:42:56.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-03T03:59:44.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 5,
     "returnNo": 9300005,
     "originalShipmentId": 28,
     "reason": "begenmedim",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-05-01T13:59:10",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-01T10:59:10.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-03T08:20:46.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-05T10:44:46.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-06T08:35:10.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-08T10:59:10.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 6,
     "returnNo": 9300006,
     "originalShipmentId": 16,
     "reason": "begenmedim",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-05-02T13:52:50",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-02T10:52:50.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-03T00:48:02.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-03T07:31:14.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-03T22:24:02.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-04T10:52:50.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 7,
     "returnNo": 9300007,
     "originalShipmentId": 30,
     "reason": "degisim",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-05-02T19:17:17",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-02T16:17:17.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-03T14:36:29.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-04T01:24:29.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-05T00:26:53.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-05T11:14:53.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 8,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 8,
     "returnNo": 9300008,
     "originalShipmentId": 33,
     "reason": "yanlis_urun",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-05-07T05:26:59",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-07T02:26:59.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-08T10:07:47.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-09T01:29:23.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-10T09:10:11.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-11T00:31:47.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 9,
     "returnNo": 9300009,
     "originalShipmentId": 36,
     "reason": "begenmedim",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-05-08T06:03:41",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-08T03:03:41.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-09T00:39:41.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-10T17:27:41.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-11T13:51:41.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-13T03:03:41.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 10,
     "returnNo": 9300010,
     "originalShipmentId": 32,
     "reason": "begenmedim",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-05-08T14:25:53",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-08T11:25:53.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-09T16:13:53.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-11T18:37:53.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-12T20:33:05.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-14T11:25:53.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 11,
     "returnNo": 9300011,
     "originalShipmentId": 35,
     "reason": "begenmedim",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-05-10T09:09:17",
     "pickup": false,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-10T06:09:17.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-11T19:06:53.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-14T07:35:41.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-15T15:30:53.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-16T23:26:05.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 12,
     "returnNo": 9300012,
     "originalShipmentId": 18,
     "reason": "kusurlu",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-05-10T19:23:50",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-10T16:23:50.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-11T03:55:02.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-11T13:31:02.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-12T07:16:38.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-12T16:23:50.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 13,
     "returnNo": 9300013,
     "originalShipmentId": 46,
     "reason": "degisim",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-05-11T16:06:33",
     "pickup": false,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-11T13:06:33.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-12T07:49:45.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-12T22:56:57.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-13T14:04:09.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-14T13:06:33.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 14,
     "returnNo": 9300014,
     "originalShipmentId": 45,
     "reason": "begenmedim",
-    "status": "completed",
+    "status": "ReceivedByReturnCenter",
     "requestDate": "2026-05-11T19:19:17",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-11T16:19:17.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-12T19:12:05.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-13T16:19:17.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-14T13:26:29.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-15T10:33:41.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": null,
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 15,
     "returnNo": 9300015,
     "originalShipmentId": 42,
     "reason": "diger",
-    "status": "cancelled",
+    "status": "ReturnShipmentError",
     "requestDate": "2026-05-12T04:05:30",
     "pickup": false,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-12T01:05:30.000Z"
+      },
+      {
+        "status": "ReturnShipmentError",
+        "at": "2026-05-17T01:05:30.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 16,
     "returnNo": 9300016,
     "originalShipmentId": 39,
     "reason": "yanlis_urun",
-    "status": "cancelled",
+    "status": "ReturnShipmentError",
     "requestDate": "2026-05-13T05:14:02",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-13T02:14:02.000Z"
+      },
+      {
+        "status": "ReturnShipmentError",
+        "at": "2026-05-19T02:14:02.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 17,
     "returnNo": 9300017,
     "originalShipmentId": 57,
     "reason": "kusurlu",
-    "status": "cancelled",
+    "status": "ReturnShipmentError",
     "requestDate": "2026-05-16T02:54:24",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-15T23:54:24.000Z"
+      },
+      {
+        "status": "ReturnShipmentError",
+        "at": "2026-05-22T10:28:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 18,
     "returnNo": 9300018,
     "originalShipmentId": 41,
     "reason": "diger",
-    "status": "recalled",
+    "status": "ReturnCodeExpired",
     "requestDate": "2026-05-16T18:56:58",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-16T15:56:58.000Z"
+      },
+      {
+        "status": "ReturnCodeExpired",
+        "at": "2026-05-18T13:04:10.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 19,
     "returnNo": 9300019,
     "originalShipmentId": 53,
     "reason": "diger",
-    "status": "in_warehouse",
+    "status": "ReturnReceivedByProvider",
     "requestDate": "2026-05-17T05:22:19",
     "pickup": false,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-17T02:22:19.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-06-03T11:40:34.226Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-06-24T10:20:17.113Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 20,
     "returnNo": 9300020,
     "originalShipmentId": 52,
     "reason": "kusurlu",
-    "status": "in_warehouse",
+    "status": "ReturnReceivedByProvider",
     "requestDate": "2026-05-25T15:13:40",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-25T12:13:40.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-06-10T10:44:11.066Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-06-28T22:17:01.133Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 21,
     "returnNo": 9300021,
     "originalShipmentId": 77,
     "reason": "diger",
-    "status": "in_warehouse",
+    "status": "ReturnReceivedByProvider",
     "requestDate": "2026-05-27T04:27:22",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-27T01:27:22.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-06-12T11:58:14.666Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-06-30T21:49:37.653Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 22,
     "returnNo": 9300022,
     "originalShipmentId": 66,
     "reason": "yanlis_urun",
-    "status": "in_warehouse",
+    "status": "ReturnReceivedByProvider",
     "requestDate": "2026-05-30T14:22:48",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-30T11:22:48.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-06-15T16:37:08.640Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-07-03T06:54:24.240Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-07-13T01:55:08.400Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 23,
     "returnNo": 9300023,
     "originalShipmentId": 68,
     "reason": "kusurlu",
-    "status": "in_warehouse",
+    "status": "ReturnReceivedByProvider",
     "requestDate": "2026-06-04T00:37:07",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-03T21:37:07.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-06-19T09:13:39.586Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-06-28T15:31:46.223Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-07-14T23:02:46.270Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 24,
     "returnNo": 9300024,
     "originalShipmentId": 96,
     "reason": "begenmedim",
-    "status": "in_warehouse",
+    "status": "ReturnReceivedByProvider",
     "requestDate": "2026-06-05T15:49:09",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-05T12:49:09.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-06-21T04:55:01.060Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-06-30T12:01:32.960Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 25,
     "returnNo": 9300025,
     "originalShipmentId": 75,
     "reason": "degisim",
-    "status": "in_warehouse",
+    "status": "ReturnReceivedByProvider",
     "requestDate": "2026-06-06T06:09:15",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-06T03:09:15.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-06-22T08:27:01.600Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-07-01T21:37:58.550Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 26,
     "returnNo": 9300026,
     "originalShipmentId": 70,
     "reason": "yanlis_urun",
-    "status": "in_warehouse",
+    "status": "ReturnReceivedByProvider",
     "requestDate": "2026-06-09T15:20:19",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-09T12:20:19.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-06-18T22:58:45.996Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-07-04T03:19:33.953Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-07-13T05:21:37.140Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 27,
     "returnNo": 9300027,
     "originalShipmentId": 102,
     "reason": "diger",
-    "status": "picked_up",
+    "status": "ReturnOnTheWay",
     "requestDate": "2026-06-11T05:01:37",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-11T02:01:37.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-07-13T15:51:04.850Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 28,
     "returnNo": 9300028,
     "originalShipmentId": 74,
     "reason": "begenmedim",
-    "status": "picked_up",
+    "status": "ReturnOnTheWay",
     "requestDate": "2026-06-11T22:59:12",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-11T19:59:12.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-07-14T08:50:58.560Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 29,
     "returnNo": 9300029,
     "originalShipmentId": 94,
     "reason": "begenmedim",
-    "status": "picked_up",
+    "status": "ReturnOnTheWay",
     "requestDate": "2026-06-14T00:24:11",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-13T21:24:11.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-07-15T01:26:38.510Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 30,
     "returnNo": 9300030,
     "originalShipmentId": 83,
     "reason": "degisim",
-    "status": "picked_up",
+    "status": "ReturnOnTheWay",
     "requestDate": "2026-06-14T08:25:56",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-14T05:25:56.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 8,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 31,
     "returnNo": 9300031,
     "originalShipmentId": 111,
     "reason": "diger",
-    "status": "picked_up",
+    "status": "ReturnOnTheWay",
     "requestDate": "2026-06-15T03:41:53",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-15T00:41:53.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 32,
     "returnNo": 9300032,
     "originalShipmentId": 98,
     "reason": "kusurlu",
-    "status": "picked_up",
+    "status": "ReturnOnTheWay",
     "requestDate": "2026-06-16T21:15:22",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-16T18:15:22.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8,
+        2
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": null,
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 33,
     "returnNo": 9300033,
     "originalShipmentId": 90,
     "reason": "degisim",
-    "status": "requested",
+    "status": "ReturnCodeCreated",
     "requestDate": "2026-06-18T13:21:21",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-18T10:21:21.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 34,
     "returnNo": 9300034,
     "originalShipmentId": 107,
     "reason": "yanlis_urun",
-    "status": "requested",
+    "status": "ReturnCodeCreated",
     "requestDate": "2026-06-21T23:44:44",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-21T20:44:44.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 35,
     "returnNo": 9300035,
     "originalShipmentId": 116,
     "reason": "diger",
-    "status": "requested",
+    "status": "ReturnCodeCreated",
     "requestDate": "2026-06-23T02:33:36",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-22T23:33:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 36,
     "returnNo": 9300036,
     "originalShipmentId": 108,
     "reason": "kusurlu",
-    "status": "requested",
+    "status": "ReturnCodeCreated",
     "requestDate": "2026-06-24T08:46:59",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-24T05:46:59.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 37,
     "returnNo": 9300037,
     "originalShipmentId": 127,
     "reason": "kusurlu",
-    "status": "requested",
+    "status": "ReturnCodeCreated",
     "requestDate": "2026-06-25T07:58:48",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-25T04:58:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 38,
     "returnNo": 9300038,
     "originalShipmentId": 101,
     "reason": "degisim",
-    "status": "requested",
+    "status": "ReturnCodeCreated",
     "requestDate": "2026-06-26T09:09:09",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-26T06:09:09.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 39,
     "returnNo": 9300039,
     "originalShipmentId": 113,
     "reason": "diger",
-    "status": "requested",
+    "status": "ReturnCodeCreated",
     "requestDate": "2026-06-30T10:07:29",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-30T07:07:29.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 40,
     "returnNo": 9300040,
     "originalShipmentId": 114,
     "reason": "degisim",
-    "status": "requested",
+    "status": "ReturnCodeCreated",
     "requestDate": "2026-06-30T19:24:30",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-30T16:24:30.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 41,
     "returnNo": 9300041,
     "originalShipmentId": 128,
     "reason": "diger",
-    "status": "requested",
+    "status": "ReturnCodeCreated",
     "requestDate": "2026-07-05T16:51:47",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-07-05T13:51:47.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 42,
     "returnNo": 9300042,
     "originalShipmentId": 129,
     "reason": "yanlis_urun",
-    "status": "requested",
+    "status": "ReturnCodeCreated",
     "requestDate": "2026-07-08T15:00:00",
     "pickup": true,
-    "note": ""
+    "note": "",
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-07-08T12:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": null,
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 4,
+          "companyName": "PTT Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 1,
+            "successRate": 1,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9375970850179929
+          },
+          "combined": 0.7630727312019187
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 4,
+      "tieBreakUsedDefault": false
+    }
   }
 ]
-
-export type TransferStatus = 'preparing' | 'in_transit' | 'delivered' | 'cancelled' | 'recalled'
-
-export const TRANSFER_STATUS: Record<TransferStatus, { badge: string }> = {
-  preparing: { badge: 'badge-warning' },
-  in_transit: { badge: 'badge-info' },
-  delivered: { badge: 'badge-active' },
-  cancelled: { badge: 'badge-danger' },
-  recalled: { badge: 'badge-danger' },
-}
-
-export const TRANSFER_STATUS_CHART_COLORS: Record<TransferStatus, string> = {
-  preparing: '#f0a869',
-  in_transit: '#85a0f2',
-  delivered: '#7ecca0',
-  cancelled: '#f28d97',
-  recalled: '#bb717a',
-}
 
 export interface TransferItem {
   id: number
@@ -3862,10 +20095,12 @@ export interface TransferItem {
   toNodeId: number
   companyId: number
   trackingNo: string
-  status: TransferStatus
+  status: ShipmentStatus
   desi: number
   note: string
   createdAt: string
+  routingDecision?: ShipmentRoutingDecision
+  statusHistory: { status: ShipmentStatus; at: string }[]
 }
 
 export const SEED_TRANSFERS: TransferItem[] = [
@@ -3876,10 +20111,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 2,
     "companyId": 1,
     "trackingNo": "YK-TR-200041",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 21,
     "note": "",
-    "createdAt": "2026-04-10T09:40:00"
+    "createdAt": "2026-04-10T09:40:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-10T06:40:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-10T08:24:24.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-10T11:37:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-10T14:49:36.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-10T18:02:12.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-10T21:14:48.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-11T00:27:24.000Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-11T03:40:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 2,
@@ -3888,10 +20198,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 13,
     "companyId": 2,
     "trackingNo": "ARAS-TR-200082",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 40,
     "note": "",
-    "createdAt": "2026-04-13T05:48:00"
+    "createdAt": "2026-04-13T05:48:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-13T02:48:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-13T05:03:46.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-13T08:38:44.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-13T12:13:42.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-13T15:48:41.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-13T19:23:39.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-13T22:58:37.714Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-14T00:48:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 3,
@@ -3900,10 +20298,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 3,
     "companyId": 1,
     "trackingNo": "YK-TR-200123",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 29,
     "note": "",
-    "createdAt": "2026-04-13T06:07:00"
+    "createdAt": "2026-04-13T06:07:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-13T03:07:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-13T05:56:32.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-13T09:55:05.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-13T13:53:37.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-13T17:52:10.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-13T17:56:06.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-13T21:54:39.428Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-14T01:53:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 4,
@@ -3912,10 +20385,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 9,
     "companyId": 3,
     "trackingNo": "MNG-TR-200164",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 20,
     "note": "",
-    "createdAt": "2026-04-14T10:11:00"
+    "createdAt": "2026-04-14T10:11:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-14T07:11:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-14T10:36:42.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-14T15:00:01.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-14T19:23:20.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-14T19:41:51.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-15T00:05:10.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-15T04:28:29.142Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-15T07:11:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 5,
@@ -3924,10 +20485,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 9,
     "companyId": 1,
     "trackingNo": "YK-TR-200205",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 36,
     "note": "",
-    "createdAt": "2026-04-14T10:32:00"
+    "createdAt": "2026-04-14T10:32:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-14T07:32:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-14T11:36:17.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-14T16:25:34.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-14T16:59:51.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-14T21:49:08.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-15T02:38:25.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-15T03:12:42.857Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-15T08:02:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 6,
@@ -3936,10 +20585,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 1,
     "companyId": 3,
     "trackingNo": "MNG-TR-200246",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 30,
     "note": "",
-    "createdAt": "2026-04-17T06:11:00"
+    "createdAt": "2026-04-17T06:11:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-17T03:11:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-17T07:56:15.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-17T08:47:30.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-17T14:03:58.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-17T19:20:25.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-17T20:11:41.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-18T01:28:08.571Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-18T05:11:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 7,
@@ -3948,10 +20685,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 11,
     "companyId": 2,
     "trackingNo": "ARAS-TR-200287",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 33,
     "note": "",
-    "createdAt": "2026-04-17T13:55:00"
+    "createdAt": "2026-04-17T13:55:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-17T10:55:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-17T16:23:37.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-17T17:33:03.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-17T23:17:53.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-18T00:27:18.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-18T06:12:08.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-18T11:56:58.285Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-18T13:06:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 8,
@@ -3960,10 +20785,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 2,
     "companyId": 2,
     "trackingNo": "ARAS-TR-200328",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 30,
     "note": "",
-    "createdAt": "2026-04-18T12:13:00"
+    "createdAt": "2026-04-18T12:13:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-18T09:13:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-18T15:27:24.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-18T16:56:12.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-18T23:10:36.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-19T00:39:24.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-19T06:53:48.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-19T08:22:36.000Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-19T13:13:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 9,
@@ -3972,10 +20885,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 1,
     "companyId": 2,
     "trackingNo": "ARAS-TR-200369",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 32,
     "note": "",
-    "createdAt": "2026-04-19T10:28:00"
+    "createdAt": "2026-04-19T10:28:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-19T07:28:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-19T09:34:46.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-19T16:19:56.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-19T18:09:18.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-20T00:54:29.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-20T02:43:51.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-20T09:29:01.714Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-20T11:18:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 10,
@@ -3984,10 +20985,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 15,
     "companyId": 1,
     "trackingNo": "YK-TR-200410",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 10,
     "note": "",
-    "createdAt": "2026-04-19T11:34:00"
+    "createdAt": "2026-04-19T11:34:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-19T08:34:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-19T11:21:08.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-19T18:38:17.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-19T20:49:25.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-20T04:06:34.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-20T06:17:42.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-20T08:28:51.428Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-20T14:34:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 11,
@@ -3996,10 +21072,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 8,
     "companyId": 1,
     "trackingNo": "YK-TR-200451",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 27,
     "note": "",
-    "createdAt": "2026-04-20T05:11:00"
+    "createdAt": "2026-04-20T05:11:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-20T02:11:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-20T05:40:54.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-20T13:31:13.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-20T16:05:20.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-20T18:39:27.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-21T02:29:46.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-21T05:03:53.142Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-21T07:38:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 12,
@@ -4008,10 +21159,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 3,
     "companyId": 2,
     "trackingNo": "ARAS-TR-200492",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 34,
     "note": "",
-    "createdAt": "2026-04-20T06:28:00"
+    "createdAt": "2026-04-20T06:28:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-20T03:28:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-20T07:43:05.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-20T10:41:22.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-20T19:06:03.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-20T22:04:20.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-21T01:02:37.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-21T09:27:18.857Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-21T11:28:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 13,
@@ -4020,10 +21259,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 11,
     "companyId": 2,
     "trackingNo": "ARAS-TR-200533",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 17,
     "note": "",
-    "createdAt": "2026-04-20T07:47:00"
+    "createdAt": "2026-04-20T07:47:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-20T04:47:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-20T09:49:39.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-20T13:13:18.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-20T16:36:58.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-21T01:37:13.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-21T05:00:53.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-21T08:24:32.571Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-21T11:48:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 14,
@@ -4032,10 +21359,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 11,
     "companyId": 1,
     "trackingNo": "YK-TR-200574",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 32,
     "note": "",
-    "createdAt": "2026-04-20T12:49:00"
+    "createdAt": "2026-04-20T12:49:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-20T09:49:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-20T15:41:37.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-20T19:31:51.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-20T23:22:05.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-21T03:12:18.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-21T12:49:20.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-21T16:39:34.285Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-21T19:49:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 15,
@@ -4044,10 +21459,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 3,
     "companyId": 1,
     "trackingNo": "YK-TR-200615",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 16,
     "note": "",
-    "createdAt": "2026-04-21T05:41:00"
+    "createdAt": "2026-04-21T05:41:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-21T02:41:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-21T09:26:00.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-21T13:44:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-21T18:02:00.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-21T22:20:00.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-22T02:38:00.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-22T06:56:00.000Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-22T11:14:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 16,
@@ -4056,10 +21546,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 3,
     "companyId": 2,
     "trackingNo": "ARAS-TR-200656",
-    "status": "recalled",
+    "status": "OnTheWayBackToSender",
     "desi": 10,
     "note": "",
-    "createdAt": "2026-04-22T13:55:00"
+    "createdAt": "2026-04-22T13:55:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-22T10:55:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-19T07:25:24.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-08T10:48:12.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-28T14:11:00.000Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 17,
@@ -4068,10 +21634,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 2,
     "companyId": 1,
     "trackingNo": "YK-TR-200697",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 25,
     "note": "",
-    "createdAt": "2026-04-25T09:51:00"
+    "createdAt": "2026-04-25T09:51:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-25T06:51:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-25T09:10:32.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-25T14:27:41.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-25T19:44:49.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-26T01:01:58.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-26T06:19:06.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-26T11:36:15.428Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-26T16:53:24.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 18,
@@ -4080,10 +21721,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 8,
     "companyId": 7,
     "trackingNo": "HRZ-TR-200738",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 18,
     "note": "",
-    "createdAt": "2026-04-29T09:00:00"
+    "createdAt": "2026-04-29T09:00:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-04-29T06:00:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-04-29T09:08:54.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-04-29T14:57:25.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-04-29T20:45:56.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-04-30T02:34:27.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-04-30T08:22:58.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-04-30T14:11:29.142Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-04-30T20:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 19,
@@ -4092,10 +21821,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 10,
     "companyId": 3,
     "trackingNo": "MNG-TR-200779",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 8,
     "note": "",
-    "createdAt": "2026-05-03T07:50:00"
+    "createdAt": "2026-05-03T07:50:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-03T04:50:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-03T08:50:41.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-03T15:11:46.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-03T21:32:51.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-04T03:53:56.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-04T10:15:01.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-04T16:36:06.857Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-04T19:50:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 20,
@@ -4104,10 +21921,74 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 1,
     "companyId": 2,
     "trackingNo": "ARAS-TR-200820",
-    "status": "cancelled",
+    "status": "ShipmentCanceled",
     "desi": 21,
     "note": "",
-    "createdAt": "2026-05-03T08:18:00"
+    "createdAt": "2026-05-03T08:18:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-03T05:18:00.000Z"
+      },
+      {
+        "status": "ShipmentCanceled",
+        "at": "2026-05-03T07:15:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 21,
@@ -4116,10 +21997,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 7,
     "companyId": 2,
     "trackingNo": "ARAS-TR-200861",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 37,
     "note": "",
-    "createdAt": "2026-05-05T09:11:00"
+    "createdAt": "2026-05-05T09:11:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-05T06:11:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-05T12:02:25.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-05T19:32:15.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-06T03:02:05.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-06T03:33:42.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-06T11:03:32.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-06T18:33:22.285Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-06T23:11:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 22,
@@ -4128,10 +22097,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 13,
     "companyId": 3,
     "trackingNo": "MNG-TR-200902",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 14,
     "note": "",
-    "createdAt": "2026-05-07T12:38:00"
+    "createdAt": "2026-05-07T12:38:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-07T09:38:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-07T16:28:24.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-08T00:34:24.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-08T01:32:00.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-08T09:38:00.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-08T17:44:00.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-08T18:41:36.000Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-09T02:47:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 23,
@@ -4140,10 +22197,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 2,
     "companyId": 7,
     "trackingNo": "HRZ-TR-200943",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 19,
     "note": "",
-    "createdAt": "2026-05-08T14:08:00"
+    "createdAt": "2026-05-08T14:08:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-08T11:08:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-08T18:59:46.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-08T20:24:32.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-09T05:07:54.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-09T13:51:17.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-09T15:16:03.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-09T23:59:25.714Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-10T06:08:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 24,
@@ -4152,10 +22297,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 14,
     "companyId": 2,
     "trackingNo": "ARAS-TR-200984",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 18,
     "note": "",
-    "createdAt": "2026-05-09T14:33:00"
+    "createdAt": "2026-05-09T14:33:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-09T11:33:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-09T20:28:32.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-09T22:21:41.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-10T07:43:37.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-10T09:36:46.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-10T18:58:42.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-11T04:20:39.428Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-11T06:13:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 25,
@@ -4164,10 +22397,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 8,
     "companyId": 3,
     "trackingNo": "MNG-TR-201025",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 17,
     "note": "",
-    "createdAt": "2026-05-10T06:23:00"
+    "createdAt": "2026-05-10T06:23:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-10T03:23:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-10T13:24:42.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-10T15:47:25.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-11T01:49:08.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-11T04:11:51.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-11T14:13:34.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-11T16:36:17.142Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-12T00:23:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 26,
@@ -4176,10 +22497,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 4,
     "companyId": 7,
     "trackingNo": "HRZ-TR-201066",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 17,
     "note": "",
-    "createdAt": "2026-05-10T06:29:00"
+    "createdAt": "2026-05-10T06:29:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-10T03:29:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-10T06:50:05.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-10T17:32:46.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-10T20:26:15.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-11T07:08:56.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-11T10:02:25.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-11T20:45:06.857Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-11T23:38:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 27,
@@ -4188,10 +22597,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 6,
     "companyId": 6,
     "trackingNo": "DHL-TR-201107",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 27,
     "note": "",
-    "createdAt": "2026-05-10T12:04:00"
+    "createdAt": "2026-05-10T12:04:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-10T09:04:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-10T13:25:51.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-11T00:50:42.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-11T04:16:10.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-11T15:41:01.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-11T19:06:29.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-11T22:31:56.571Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-12T08:04:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 28,
@@ -4200,10 +22697,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 14,
     "companyId": 2,
     "trackingNo": "ARAS-TR-201148",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 32,
     "note": "",
-    "createdAt": "2026-05-11T08:37:00"
+    "createdAt": "2026-05-11T08:37:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-11T05:37:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-11T11:02:01.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-11T23:10:15.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-12T03:08:53.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-12T07:07:30.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-12T19:15:44.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-12T23:14:22.285Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-13T03:13:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 29,
@@ -4212,10 +22797,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 5,
     "companyId": 6,
     "trackingNo": "DHL-TR-201189",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 14,
     "note": "",
-    "createdAt": "2026-05-13T11:33:00"
+    "createdAt": "2026-05-13T11:33:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-13T08:33:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-13T15:03:36.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-13T19:36:36.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-14T08:29:24.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-14T13:02:24.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-14T17:35:24.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-15T06:28:12.000Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-15T09:33:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 30,
@@ -4224,10 +22897,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 9,
     "companyId": 1,
     "trackingNo": "YK-TR-201230",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 27,
     "note": "",
-    "createdAt": "2026-05-14T05:17:00"
+    "createdAt": "2026-05-14T05:17:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-14T02:17:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-14T05:20:25.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-14T07:23:51.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-14T09:27:17.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-14T14:54:42.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-14T16:58:08.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-14T19:01:34.285Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-14T21:05:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 31,
@@ -4236,10 +22984,74 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 10,
     "companyId": 1,
     "trackingNo": "YK-TR-201271",
-    "status": "cancelled",
+    "status": "ShipmentCanceled",
     "desi": 34,
     "note": "",
-    "createdAt": "2026-05-15T07:44:00"
+    "createdAt": "2026-05-15T07:44:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-15T04:44:00.000Z"
+      },
+      {
+        "status": "ShipmentCanceled",
+        "at": "2026-05-15T07:44:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 32,
@@ -4248,10 +23060,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 14,
     "companyId": 7,
     "trackingNo": "HRZ-TR-201312",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 25,
     "note": "",
-    "createdAt": "2026-05-16T09:31:00"
+    "createdAt": "2026-05-16T09:31:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-16T06:31:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-16T10:45:34.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-16T13:27:44.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-16T16:09:54.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-16T18:52:05.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-16T21:34:15.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-17T00:16:25.714Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-17T02:58:36.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 33,
@@ -4260,10 +23160,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 11,
     "companyId": 1,
     "trackingNo": "YK-TR-201353",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 18,
     "note": "",
-    "createdAt": "2026-05-16T13:46:00"
+    "createdAt": "2026-05-16T13:46:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-16T10:46:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-16T15:39:44.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-16T18:43:05.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-16T21:46:25.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-17T00:49:46.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-17T03:53:06.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-17T06:56:27.428Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-17T09:46:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 34,
@@ -4272,10 +23247,73 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 11,
     "companyId": 1,
     "trackingNo": "YK-TR-201394",
-    "status": "recalled",
+    "status": "OnTheWayBackToSender",
     "desi": 7,
     "note": "",
-    "createdAt": "2026-05-17T13:11:00"
+    "createdAt": "2026-05-17T13:11:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-17T10:11:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-27T10:42:07.800Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-11T04:24:22.800Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-25T22:06:37.800Z"
+      },
+      {
+        "status": "OnTheWayBackToSender",
+        "at": "2026-07-10T15:48:52.800Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 35,
@@ -4284,10 +23322,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 15,
     "companyId": 1,
     "trackingNo": "YK-TR-201435",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 16,
     "note": "",
-    "createdAt": "2026-05-23T14:30:00"
+    "createdAt": "2026-05-23T14:30:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-23T11:30:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-23T13:34:17.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-23T17:23:34.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-23T21:12:51.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-24T01:02:08.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-24T04:51:25.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-24T08:40:42.857Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-24T12:30:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 36,
@@ -4296,10 +23409,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 2,
     "companyId": 6,
     "trackingNo": "DHL-TR-201476",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 17,
     "note": "",
-    "createdAt": "2026-05-23T14:56:00"
+    "createdAt": "2026-05-23T14:56:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-23T11:56:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-23T14:36:27.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-23T18:50:30.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-23T23:04:34.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-24T03:18:37.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-24T07:32:41.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-24T11:46:44.571Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-24T13:56:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 37,
@@ -4308,10 +23509,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 12,
     "companyId": 1,
     "trackingNo": "YK-TR-201517",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 11,
     "note": "",
-    "createdAt": "2026-05-24T08:07:00"
+    "createdAt": "2026-05-24T08:07:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-24T05:07:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-24T08:26:01.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-24T13:06:03.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-24T17:46:05.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-24T22:26:06.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-24T22:30:44.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-25T03:10:46.285Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-25T07:50:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 38,
@@ -4320,10 +23596,74 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 2,
     "companyId": 6,
     "trackingNo": "DHL-TR-201558",
-    "status": "cancelled",
+    "status": "ShipmentCanceled",
     "desi": 32,
     "note": "",
-    "createdAt": "2026-05-24T13:42:00"
+    "createdAt": "2026-05-24T13:42:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-24T10:42:00.000Z"
+      },
+      {
+        "status": "ShipmentCanceled",
+        "at": "2026-05-24T15:42:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 39,
@@ -4332,10 +23672,74 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 8,
     "companyId": 6,
     "trackingNo": "DHL-TR-201599",
-    "status": "cancelled",
+    "status": "ShipmentCanceled",
     "desi": 24,
     "note": "",
-    "createdAt": "2026-05-25T09:21:00"
+    "createdAt": "2026-05-25T09:21:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-25T06:21:00.000Z"
+      },
+      {
+        "status": "ShipmentCanceled",
+        "at": "2026-05-25T12:21:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 40,
@@ -4344,10 +23748,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 5,
     "companyId": 1,
     "trackingNo": "YK-TR-201640",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 28,
     "note": "",
-    "createdAt": "2026-05-25T13:30:00"
+    "createdAt": "2026-05-25T13:30:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-25T10:30:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-25T15:59:08.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-25T16:58:17.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-25T23:03:25.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-26T05:08:34.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-26T06:07:42.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-26T12:12:51.428Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-26T16:30:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 41,
@@ -4356,10 +23835,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 14,
     "companyId": 2,
     "trackingNo": "ARAS-TR-201681",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 34,
     "note": "",
-    "createdAt": "2026-05-26T10:21:00"
+    "createdAt": "2026-05-26T10:21:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-26T07:21:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-26T13:38:18.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-26T14:58:01.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-26T21:33:56.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-26T22:53:39.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-27T05:29:34.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-27T12:05:29.142Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-27T13:25:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 42,
@@ -4368,10 +23935,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 15,
     "companyId": 3,
     "trackingNo": "MNG-TR-201722",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 28,
     "note": "",
-    "createdAt": "2026-05-26T12:50:00"
+    "createdAt": "2026-05-26T12:50:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-26T09:50:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-26T16:57:53.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-26T18:39:22.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-27T01:47:15.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-27T03:28:44.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-27T10:36:37.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-27T12:18:06.857Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-27T17:50:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 43,
@@ -4380,10 +24035,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 11,
     "companyId": 3,
     "trackingNo": "MNG-TR-201763",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 17,
     "note": "",
-    "createdAt": "2026-05-27T14:59:00"
+    "createdAt": "2026-05-27T14:59:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-27T11:59:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-27T14:23:15.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-27T22:04:18.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-28T00:08:46.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-28T07:49:49.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-28T09:54:17.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-28T17:35:20.571Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-28T19:39:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 44,
@@ -4392,10 +24135,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 11,
     "companyId": 2,
     "trackingNo": "ARAS-TR-201804",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 35,
     "note": "",
-    "createdAt": "2026-05-28T14:35:00"
+    "createdAt": "2026-05-28T14:35:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-28T11:35:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-28T14:44:25.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-28T22:59:51.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-29T01:28:29.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-29T09:43:54.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-29T12:12:32.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-29T14:41:10.285Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-29T21:35:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 45,
@@ -4404,10 +24235,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 13,
     "companyId": 1,
     "trackingNo": "YK-TR-201845",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 21,
     "note": "",
-    "createdAt": "2026-05-29T09:24:00"
+    "createdAt": "2026-05-29T09:24:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-29T06:24:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-29T10:21:00.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-29T19:12:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-29T22:06:00.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-30T01:00:00.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-30T09:51:00.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-30T12:45:00.000Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-30T15:39:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 46,
@@ -4416,10 +24322,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 3,
     "companyId": 3,
     "trackingNo": "MNG-TR-201886",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 38,
     "note": "",
-    "createdAt": "2026-05-29T14:28:00"
+    "createdAt": "2026-05-29T14:28:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-29T11:28:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-29T16:14:58.285Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-29T19:35:32.571Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-30T05:03:18.857Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-30T08:23:53.142Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-30T11:44:27.428Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-30T21:12:13.714Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-30T23:28:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 47,
@@ -4428,10 +24422,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 10,
     "companyId": 3,
     "trackingNo": "MNG-TR-201927",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 30,
     "note": "",
-    "createdAt": "2026-05-30T06:29:00"
+    "createdAt": "2026-05-30T06:29:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-30T03:29:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-30T09:08:20.571Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-30T12:56:41.142Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-30T16:45:01.714Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-31T02:50:46.285Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-31T06:39:06.857Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-31T10:27:27.428Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-31T14:15:48.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 48,
@@ -4440,10 +24522,112 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 10,
     "companyId": 2,
     "trackingNo": "ARAS-TR-201968",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 6,
     "note": "",
-    "createdAt": "2026-05-30T10:42:00"
+    "createdAt": "2026-05-30T10:42:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-30T07:42:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-30T14:16:06.857Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-30T18:33:25.714Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-30T22:50:44.571Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-05-31T03:08:03.428Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-05-31T13:52:58.285Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-05-31T18:10:17.142Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-05-31T21:42:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 1,
+      "matchedRuleName": "İstanbul İçi Ekonomik",
+      "matchedRuleSummary": "0–10 desi · İstanbul",
+      "ruleNarrowedCompanyIds": [
+        8,
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 8,
+          "companyName": "Hepsijet",
+          "metrics": {
+            "cost": 1,
+            "deliveryTime": 0,
+            "successRate": 0.19047619047619038,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6838709677419356,
+            "costDiffPct": 0.9556096935478475
+          },
+          "combined": 0.561567113748026
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 49,
@@ -4452,10 +24636,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 4,
     "companyId": 1,
     "trackingNo": "YK-TR-202009",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 11,
     "note": "",
-    "createdAt": "2026-05-31T08:17:00"
+    "createdAt": "2026-05-31T08:17:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-05-31T05:17:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-05-31T12:48:17.142Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-05-31T17:35:46.285Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-05-31T22:23:15.428Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-01T03:10:44.571Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-01T07:58:13.714Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-01T12:45:42.857Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-06-01T17:33:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 50,
@@ -4464,10 +24723,98 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 13,
     "companyId": 7,
     "trackingNo": "HRZ-TR-202050",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 8,
     "note": "",
-    "createdAt": "2026-06-01T06:16:00"
+    "createdAt": "2026-06-01T06:16:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-01T03:16:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-01T11:46:51.428Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-01T17:05:42.857Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-01T22:24:34.285Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-02T03:43:25.714Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-02T09:02:17.142Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-02T14:21:08.571Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-06-02T19:16:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 7,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 51,
@@ -4476,10 +24823,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 12,
     "companyId": 1,
     "trackingNo": "YK-TR-202091",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 7,
     "note": "",
-    "createdAt": "2026-06-01T08:27:00"
+    "createdAt": "2026-06-01T08:27:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-01T05:27:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-01T08:01:37.714Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-01T13:53:03.428Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-01T19:44:29.142Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-02T01:35:54.857Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-02T07:27:20.571Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-02T13:18:46.285Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-06-02T19:10:12.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 52,
@@ -4488,10 +24910,85 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 2,
     "companyId": 1,
     "trackingNo": "YK-TR-202132",
-    "status": "delivered",
+    "status": "DeliveredToStore",
     "desi": 14,
     "note": "",
-    "createdAt": "2026-06-03T11:50:00"
+    "createdAt": "2026-06-03T11:50:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-03T08:50:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-03T12:18:48.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-03T18:44:00.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-06-04T01:09:12.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-06-04T07:34:24.000Z"
+      },
+      {
+        "status": "ProviderReceivedThePackage",
+        "at": "2026-06-04T13:59:36.000Z"
+      },
+      {
+        "status": "OnDeliveryAddress",
+        "at": "2026-06-04T20:24:48.000Z"
+      },
+      {
+        "status": "DeliveredToStore",
+        "at": "2026-06-05T02:50:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 53,
@@ -4500,10 +24997,57 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 10,
     "companyId": 1,
     "trackingNo": "YK-TR-202173",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "desi": 28,
     "note": "",
-    "createdAt": "2026-06-03T11:51:00"
+    "createdAt": "2026-06-03T11:51:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-03T08:51:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 54,
@@ -4512,10 +25056,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 13,
     "companyId": 3,
     "trackingNo": "MNG-TR-202214",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 23,
     "note": "",
-    "createdAt": "2026-06-05T05:13:00"
+    "createdAt": "2026-06-05T05:13:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-05T02:13:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-14T08:34:36.600Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-25T15:16:34.200Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-06T21:58:31.800Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 55,
@@ -4524,10 +25144,70 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 3,
     "companyId": 6,
     "trackingNo": "DHL-TR-202255",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "desi": 35,
     "note": "",
-    "createdAt": "2026-06-05T11:03:00"
+    "createdAt": "2026-06-05T11:03:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-05T08:03:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 56,
@@ -4536,10 +25216,73 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 12,
     "companyId": 1,
     "trackingNo": "YK-TR-202296",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 8,
     "note": "",
-    "createdAt": "2026-06-06T08:05:00"
+    "createdAt": "2026-06-06T08:05:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-06T05:05:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-16T18:51:39.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-28T12:50:09.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-03T15:01:30.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 57,
@@ -4548,10 +25291,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 8,
     "companyId": 1,
     "trackingNo": "YK-TR-202337",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 31,
     "note": "",
-    "createdAt": "2026-06-06T13:07:00"
+    "createdAt": "2026-06-06T13:07:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-06T10:07:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-17T17:13:58.200Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-23T04:06:59.400Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-05T05:55:49.200Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 58,
@@ -4560,10 +25379,70 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 9,
     "companyId": 2,
     "trackingNo": "ARAS-TR-202378",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "desi": 24,
     "note": "",
-    "createdAt": "2026-06-07T09:42:00"
+    "createdAt": "2026-06-07T09:42:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-07T06:42:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 59,
@@ -4572,10 +25451,57 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 1,
     "companyId": 1,
     "trackingNo": "YK-TR-202419",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "desi": 27,
     "note": "",
-    "createdAt": "2026-06-08T13:51:00"
+    "createdAt": "2026-06-08T13:51:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-08T10:51:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 60,
@@ -4584,10 +25510,70 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 13,
     "companyId": 1,
     "trackingNo": "YK-TR-202460",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "desi": 36,
     "note": "",
-    "createdAt": "2026-06-10T14:04:00"
+    "createdAt": "2026-06-10T14:04:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-10T11:04:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 61,
@@ -4596,10 +25582,73 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 13,
     "companyId": 1,
     "trackingNo": "YK-TR-202501",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 25,
     "note": "",
-    "createdAt": "2026-06-12T06:57:00"
+    "createdAt": "2026-06-12T06:57:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-12T03:57:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-18T19:21:36.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-30T10:19:39.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-06T09:47:47.400Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 62,
@@ -4608,10 +25657,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 7,
     "companyId": 2,
     "trackingNo": "ARAS-TR-202542",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 36,
     "note": "",
-    "createdAt": "2026-06-12T07:41:00"
+    "createdAt": "2026-06-12T07:41:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-12T04:41:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-19T11:52:22.800Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-01T10:32:49.200Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-07T17:50:49.800Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-14T01:08:50.400Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 63,
@@ -4620,10 +25745,70 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 1,
     "companyId": 3,
     "trackingNo": "MNG-TR-202583",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "desi": 12,
     "note": "",
-    "createdAt": "2026-06-12T09:19:00"
+    "createdAt": "2026-06-12T09:19:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-12T06:19:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 64,
@@ -4632,10 +25817,73 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 5,
     "companyId": 1,
     "trackingNo": "YK-TR-202624",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 7,
     "note": "",
-    "createdAt": "2026-06-15T06:42:00"
+    "createdAt": "2026-06-15T06:42:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-15T03:42:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-23T00:16:40.800Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-29T08:35:27.600Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-05T16:54:14.400Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 65,
@@ -4644,10 +25892,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 5,
     "companyId": 2,
     "trackingNo": "ARAS-TR-202665",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 11,
     "note": "",
-    "createdAt": "2026-06-15T13:39:00"
+    "createdAt": "2026-06-15T13:39:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-15T10:39:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-23T19:47:16.800Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-30T09:49:30.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-06T23:51:43.200Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-13T13:53:56.400Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 66,
@@ -4656,10 +25980,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 5,
     "companyId": 3,
     "trackingNo": "MNG-TR-202706",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 17,
     "note": "",
-    "createdAt": "2026-06-16T09:43:00"
+    "createdAt": "2026-06-16T09:43:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-16T06:43:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-25T00:12:06.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-01T16:48:24.600Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-08T09:24:43.200Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T02:01:01.800Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 67,
@@ -4668,10 +26068,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 2,
     "companyId": 2,
     "trackingNo": "ARAS-TR-202747",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 38,
     "note": "",
-    "createdAt": "2026-06-17T10:22:00"
+    "createdAt": "2026-06-17T10:22:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-17T07:22:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-26T06:55:45.600Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-03T00:36:04.800Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-09T18:16:24.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 68,
@@ -4680,10 +26156,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 4,
     "companyId": 3,
     "trackingNo": "MNG-TR-202788",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 6,
     "note": "",
-    "createdAt": "2026-06-18T07:18:00"
+    "createdAt": "2026-06-18T07:18:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-18T04:18:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-22T19:15:32.400Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-29T14:26:02.400Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-06T09:36:32.400Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-13T04:47:02.400Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 69,
@@ -4692,10 +26244,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 13,
     "companyId": 1,
     "trackingNo": "YK-TR-202829",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 34,
     "note": "",
-    "createdAt": "2026-06-19T05:12:00"
+    "createdAt": "2026-06-19T05:12:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-19T02:12:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-24T02:03:07.200Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-06-30T22:03:36.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-07T18:04:04.800Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-14T14:04:33.600Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 70,
@@ -4704,10 +26332,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 8,
     "companyId": 1,
     "trackingNo": "YK-TR-202870",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 33,
     "note": "",
-    "createdAt": "2026-06-22T05:48:00"
+    "createdAt": "2026-06-22T05:48:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-22T02:48:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-27T00:01:19.200Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-03T06:44:09.600Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-09T13:27:00.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 71,
@@ -4716,10 +26420,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 6,
     "companyId": 1,
     "trackingNo": "YK-TR-202911",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 35,
     "note": "",
-    "createdAt": "2026-06-22T06:28:00"
+    "createdAt": "2026-06-22T06:28:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-22T03:28:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-06-27T11:41:57.600Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-03T23:48:31.200Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-10T11:55:04.800Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 72,
@@ -4728,10 +26508,70 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 8,
     "companyId": 2,
     "trackingNo": "ARAS-TR-202952",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "desi": 20,
     "note": "",
-    "createdAt": "2026-06-22T10:49:00"
+    "createdAt": "2026-06-22T10:49:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-22T07:49:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 73,
@@ -4740,10 +26580,70 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 4,
     "companyId": 1,
     "trackingNo": "YK-TR-202993",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "desi": 32,
     "note": "",
-    "createdAt": "2026-06-25T06:04:00"
+    "createdAt": "2026-06-25T06:04:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-25T03:04:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 74,
@@ -4752,10 +26652,70 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 8,
     "companyId": 6,
     "trackingNo": "DHL-TR-203034",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "desi": 16,
     "note": "",
-    "createdAt": "2026-06-25T10:13:00"
+    "createdAt": "2026-06-25T10:13:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-25T07:13:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 4,
+      "matchedRuleName": "Ege Bölgesi Standart",
+      "matchedRuleSummary": "0–30 desi · İzmir",
+      "ruleNarrowedCompanyIds": [
+        2
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 75,
@@ -4764,10 +26724,73 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 14,
     "companyId": 1,
     "trackingNo": "YK-TR-203075",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 14,
     "note": "",
-    "createdAt": "2026-06-27T11:23:00"
+    "createdAt": "2026-06-27T11:23:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-27T08:23:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-02T22:29:40.200Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-05T15:23:13.200Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-11T09:49:27.600Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-14T02:43:00.600Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 76,
@@ -4776,10 +26799,57 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 13,
     "companyId": 1,
     "trackingNo": "YK-TR-203116",
-    "status": "preparing",
+    "status": "DispatchLabelCreated",
     "desi": 24,
     "note": "",
-    "createdAt": "2026-06-29T06:35:00"
+    "createdAt": "2026-06-29T06:35:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-29T03:35:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 1,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 77,
@@ -4788,10 +26858,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 7,
     "companyId": 2,
     "trackingNo": "ARAS-TR-203157",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 18,
     "note": "",
-    "createdAt": "2026-06-29T08:46:00"
+    "createdAt": "2026-06-29T08:46:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-06-29T05:46:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-02T03:28:07.200Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-07T15:07:40.800Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-10T08:57:27.600Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 78,
@@ -4800,10 +26946,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 2,
     "companyId": 2,
     "trackingNo": "ARAS-TR-203198",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 9,
     "note": "",
-    "createdAt": "2026-07-03T14:25:00"
+    "createdAt": "2026-07-03T14:25:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-03T11:25:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-05T20:32:00.000Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-10T00:29:15.000Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-12T03:53:33.000Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 79,
@@ -4812,10 +27034,86 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 5,
     "companyId": 2,
     "trackingNo": "ARAS-TR-203239",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 34,
     "note": "",
-    "createdAt": "2026-07-05T05:38:00"
+    "createdAt": "2026-07-05T05:38:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-05T02:38:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-07T08:50:02.400Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-11T01:31:33.600Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-13T00:20:08.400Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-14T23:08:43.200Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 2,
+      "matchedRuleName": "Yüksek Desi - Ağır Kargo",
+      "matchedRuleSummary": "30–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        7
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 7,
+          "companyName": "Horoz Lojistik",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.09999999999999996,
+            "successRate": 0.6471306471306472,
+            "damagedRate": 1,
+            "avgPickupHours": 0.6997518610421837,
+            "costDiffPct": 0.9449840836312517
+          },
+          "combined": 0.5712562562500053
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    }
   },
   {
     "id": 80,
@@ -4824,14 +27122,110 @@ export const SEED_TRANSFERS: TransferItem[] = [
     "toNodeId": 3,
     "companyId": 6,
     "trackingNo": "DHL-TR-203280",
-    "status": "in_transit",
+    "status": "OnTheWay",
     "desi": 23,
     "note": "",
-    "createdAt": "2026-07-07T12:34:00"
+    "createdAt": "2026-07-07T12:34:00",
+    "statusHistory": [
+      {
+        "status": "DispatchLabelCreated",
+        "at": "2026-07-07T09:34:00.000Z"
+      },
+      {
+        "status": "OnTheWayForPickUp",
+        "at": "2026-07-09T07:30:38.400Z"
+      },
+      {
+        "status": "OnPickUpAddress",
+        "at": "2026-07-10T21:47:50.400Z"
+      },
+      {
+        "status": "ReceivedByProvider",
+        "at": "2026-07-13T20:37:39.600Z"
+      },
+      {
+        "status": "OnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ],
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        2,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 6,
+          "companyName": "DHL eCommerce",
+          "metrics": {
+            "cost": 0.29268292682926833,
+            "deliveryTime": 0.6666666666666665,
+            "successRate": 0,
+            "damagedRate": 0.2592592592592593,
+            "avgPickupHours": 0.8538899430740037,
+            "costDiffPct": 0.9922127873486873
+          },
+          "combined": 0.4170402640088454
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 6,
+      "tieBreakUsedDefault": false
+    }
   }
 ]
 
 export type RoutingCargoType = 'shipment' | 'transfer' | 'return'
+
+export type CarrierMetricKey = 'cost' | 'deliveryTime' | 'successRate' | 'damagedRate' | 'avgPickupHours' | 'costDiffPct'
+
+export const CARRIER_METRIC_KEYS: CarrierMetricKey[] = [
+  'cost',
+  'deliveryTime',
+  'successRate',
+  'damagedRate',
+  'avgPickupHours',
+  'costDiffPct',
+]
+
+export const CARRIER_METRIC_LABELS: Record<CarrierMetricKey, string> = {
+  cost: 'Maliyet',
+  deliveryTime: 'Zamanında Teslimat (OTD)',
+  successRate: 'Başarı Oranı',
+  damagedRate: 'Hasar Oranı',
+  avgPickupHours: 'Ort. Teslim Alma Süresi',
+  costDiffPct: 'Maliyet Sapması',
+}
 
 export interface RoutingRule {
   id: number
@@ -6677,7 +29071,7 @@ export function plannedDeliveryDate(s: Shipment) {
 }
 
 export function actualDeliveryDate(s: Shipment) {
-  if (s.status !== 'delivered' && s.status !== 'returned') return null
+  if (s.status !== 'DeliveredToCustomer' && s.status !== 'DeliveredToStore' && s.status !== 'ReturnToSender') return null
   const d = new Date(s.shipTime)
   d.setHours(d.getHours() + 20 + (s.id % 30))
   return d.toISOString()
@@ -6790,6 +29184,7 @@ export const SEED_CONTRACTS: Contract[] = [
     createdAt: '2026-01-10',
     orderShipping: true,
     returnShipping: true,
+    transferShipping: true,
     minDesi: 1,
     maxDesi: 30,
     minOrderAmount: '',
@@ -6830,6 +29225,7 @@ export const SEED_CONTRACTS: Contract[] = [
     createdAt: '2026-02-15',
     orderShipping: true,
     returnShipping: false,
+    transferShipping: true,
     minDesi: 1,
     maxDesi: 50,
     minOrderAmount: 100,
@@ -6857,6 +29253,7 @@ export const SEED_CONTRACTS: Contract[] = [
     createdAt: '2025-11-20',
     orderShipping: true,
     returnShipping: true,
+    transferShipping: true,
     minDesi: 0,
     maxDesi: 100,
     minOrderAmount: '',
@@ -6891,6 +29288,7 @@ export const SEED_CONTRACTS: Contract[] = [
     createdAt: '2026-03-05',
     orderShipping: false,
     returnShipping: true,
+    transferShipping: false,
     minDesi: 5,
     maxDesi: 200,
     minOrderAmount: '',
@@ -6919,6 +29317,7 @@ export const SEED_CONTRACTS: Contract[] = [
     createdAt: '2026-03-01',
     orderShipping: true,
     returnShipping: true,
+    transferShipping: true,
     minDesi: 1,
     maxDesi: 150,
     minOrderAmount: '',
@@ -6947,6 +29346,7 @@ export const SEED_CONTRACTS: Contract[] = [
     createdAt: '2026-03-05',
     orderShipping: true,
     returnShipping: true,
+    transferShipping: true,
     minDesi: 30,
     maxDesi: 500,
     minOrderAmount: '',
@@ -6971,6 +29371,7 @@ export const SEED_CONTRACTS: Contract[] = [
     createdAt: '2026-03-10',
     orderShipping: true,
     returnShipping: true,
+    transferShipping: true,
     minDesi: 0,
     maxDesi: 100,
     minOrderAmount: '',

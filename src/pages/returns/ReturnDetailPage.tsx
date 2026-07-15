@@ -1,6 +1,13 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { RETURN_STATUS, getCompany, type ReturnItem, type ReturnStatus } from '../../data/catalog'
+import {
+  CARRIER_METRIC_KEYS,
+  CARRIER_METRIC_LABELS,
+  RETURN_STATUS,
+  getCompany,
+  type ReturnItem,
+  type ReturnStatus,
+} from '../../data/catalog'
 import { useDataStore } from '../../stores/dataStore'
 import { useT } from '../../hooks/useT'
 import { copyToClipboard } from '../../lib/clipboard'
@@ -38,16 +45,26 @@ function DetailSection({
   icon,
   title,
   fields,
+  expandable,
+  expanded,
+  onToggle,
+  expandedContent,
   actionBtn,
 }: {
   icon: ReactNode
   title: string
   fields: { label: string; value: ReactNode; copy?: string }[]
+  expandable?: boolean
+  expanded?: boolean
+  onToggle?: () => void
+  expandedContent?: ReactNode
   actionBtn?: ReactNode
 }) {
+  const headerClickable = expandable ? onToggle : undefined
+
   return (
-    <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
-      <div className="flex items-center gap-3.5 px-4 py-3.5">
+    <div className={`bg-white border border-neutral-200 rounded-lg overflow-hidden ${expandable ? 'cursor-pointer' : ''}`}>
+      <div className="flex items-center gap-3.5 px-4 py-3.5" onClick={headerClickable} role={expandable ? 'button' : undefined}>
         <div className="w-7 h-7 rounded-md bg-neutral-100 flex items-center justify-center flex-shrink-0 text-neutral-500">{icon}</div>
         <p className="text-sm font-semibold text-neutral-950 w-28 flex-shrink-0">{title}</p>
         <div className="flex items-center gap-2 flex-1 flex-wrap min-w-0">
@@ -60,8 +77,31 @@ function DetailSection({
             </span>
           ))}
         </div>
-        {actionBtn}
+        {expandable ? (
+          <button
+            type="button"
+            className="w-7 h-7 rounded-md hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 flex items-center justify-center flex-shrink-0 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggle?.()
+            }}
+          >
+            <svg
+              className="w-4 h-4 transition-transform duration-150"
+              style={{ transform: `rotate(${expanded ? 180 : 0}deg)` }}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+        ) : (
+          actionBtn
+        )}
       </div>
+      {expandable && expanded ? <div className="px-4 py-3.5 bg-neutral-50/60 border-t border-neutral-100">{expandedContent}</div> : null}
     </div>
   )
 }
@@ -83,15 +123,20 @@ function ActionMenu({
 }) {
   const t = useT()
   const [open, setOpen] = useState(false)
-  const terminal = item.status === 'cancelled' || item.status === 'completed' || item.status === 'recalled'
+  const terminal = item.status === 'ReturnShipmentError' || item.status === 'ReceivedByReturnCenter' || item.status === 'ReturnCodeExpired'
 
   const items = [
     { label: t('returnDetail.status_update'), onClick: onStatus, disabled: false, danger: false },
     { label: t('returnDetail.update_carrier'), onClick: onCarrier, disabled: terminal, danger: false },
     { label: t('returnDetail.update_address'), onClick: onAddress, disabled: terminal, danger: false },
-    { label: t('returnDetail.recall'), onClick: onRecall, disabled: item.status !== 'picked_up', danger: false },
+    { label: t('returnDetail.recall'), onClick: onRecall, disabled: item.status !== 'ReturnOnTheWay', danger: false },
     { divider: true as const },
-    { label: t('returnDetail.cancel'), onClick: onCancel, disabled: item.status === 'cancelled' || item.status === 'completed', danger: true },
+    {
+      label: t('returnDetail.cancel'),
+      onClick: onCancel,
+      disabled: item.status === 'ReturnShipmentError' || item.status === 'ReceivedByReturnCenter',
+      danger: true,
+    },
   ]
 
   return (
@@ -158,6 +203,11 @@ export function ReturnDetailPage() {
   const [carrierId, setCarrierId] = useState<number | ''>('')
   const [district, setDistrict] = useState('')
   const [province, setProvince] = useState('')
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+
+  function toggleSection(key: string) {
+    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
 
   useEffect(() => {
     if (!returnId || Number.isNaN(id) || !item) {
@@ -174,6 +224,97 @@ export function ReturnDetailPage() {
   const st = RETURN_STATUS[item.status]
   const statusLabel = (key: ReturnStatus) => t(`returnStatus.${key}`)
   const reasonLabel = (key: string) => t(`returnReason.${key}`)
+
+  const routing = item.routingDecision
+  const routingFields =
+    !routing
+      ? [{ label: '', value: <span className="text-neutral-400">{t('shipmentDetail.routing_legacy')}</span> }]
+      : routing.mode === 'manual'
+        ? [{ label: t('shipmentDetail.field_routing_mode'), value: <span className="font-semibold">{t('shipmentDetail.routing_mode_manual')}</span> }]
+        : [
+            { label: t('shipmentDetail.field_routing_mode'), value: <span className="font-semibold">{t('shipmentDetail.routing_mode_auto')}</span> },
+            { label: '', value: t('shipmentDetail.routing_default_scoring') },
+          ]
+
+  const routingExpanded =
+    routing && routing.mode === 'auto' ? (
+      <div className="flex flex-col gap-4">
+        <div>
+          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">
+            1. {t('shipmentDetail.routing_step_eligibility')}
+          </p>
+          <p className="text-xs text-neutral-600">
+            {t('shipmentDetail.routing_step_eligibility_desc', { n: routing.contractEligibleCompanyIds.length })}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">
+            2. {t('shipmentDetail.routing_step_rule')}
+          </p>
+          {routing.matchedRuleName ? (
+            <p className="text-xs text-neutral-600">
+              {t('shipmentDetail.routing_step_rule_matched', { name: routing.matchedRuleName, summary: routing.matchedRuleSummary ?? '' })}
+              {routing.ruleNarrowedCompanyIds
+                ? ' ' + t('shipmentDetail.routing_step_rule_narrowed', { n: routing.ruleNarrowedCompanyIds.length })
+                : ''}
+            </p>
+          ) : (
+            <p className="text-xs text-neutral-400">{t('shipmentDetail.routing_step_rule_none')}</p>
+          )}
+        </div>
+
+        <div>
+          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5">
+            3. {t('shipmentDetail.routing_step_scoring')}
+          </p>
+          <div className="bg-white border border-neutral-200 rounded-lg overflow-x-auto">
+            <table className="w-full text-xs" style={{ minWidth: 640 }}>
+              <thead>
+                <tr className="border-b border-neutral-100 text-left">
+                  <th className="px-3 py-2 text-neutral-400 font-semibold uppercase tracking-wider">{t('shipmentDetail.routing_th_carrier')}</th>
+                  {CARRIER_METRIC_KEYS.map((k) => (
+                    <th key={k} className="px-2 py-2 text-neutral-400 font-semibold uppercase tracking-wider text-right whitespace-nowrap">
+                      {CARRIER_METRIC_LABELS[k]}
+                      <span className="block font-normal normal-case text-neutral-300">%{Math.round(routing.weights[k] * 100)}</span>
+                    </th>
+                  ))}
+                  <th className="px-3 py-2 text-neutral-400 font-semibold uppercase tracking-wider text-right">{t('shipmentDetail.routing_th_score')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {routing.scores.map((s) => (
+                  <tr key={s.companyId} className={s.companyId === routing.chosenCompanyId ? 'bg-primary-lighter/30' : ''}>
+                    <td className="px-3 py-2 font-medium text-neutral-700 whitespace-nowrap">
+                      {s.companyName}
+                      {s.companyId === routing.chosenCompanyId ? (
+                        <span className="ml-1.5 text-primary text-[10px] font-semibold">{t('shipmentDetail.routing_chosen')}</span>
+                      ) : null}
+                    </td>
+                    {CARRIER_METRIC_KEYS.map((k) => (
+                      <td key={k} className="px-2 py-2 text-right text-neutral-500">
+                        {(s.metrics[k] * 100).toFixed(0)}
+                      </td>
+                    ))}
+                    <td className="px-3 py-2 text-right font-semibold text-neutral-800">{(s.combined * 100).toFixed(1)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">
+            4. {t('shipmentDetail.routing_step_result')}
+          </p>
+          <p className="text-xs text-neutral-600">
+            {t('shipmentDetail.routing_step_result_desc', { name: getCompany(routing.chosenCompanyId)?.name ?? '' })}
+            {routing.tieBreakUsedDefault ? ' ' + t('shipmentDetail.routing_tiebreak_note') : ''}
+          </p>
+        </div>
+      </div>
+    ) : null
 
   function openCarrierModal() {
     setCarrierId(companyId ?? '')
@@ -251,13 +392,31 @@ export function ReturnDetailPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5 mb-5 text-sm">
+      <div className="flex items-center gap-2.5 mb-3 text-sm">
         <svg className="w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="9" />
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3" />
         </svg>
         <span className="text-neutral-500">{fmtDateTimeStr(item.requestDate)}</span>
         <span className={`badge ${st.badge}`}>{statusLabel(item.status)}</span>
+      </div>
+
+      <div className="flex items-center gap-1.5 mb-5 overflow-x-auto pb-1">
+        {(item.statusHistory ?? []).map((h, i) => (
+          <div key={i} className="flex items-center gap-1.5 flex-shrink-0">
+            {i > 0 ? (
+              <svg className="w-3 h-3 text-neutral-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            ) : null}
+            <div className="flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-neutral-50 flex-shrink-0">
+              <span className={`badge ${RETURN_STATUS[h.status].badge}`} style={{ fontSize: 11 }}>
+                {statusLabel(h.status)}
+              </span>
+              <span className="text-[10px] text-neutral-400 whitespace-nowrap">{fmtDateTimeStr(h.at)}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="flex flex-col gap-3">
@@ -325,6 +484,23 @@ export function ReturnDetailPage() {
             },
             { label: '', value: pickupAddr ? `${pickupAddr.district} / ${pickupAddr.province}` : '-' },
           ]}
+        />
+        <DetailSection
+          title={t('shipmentDetail.section_routing')}
+          expandable={!!routingExpanded}
+          expanded={!!expanded.rotalama}
+          onToggle={() => toggleSection('rotalama')}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
+              />
+            </svg>
+          }
+          fields={routingFields}
+          expandedContent={routingExpanded}
         />
         {item.note ? (
           <DetailSection

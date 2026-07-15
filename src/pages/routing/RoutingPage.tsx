@@ -3,13 +3,14 @@ import { NavLink, useParams } from 'react-router-dom'
 import { useDataStore } from '../../stores/dataStore'
 import { useUiStore } from '../../stores/uiStore'
 import {
+  CARRIER_METRIC_KEYS,
   COMPANIES,
   PROVINCES,
   getCompany,
+  type CarrierMetricKey,
   type RoutingCargoType,
-  type RoutingRule,
 } from '../../data/catalog'
-import { computeCarrierPerformance } from '../PerformancePage'
+import { computeNormalizedCarrierScores, matchRoutingRule, ruleConditionsSummary } from '../../lib/carrierScoring'
 import { fmtDateTimeStr } from '../../lib/format'
 import { toast } from '../../lib/toast'
 import { useHeaderSlotStore } from '../../stores/headerSlotStore'
@@ -23,9 +24,9 @@ const TABS = [
 ] as const
 
 const CARGO_TYPE_META: Record<RoutingCargoType, { label: string; badge: string }> = {
-  shipment: { label: 'Gönderiler', badge: 'badge-info' },
-  transfer: { label: 'Transferler', badge: 'badge-warning' },
-  return: { label: 'İadeler', badge: 'badge-passive' },
+  shipment: { label: 'Sipariş Gönderileri', badge: 'badge-info' },
+  transfer: { label: 'Transfer Gönderileri', badge: 'badge-warning' },
+  return: { label: 'İade Gönderileri', badge: 'badge-passive' },
 }
 
 const CARGO_TYPE_OPTIONS: RoutingCargoType[] = ['shipment', 'transfer', 'return']
@@ -36,88 +37,6 @@ const RULE_HISTORY_ACTION_META: Record<string, { label: string; badge: string }>
   deleted: { label: 'Silindi', badge: 'badge-danger' },
   toggled: { label: 'Durum Değişti', badge: 'badge-warning' },
   reordered: { label: 'Öncelik Değişti', badge: 'badge-passive' },
-}
-
-function getProvince(id: number) {
-  return PROVINCES.find((p) => p.id === id)
-}
-
-function ruleConditionsSummary(cond: RoutingRule['conditions']) {
-  const parts: string[] = []
-  parts.push(`${cond.minDesi}–${cond.maxDesi} desi`)
-  if (cond.provinceIds.length > 0) {
-    const names = cond.provinceIds.map((id) => getProvince(id)?.name).filter(Boolean) as string[]
-    parts.push(names.length > 2 ? `${names.slice(0, 2).join(', ')} +${names.length - 2}` : names.join(', '))
-  } else {
-    parts.push('Tüm bölgeler')
-  }
-  if (cond.minAmount !== '' || cond.maxAmount !== '') {
-    parts.push(`₺${cond.minAmount || 0}${cond.maxAmount ? `–₺${cond.maxAmount}` : '+'}`)
-  }
-  return parts.join(' · ')
-}
-
-function matchRoutingRule(
-  rules: RoutingRule[],
-  desi: number,
-  provinceId: number,
-  amount: number,
-  cargoType: RoutingCargoType,
-) {
-  const sorted = [...rules].filter((r) => r.active).sort((a, b) => a.priority - b.priority)
-  for (const rule of sorted) {
-    const c = rule.conditions
-    if (!rule.cargoTypes.includes(cargoType)) continue
-    if (desi < c.minDesi || desi > c.maxDesi) continue
-    if (c.provinceIds.length > 0 && !c.provinceIds.includes(provinceId)) continue
-    if (c.minAmount !== '' && amount < +c.minAmount) continue
-    if (c.maxAmount !== '' && amount > +c.maxAmount) continue
-    return rule
-  }
-  return null
-}
-
-function computeNormalizedCarrierScores(
-  weights: { cost: number; deliveryTime: number; successRate: number },
-  shipments: Parameters<typeof computeCarrierPerformance>[0],
-  carrierInvoices: Parameters<typeof computeCarrierPerformance>[1],
-  carrierPricing: { companyId: number; price: number }[],
-) {
-  const total = weights.cost + weights.deliveryTime + weights.successRate || 1
-  const wCost = weights.cost / total
-  const wDelivery = weights.deliveryTime / total
-  const wSuccess = weights.successRate / total
-
-  const perf = computeCarrierPerformance(shipments, carrierInvoices)
-  const perfMap: Record<number, (typeof perf)[0]> = {}
-  perf.forEach((p) => {
-    perfMap[p.companyId] = p
-  })
-
-  const pricingByCompany: Record<number, number[]> = {}
-  carrierPricing.forEach((p) => {
-    if (!pricingByCompany[p.companyId]) pricingByCompany[p.companyId] = []
-    pricingByCompany[p.companyId].push(p.price)
-  })
-
-  const avgPriceFor = (companyId: number) => {
-    const prices = pricingByCompany[companyId]
-    return prices?.length ? prices.reduce((a, b) => a + b, 0) / prices.length : null
-  }
-
-  const allAvgPrices = COMPANIES.map((c) => avgPriceFor(c.id)).filter((p): p is number => p !== null)
-  const minPrice = allAvgPrices.length ? Math.min(...allAvgPrices) : 0
-  const maxPrice = allAvgPrices.length ? Math.max(...allAvgPrices) : 0
-
-  return COMPANIES.map((c) => {
-    const p = perfMap[c.id]
-    const avgPrice = avgPriceFor(c.id)
-    const costScore = avgPrice === null ? 0.5 : maxPrice > minPrice ? 1 - (avgPrice - minPrice) / (maxPrice - minPrice) : 1
-    const deliveryScore = p ? p.otdRate : 0.5
-    const successScore = p ? p.successRate : 0.5
-    const combined = wCost * costScore + wDelivery * deliveryScore + wSuccess * successScore
-    return { companyId: c.id, companyName: c.name, costScore, deliveryScore, successScore, combined }
-  }).sort((a, b) => b.combined - a.combined)
 }
 
 function RoutingRuleModal({
@@ -574,22 +493,24 @@ function RulesTab() {
   )
 }
 
+
+const WEIGHT_FIELDS: { key: CarrierMetricKey; label: string; lowerIsBetter?: boolean }[] = [
+  { key: 'cost', label: 'Maliyet' },
+  { key: 'deliveryTime', label: 'Zamanında Teslimat (OTD)' },
+  { key: 'successRate', label: 'Başarı Oranı' },
+  { key: 'damagedRate', label: 'Hasar Oranı', lowerIsBetter: true },
+  { key: 'avgPickupHours', label: 'Ort. Teslim Alma Süresi', lowerIsBetter: true },
+  { key: 'costDiffPct', label: 'Maliyet Sapması', lowerIsBetter: true },
+]
+
 function WeightsTab() {
   const weights = useUiStore((s) => s.routingWeights)
   const setRoutingWeights = useUiStore((s) => s.setRoutingWeights)
 
-  const total = weights.cost + weights.deliveryTime + weights.successRate || 1
-  const norm = {
-    cost: Math.round((weights.cost / total) * 100),
-    deliveryTime: Math.round((weights.deliveryTime / total) * 100),
-    successRate: Math.round((weights.successRate / total) * 100),
-  }
-
-  const weightFields = [
-    { key: 'cost' as const, label: 'Maliyet' },
-    { key: 'deliveryTime' as const, label: 'Teslimat Süresi (OTD)' },
-    { key: 'successRate' as const, label: 'Başarı Oranı' },
-  ]
+  const total = CARRIER_METRIC_KEYS.reduce((sum, k) => sum + (weights[k] ?? 0), 0) || 1
+  const norm = Object.fromEntries(
+    CARRIER_METRIC_KEYS.map((k) => [k, Math.round(((weights[k] ?? 0) / total) * 100)]),
+  ) as Record<CarrierMetricKey, number>
 
   return (
     <div className="bg-white rounded-lg border border-neutral-200 p-5">
@@ -599,17 +520,20 @@ function WeightsTab() {
         normalize edilir.
       </p>
       <div className="flex flex-col gap-5">
-        {weightFields.map((wf) => (
+        {WEIGHT_FIELDS.map((wf) => (
           <div key={wf.key}>
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-sm font-medium text-neutral-700">{wf.label}</span>
+              <span className="text-sm font-medium text-neutral-700">
+                {wf.label}
+                {wf.lowerIsBetter ? <span className="text-xs text-neutral-400 font-normal"> (düşük iyi)</span> : null}
+              </span>
               <span className="text-sm font-semibold text-primary">%{norm[wf.key]}</span>
             </div>
             <input
               type="range"
               min={0}
               max={100}
-              value={weights[wf.key]}
+              value={weights[wf.key] ?? 0}
               className="w-full"
               onChange={(e) => setRoutingWeights({ [wf.key]: +e.target.value })}
             />
@@ -617,7 +541,8 @@ function WeightsTab() {
         ))}
       </div>
       <p className="text-xs text-neutral-400 mt-5">
-        Normalize edilmiş ağırlıklar, &quot;Normalize Puanlama&quot; sekmesindeki taşıyıcı skorlarını doğrudan etkiler.
+        Normalize edilmiş ağırlıklar, &quot;Normalize Puanlama&quot; sekmesindeki taşıyıcı skor tablosunu doğrudan
+        etkiler.
       </p>
     </div>
   )
@@ -633,48 +558,59 @@ function ScoringTab() {
     () => computeNormalizedCarrierScores(weights, shipments, carrierInvoices, carrierPricing),
     [weights, shipments, carrierInvoices, carrierPricing],
   )
-  const maxScore = Math.max(0.01, ...scores.map((s) => s.combined))
-
-  const total = weights.cost + weights.deliveryTime + weights.successRate || 1
 
   return (
     <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
       <div className="px-5 py-3.5 border-b border-neutral-100">
-        <p className="text-sm font-semibold text-neutral-950">Normalize Edilmiş Taşıyıcı Puanları</p>
+        <p className="text-sm font-semibold text-neutral-950">Standardize Taşıyıcı Puan Tablosu</p>
         <p className="text-xs text-neutral-400 mt-0.5">
-          Ağırlık Verme sekmesindeki kriterlere göre periyodik olarak hesaplanır. Mevcut ağırlıklar: Maliyet %
-          {Math.round((weights.cost / total) * 100)}, OTD %{Math.round((weights.deliveryTime / total) * 100)}, Başarı %
-          {Math.round((weights.successRate / total) * 100)}.
+          Her metrik, tüm kargo firmaları arasında 0-100 arasına normalize edilir; Toplam sütunu, &quot;Ağırlık
+          Verme&quot; sekmesindeki katsayılarla hesaplanan bileşik skordur.
         </p>
       </div>
-      <div className="p-5 flex flex-col gap-3">
-        {scores.map((s, i) => (
-          <div key={s.companyId}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium text-neutral-700 flex items-center gap-2">
-                <span
-                  className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center flex-shrink-0 ${
-                    i === 0 ? 'bg-[#fff3eb] text-[#c2570e]' : 'bg-neutral-100 text-neutral-500'
-                  }`}
-                >
-                  {i + 1}
-                </span>
-                {s.companyName}
-              </span>
-              <span className="text-sm font-semibold text-neutral-800">{(s.combined * 100).toFixed(1)}</span>
-            </div>
-            <div className="w-full h-2 rounded-full bg-neutral-100 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-primary"
-                style={{ width: `${((s.combined / maxScore) * 100).toFixed(1)}%` }}
-              />
-            </div>
-          </div>
-        ))}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm" style={{ minWidth: 760 }}>
+          <thead>
+            <tr className="text-left border-b border-neutral-100">
+              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kargo Firması</th>
+              {WEIGHT_FIELDS.map((wf) => (
+                <th key={wf.key} className="px-3 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right">
+                  {wf.label}
+                </th>
+              ))}
+              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right">Toplam</th>
+            </tr>
+          </thead>
+          <tbody>
+            {scores.map((s, i) => (
+              <tr key={s.companyId} className={`${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'} border-b border-neutral-50`}>
+                <td className="px-5 py-3">
+                  <span className="flex items-center gap-2 font-medium text-neutral-700">
+                    <span
+                      className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center flex-shrink-0 ${
+                        i === 0 ? 'bg-[#fff3eb] text-[#c2570e]' : 'bg-neutral-100 text-neutral-500'
+                      }`}
+                    >
+                      {i + 1}
+                    </span>
+                    {s.companyName}
+                  </span>
+                </td>
+                {WEIGHT_FIELDS.map((wf) => (
+                  <td key={wf.key} className="px-3 py-3 text-right text-neutral-600">
+                    {(s.metrics[wf.key] * 100).toFixed(0)}
+                  </td>
+                ))}
+                <td className="px-5 py-3 text-right font-semibold text-neutral-900">{(s.combined * 100).toFixed(1)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   )
 }
+
 
 function HistoryTab() {
   const routingHistory = useDataStore((s) => s.routingHistory)

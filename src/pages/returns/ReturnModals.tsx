@@ -113,10 +113,12 @@ export function ReturnStatusModal({
   onConfirm: (status: ReturnStatus) => void
 }) {
   const t = useT()
-  const [value, setValue] = useState<ReturnStatus>(item?.status ?? 'requested')
+  const [value, setValue] = useState<ReturnStatus>(item?.status ?? 'ReturnCodeCreated')
   if (!item) return null
 
-  const options = (Object.keys(RETURN_STATUS) as ReturnStatus[]).filter((k) => k !== 'cancelled')
+  const options = (Object.keys(RETURN_STATUS) as ReturnStatus[]).filter(
+    (k) => k !== 'ReturnShipmentError' && k !== 'ReturnCodeExpired',
+  )
 
   return (
     <div

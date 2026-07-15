@@ -13,7 +13,6 @@ import {
   buildPaginationNumbers,
   exportShipmentsCsv,
   filterShipments,
-  getStatusTabs,
   recipientAddressLine,
   recipientEmail,
   recipientPhone,
@@ -258,23 +257,6 @@ export function ShipmentsPage() {
   return (
     <div className="page-container">
       <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
-        <div className="flex items-center gap-1.5 px-5 py-3 border-b border-neutral-100 flex-wrap">
-          {getStatusTabs().map((tab) => {
-            const count = tab.key === 'all' ? shipments.length : shipments.filter((s) => s.status === tab.key).length
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                className={`filter-tab ${filterStatus === tab.key ? 'active' : ''}`}
-                onClick={() => setShipmentsFilter({ shipmentsFilterStatus: tab.key, shipmentsPage: 1 })}
-              >
-                {tab.key === 'all' ? t('common.all') : statusLabel(tab.key)}
-                <span className="ml-1 text-xs opacity-60">{count}</span>
-              </button>
-            )
-          })}
-        </div>
-
         <div className="flex items-center gap-3 px-5 py-3 border-b border-neutral-100 flex-wrap">
           <Dropdown
             wrapperStyle={{ width: 190 }}
@@ -417,7 +399,7 @@ export function ShipmentsPage() {
                         >
                           <div className="flex justify-end gap-1">
                             <button
-                              className="action-btn"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0"
                               type="button"
                               title={t('shipments.detail_tooltip')}
                               onClick={() => navigate(`/shipments/${s.id}`)}
@@ -427,7 +409,7 @@ export function ShipmentsPage() {
                               </svg>
                             </button>
                             <button
-                              className="action-btn"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0"
                               type="button"
                               title={t('shipments.barcode_tooltip')}
                               onClick={() => openBarcodeModal([s])}
@@ -437,10 +419,10 @@ export function ShipmentsPage() {
                               </svg>
                             </button>
                             <button
-                              className="action-btn hover:text-[#ad1f2b] hover:bg-[#ffebec] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[#ad1f2b] hover:bg-[#ffebec] transition-colors flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
                               type="button"
                               title={t('shipments.cancel_tooltip')}
-                              disabled={s.status === 'cancelled'}
+                              disabled={s.status === 'ShipmentCanceled'}
                               onClick={() => setCancelId(s.id)}
                             >
                               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">

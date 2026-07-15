@@ -1,9 +1,9 @@
-import { TRANSFER_STATUS, type TransferItem, type TransferStatus } from '../data/catalog'
+import { SHIPMENT_STATUS, type TransferItem, type ShipmentStatus } from '../data/catalog'
 import { getCompany } from '../data/catalog'
 import type { StockNode } from '../data/seed'
 
-export function getTransferStatusTabs(): { key: TransferStatus | 'all' }[] {
-  return [{ key: 'all' }, ...(Object.keys(TRANSFER_STATUS) as TransferStatus[]).map((key) => ({ key }))]
+export function getShipmentStatusTabs(): { key: ShipmentStatus | 'all' }[] {
+  return [{ key: 'all' }, ...(Object.keys(SHIPMENT_STATUS) as ShipmentStatus[]).map((key) => ({ key }))]
 }
 
 export function getNode(nodes: StockNode[], id: number) {
@@ -38,7 +38,7 @@ export const TRANSFER_COLUMNS: { key: TransferColumnKey }[] = [
 export type TransferListFilters = {
   search: string
   searchField: TransferSearchField
-  filterStatus: TransferStatus | 'all'
+  filterStatus: ShipmentStatus | 'all'
   filterCompanyId: string
   dateFrom: string
   dateTo: string
@@ -77,7 +77,7 @@ function csvEscape(val: unknown) {
 export function exportTransfersCsv(
   list: TransferItem[],
   nodes: StockNode[],
-  statusLabel: (key: TransferStatus) => string,
+  statusLabel: (key: ShipmentStatus) => string,
   columnLabel: (key: TransferColumnKey) => string,
   lang: 'tr' | 'en',
 ) {

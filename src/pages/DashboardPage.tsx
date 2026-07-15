@@ -7,15 +7,12 @@ import {
   STATUS_CHART_COLORS,
   RETURN_STATUS,
   RETURN_STATUS_CHART_COLORS,
-  TRANSFER_STATUS,
-  TRANSFER_STATUS_CHART_COLORS,
   type Shipment,
   type ShipmentStatus,
   type ReturnStatus,
-  type TransferStatus,
 } from '../data/catalog'
 import { getReturnCompanyId } from '../lib/returns'
-import { computeCarrierPerformance } from './PerformancePage'
+import { computeCarrierPerformance } from '../lib/carrierScoring'
 import { inRange, lastNDaysRange, previousPeriod, pctDelta, type DateWindow } from '../lib/dashboard'
 import { Donut, type DonutSegment } from '../components/ui/Donut'
 import { StackedBarList, type StackedBarRow } from '../components/ui/StackedBarList'
@@ -29,7 +26,7 @@ type WidgetId = 'shipStatus' | 'shipCarrier' | 'returnStatus' | 'returnCarrier' 
 
 const SHIPMENT_STATUS_KEYS = Object.keys(SHIPMENT_STATUS) as ShipmentStatus[]
 const RETURN_STATUS_KEYS = Object.keys(RETURN_STATUS) as ReturnStatus[]
-const TRANSFER_STATUS_KEYS = Object.keys(TRANSFER_STATUS) as TransferStatus[]
+const TRANSFER_STATUS_KEYS = SHIPMENT_STATUS_KEYS
 
 /** Groups by carrier, ranks by volume, folds anything past the top 5 into "Diğer". */
 function carrierRows<T>(
@@ -243,9 +240,9 @@ export function DashboardPage() {
   )
   const transferStatusSegments: DonutSegment[] = TRANSFER_STATUS_KEYS.map((k) => ({
     key: k,
-    label: t(`transferStatus.${k}`),
+    label: t(`status.${k}`),
     value: transferStatusData.filter((x) => x.status === k).length,
-    color: TRANSFER_STATUS_CHART_COLORS[k],
+    color: STATUS_CHART_COLORS[k],
   }))
 
   const transferCarrierRange = rangeFor('transferCarrier')
@@ -260,7 +257,7 @@ export function DashboardPage() {
         (x) => x.companyId,
         (x) => x.status,
         TRANSFER_STATUS_KEYS,
-        (k) => TRANSFER_STATUS_CHART_COLORS[k as TransferStatus],
+        (k) => STATUS_CHART_COLORS[k as ShipmentStatus],
         t('common.unknown'),
       ),
     [transferCarrierData, t],

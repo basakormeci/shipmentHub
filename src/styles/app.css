@@ -107,6 +107,13 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
+input[type="radio"] {
+  accent-color: #1fc16b;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;

@@ -56,14 +56,16 @@ export function ReportsPage() {
   }, [returns, shipments, dateFrom, dateTo, companyId])
 
   const total = filtered.length
-  const delivered = filtered.filter((s) => s.status === 'delivered').length
-  const returned = filtered.filter((s) => s.status === 'returned').length
+  const delivered = filtered.filter((s) => s.status === 'DeliveredToCustomer' || s.status === 'DeliveredToStore').length
+  const returned = filtered.filter((s) => s.status === 'ReturnToSender').length
   const successRate = total ? (delivered / total) * 100 : 0
   const returnRate = total ? (returned / total) * 100 : 0
   const avgDays = total ? filtered.reduce((sum, s) => sum + shipmentDeliveryDays(s), 0) / total : 0
   const totalCost = filtered.reduce((sum, s) => sum + shipmentCost(s), 0)
   const returnCount = filteredReturns.length
-  const deliveredList = filtered.filter((s) => s.status === 'delivered' || s.status === 'returned')
+  const deliveredList = filtered.filter(
+    (s) => s.status === 'DeliveredToCustomer' || s.status === 'DeliveredToStore' || s.status === 'ReturnToSender',
+  )
   const damagedCount = deliveredList.filter((s) => isDamagedFor(s.id)).length
   const damagedRate = deliveredList.length ? (damagedCount / deliveredList.length) * 100 : 0
 
