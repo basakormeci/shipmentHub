@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import { generateTrackingNo } from '../lib/shipments'
 import { generateTransferTrackingNo } from '../lib/transfers'
+import { synthesizeShipmentHistory, synthesizeReturnHistory } from '../lib/statusHistory'
+import { synthesizeRoutingDecision, provinceIdForName } from '../lib/routingBackfill'
+import { PROVINCES } from '../data/catalog'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { SEED_NODES, SEED_USERS, type StockNode, type User, type UserRole, type UserStatus } from '../data/seed'
 import {
@@ -541,20 +544,70 @@ export const useDataStore = create<DataState>()(
       // missing a field the current schema requires (e.g. statusHistory).
       merge: (persisted, current) => {
         const merged = { ...current, ...(persisted as Partial<DataState>) } as DataState
-        const now = new Date().toISOString()
+        const shipments = merged.shipments ?? []
+        const scoringArgs = {
+          contracts: merged.contracts ?? [],
+          routingRules: merged.routingRules ?? [],
+          shipments,
+          carrierInvoices: merged.carrierInvoices ?? [],
+          carrierPricing: merged.carrierPricing ?? [],
+        }
         return {
           ...merged,
-          shipments: (merged.shipments ?? []).map((s) => ({
+          shipments: shipments.map((s) => ({
             ...s,
-            statusHistory: s.statusHistory?.length ? s.statusHistory : [{ status: s.status, at: now }],
+            statusHistory: s.statusHistory?.length ? s.statusHistory : synthesizeShipmentHistory(s.status, s.shipTime, s.id),
+            routingDecision:
+              s.routingDecision ??
+              synthesizeRoutingDecision({
+                id: s.id,
+                companyId: s.companyId,
+                provinceId: provinceIdForName(s.shipTo.province),
+                desi: s.desi,
+                amount: s.orderAmount,
+                cargoType: 'shipment',
+                shippingType: 'orderShipping',
+                ...scoringArgs,
+              }) ??
+              undefined,
           })),
-          returns: (merged.returns ?? []).map((r) => ({
-            ...r,
-            statusHistory: r.statusHistory?.length ? r.statusHistory : [{ status: r.status, at: now }],
-          })),
+          returns: (merged.returns ?? []).map((r) => {
+            const orig = shipments.find((s) => s.id === r.originalShipmentId)
+            const provinceName = r.pickupAddress?.province ?? orig?.shipTo.province
+            return {
+              ...r,
+              statusHistory: r.statusHistory?.length ? r.statusHistory : synthesizeReturnHistory(r.status, r.requestDate, r.id),
+              routingDecision:
+                r.routingDecision ??
+                (r.companyId != null && provinceName
+                  ? synthesizeRoutingDecision({
+                      id: r.id,
+                      companyId: r.companyId,
+                      provinceId: provinceIdForName(provinceName),
+                      desi: orig?.desi,
+                      amount: orig?.orderAmount,
+                      cargoType: 'return',
+                      shippingType: 'returnShipping',
+                      ...scoringArgs,
+                    }) ?? undefined
+                  : undefined),
+            }
+          }),
           transfers: (merged.transfers ?? []).map((tr) => ({
             ...tr,
-            statusHistory: tr.statusHistory?.length ? tr.statusHistory : [{ status: tr.status, at: now }],
+            statusHistory: tr.statusHistory?.length ? tr.statusHistory : synthesizeShipmentHistory(tr.status, tr.createdAt, tr.id),
+            routingDecision:
+              tr.routingDecision ??
+              synthesizeRoutingDecision({
+                id: tr.id,
+                companyId: tr.companyId,
+                provinceId: PROVINCES[tr.id % PROVINCES.length]?.id ?? null,
+                desi: tr.desi,
+                cargoType: 'transfer',
+                shippingType: 'transferShipping',
+                ...scoringArgs,
+              }) ??
+              undefined,
           })),
         }
       },

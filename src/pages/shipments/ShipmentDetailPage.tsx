@@ -334,11 +334,22 @@ export function ShipmentDetailPage() {
   )
 
   const shipmentExpanded = (
-    <div className="inline-flex flex-col gap-1 px-3 py-2 rounded-lg" style={{ background: '#fff3eb' }}>
-      <span className="text-xs font-semibold" style={{ color: '#c2570e' }}>
-        {statusLabel(shipment.status)}
-      </span>
-      <span className="text-[11px] text-neutral-400">{fmtDateTimeStr(shipment.shipTime)}</span>
+    <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+      {(shipment.statusHistory ?? []).map((h, i) => (
+        <div key={i} className="flex items-center gap-1.5 flex-shrink-0">
+          {i > 0 ? (
+            <svg className="w-3 h-3 text-neutral-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          ) : null}
+          <div className="flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white flex-shrink-0">
+            <span className={`badge ${SHIPMENT_STATUS[h.status].badge}`} style={{ fontSize: 11 }}>
+              {statusLabel(h.status)}
+            </span>
+            <span className="text-[10px] text-neutral-400 whitespace-nowrap">{fmtDateTimeStr(h.at)}</span>
+          </div>
+        </div>
+      ))}
     </div>
   )
 
