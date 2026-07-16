@@ -114,8 +114,14 @@ interface DataState {
 
   updateTransfer: (id: number, patch: Partial<TransferItem>) => TransferItem | null
   addTransfer: (
-    input: Omit<TransferItem, 'id' | 'transferNo' | 'trackingNo' | 'status' | 'createdAt' | 'statusHistory'> & {
+    input: Omit<
+      TransferItem,
+      'id' | 'transferNo' | 'dispatchNo' | 'trackingNo' | 'referenceId' | 'packageNo' | 'status' | 'createdAt' | 'statusHistory'
+    > & {
+      dispatchNo?: number
       trackingNo?: string
+      referenceId?: string
+      packageNo?: string
       status?: ShipmentStatus
     },
   ) => TransferItem
@@ -429,13 +435,17 @@ export const useDataStore = create<DataState>()(
       addTransfer: (input) => {
         const id = nextId(get().transfers)
         const transferNo = Math.max(0, ...get().transfers.map((t) => t.transferNo)) + 1
+        const dispatchNo = input.dispatchNo ?? Math.max(5100000, ...get().transfers.map((t) => t.dispatchNo)) + 1
         const createdAt = new Date().toISOString()
         const status = input.status ?? 'DispatchLabelCreated'
         const item: TransferItem = {
           ...input,
           id,
           transferNo,
+          dispatchNo,
           trackingNo: input.trackingNo ?? generateTransferTrackingNo(input.companyId),
+          referenceId: input.referenceId || `REF-T${Math.floor(Math.random() * 90000) + 10000}`,
+          packageNo: input.packageNo || `PKT-T${String(id).padStart(6, '0')}`,
           status,
           createdAt,
           statusHistory: [{ status, at: createdAt }],

@@ -18,21 +18,40 @@ export function generateTransferTrackingNo(companyId: number) {
 
 export const TRANSFER_SEARCH_FIELDS = [
   { key: 'transferNo' as const },
+  { key: 'dispatchNo' as const },
   { key: 'trackingNo' as const },
+  { key: 'referenceId' as const },
   { key: 'node' as const },
 ]
 export type TransferSearchField = (typeof TRANSFER_SEARCH_FIELDS)[number]['key']
 
-export type TransferColumnKey = 'transferNo' | 'from' | 'to' | 'carrier' | 'desi' | 'status' | 'date'
+export type TransferColumnKey =
+  | 'transferNo'
+  | 'dispatchNo'
+  | 'companyId'
+  | 'trackingNo'
+  | 'from'
+  | 'to'
+  | 'createdAt'
+  | 'status'
+  | 'referenceId'
+  | 'packageNo'
+  | 'desi'
+  | 'note'
 
 export const TRANSFER_COLUMNS: { key: TransferColumnKey }[] = [
   { key: 'transferNo' },
+  { key: 'dispatchNo' },
+  { key: 'companyId' },
+  { key: 'trackingNo' },
   { key: 'from' },
   { key: 'to' },
-  { key: 'carrier' },
-  { key: 'desi' },
+  { key: 'createdAt' },
   { key: 'status' },
-  { key: 'date' },
+  { key: 'referenceId' },
+  { key: 'packageNo' },
+  { key: 'desi' },
+  { key: 'note' },
 ]
 
 export type TransferListFilters = {
@@ -42,11 +61,15 @@ export type TransferListFilters = {
   filterCompanyId: string
   dateFrom: string
   dateTo: string
+  page: number
+  visibleColumns: Partial<Record<TransferColumnKey, boolean>>
 }
 
 function searchValueFor(x: TransferItem, nodes: StockNode[], field: TransferSearchField): string {
   if (field === 'transferNo') return String(x.transferNo)
+  if (field === 'dispatchNo') return String(x.dispatchNo)
   if (field === 'trackingNo') return x.trackingNo
+  if (field === 'referenceId') return x.referenceId
   if (field === 'node') {
     const from = getNode(nodes, x.fromNodeId)
     const to = getNode(nodes, x.toNodeId)
@@ -86,7 +109,20 @@ export function exportTransfersCsv(
     const from = getNode(nodes, x.fromNodeId)
     const to = getNode(nodes, x.toNodeId)
     const co = getCompany(x.companyId)
-    return [x.transferNo, from ? from.name : '', to ? to.name : '', co ? co.name : '', x.desi, statusLabel(x.status), x.createdAt]
+    return [
+      x.transferNo,
+      x.dispatchNo,
+      co ? co.name : '',
+      x.trackingNo,
+      from ? from.name : '',
+      to ? to.name : '',
+      x.createdAt,
+      statusLabel(x.status),
+      x.referenceId,
+      x.packageNo,
+      x.desi,
+      x.note,
+    ]
   })
   const csv = [headers, ...rows].map((r) => r.map(csvEscape).join(';')).join('\r\n')
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })

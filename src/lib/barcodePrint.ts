@@ -1,5 +1,7 @@
-import { getCompany, type ReturnItem, type Shipment } from '../data/catalog'
+import { PROVINCES, getCompany, type ReturnItem, type Shipment, type TransferItem } from '../data/catalog'
 import { packageItemsFor } from './shipments'
+import { getNode } from './transfers'
+import type { StockNode } from '../data/seed'
 
 /** Common shape both Shipment and ReturnItem carry — every label renderer below only needs
  * these fields, so either can be printed through the same carrier-specific templates. */
@@ -52,6 +54,27 @@ function parcelFromReturn(r: ReturnItem): PrintableParcel {
     customerName: r.customerName,
     channel: r.channel,
     desi: r.desi,
+  }
+}
+
+function parcelFromTransfer(tr: TransferItem, nodes: StockNode[]): PrintableParcel {
+  const from = getNode(nodes, tr.fromNodeId)
+  const to = getNode(nodes, tr.toNodeId)
+  const toProvince = to?.provinceId != null ? PROVINCES.find((p) => p.id === to.provinceId)?.name : undefined
+  return {
+    id: tr.id,
+    docNo: tr.transferNo,
+    orderNo: tr.dispatchNo,
+    companyId: tr.companyId,
+    trackingNo: tr.trackingNo,
+    shipFrom: from ? from.name : '-',
+    shipTo: { district: to ? to.name : '-', province: toProvince ?? (to ? to.name : '-') },
+    shipTime: tr.createdAt,
+    referenceId: tr.referenceId,
+    packageNo: tr.packageNo,
+    customerName: to ? to.name : '-',
+    channel: 'Transfer',
+    desi: tr.desi,
   }
 }
 
@@ -384,4 +407,9 @@ export function openShipmentBarcodePrint(shipments: Shipment[]): void {
 /** Same as `openShipmentBarcodePrint`, for return shipments — uses the same carrier templates. */
 export function openReturnBarcodePrint(returns: ReturnItem[]): void {
   openParcelBarcodePrint(returns.map(parcelFromReturn))
+}
+
+/** Same as `openShipmentBarcodePrint`, for transfer shipments — uses the same carrier templates. */
+export function openTransferBarcodePrint(transfers: TransferItem[], nodes: StockNode[]): void {
+  openParcelBarcodePrint(transfers.map((tr) => parcelFromTransfer(tr, nodes)))
 }

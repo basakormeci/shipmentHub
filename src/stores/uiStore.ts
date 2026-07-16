@@ -58,6 +58,7 @@ interface UiState {
   transfersFilterCompanyId: string
   transfersDateFrom: string
   transfersDateTo: string
+  transfersPage: number
   transfersVisibleColumns: Partial<Record<TransferColumnKey, boolean>>
   contractsFilterStatus: ContractFilterStatus
   contractWizard: { step: number; editingId: number | null; f: ContractForm }
@@ -116,6 +117,7 @@ interface UiState {
         | 'transfersFilterCompanyId'
         | 'transfersDateFrom'
         | 'transfersDateTo'
+        | 'transfersPage'
         | 'transfersVisibleColumns'
       >
     >,
@@ -167,6 +169,7 @@ export const useUiStore = create<UiState>()(
       transfersFilterCompanyId: '',
       transfersDateFrom: '',
       transfersDateTo: '',
+      transfersPage: 1,
       transfersVisibleColumns: {},
       contractsFilterStatus: 'all',
       contractWizard: { step: 1, editingId: null, f: emptyContractForm() },
@@ -214,6 +217,7 @@ export const useUiStore = create<UiState>()(
           transfersFilterCompanyId: '',
           transfersDateFrom: '',
           transfersDateTo: '',
+          transfersPage: 1,
         }),
       setContractsFilterStatus: (status) => set({ contractsFilterStatus: status }),
       setContractWizard: (patch) =>
@@ -261,6 +265,7 @@ export const useUiStore = create<UiState>()(
         transfersFilterCompanyId: s.transfersFilterCompanyId,
         transfersDateFrom: s.transfersDateFrom,
         transfersDateTo: s.transfersDateTo,
+        transfersPage: s.transfersPage,
         transfersVisibleColumns: s.transfersVisibleColumns,
         contractsFilterStatus: s.contractsFilterStatus,
         contractWizard: s.contractWizard,

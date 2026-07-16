@@ -1,6 +1,11 @@
 import { COMPANIES, type TransferItem } from '../../data/catalog'
 import { useT } from '../../hooks/useT'
 import { Dropdown } from '../../components/ui/Dropdown'
+import { useDataStore } from '../../stores/dataStore'
+import { openTransferBarcodePrint } from '../../lib/barcodePrint'
+import { toast } from '../../lib/toast'
+
+export { ColumnPanelModal } from '../../components/ui/ColumnPanelModal'
 
 export function CancelTransferModal({
   item,
@@ -213,6 +218,52 @@ export function TransferNodeModal({
           </button>
           <button className="primary-btn" type="button" disabled={sameNode} onClick={onConfirm}>
             {t('transferNodeModal.update_btn')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function TransferBarcodePrintModal({
+  transfers,
+  onClose,
+}: {
+  transfers: TransferItem[]
+  onClose: () => void
+}) {
+  const t = useT()
+  const nodes = useDataStore((s) => s.nodes)
+  if (transfers.length === 0) return null
+
+  const subtitle =
+    transfers.length === 1
+      ? t('barcodeModal.single', { no: transfers[0].transferNo })
+      : t('barcodeModal.bulk', { n: transfers.length })
+
+  function handlePrint() {
+    openTransferBarcodePrint(transfers, nodes)
+    toast(t('barcodeModal.opened', { n: transfers.length }), 'success')
+    onClose()
+  }
+
+  return (
+    <div
+      className="overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div className="modal-box w-full max-w-sm p-6">
+        <h3 className="font-semibold text-neutral-950 mb-1">{t('barcodeModal.title')}</h3>
+        <p className="text-sm text-neutral-500 mb-2">{subtitle}</p>
+        <p className="text-xs text-neutral-400 mb-4 font-mono">{transfers.map((tr) => tr.trackingNo).join(', ')}</p>
+        <div className="flex justify-end gap-3 mt-6">
+          <button className="secondary-btn" type="button" onClick={onClose}>
+            {t('common.cancel')}
+          </button>
+          <button className="primary-btn" type="button" onClick={handlePrint}>
+            {t('barcodeModal.print_btn')}
           </button>
         </div>
       </div>
