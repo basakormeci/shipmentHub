@@ -347,7 +347,9 @@ function InvoicePanel() {
                 <tr key={inv.id} className="hover:bg-neutral-50/80">
                   <td className="px-4 py-3 font-mono text-xs text-neutral-700">{inv.invoiceNo}</td>
                   <td className="px-4 py-3 text-neutral-600">{co ? co.name : 'Bilinmiyor'}</td>
-                  <td className="px-4 py-3 text-neutral-500">#{inv.shipmentNo}</td>
+                  <td className="px-4 py-3 text-neutral-500">
+                    {inv.shipmentNo != null ? `#${inv.shipmentNo}` : inv.returnNo != null ? `İade #${inv.returnNo}` : '-'}
+                  </td>
                   <td className="px-4 py-3">
                     <span className="text-neutral-500">₺{inv.expectedCost}</span> /{' '}
                     <span className={`font-semibold ${diff > 0 ? 'text-[#ad1f2b]' : diff < 0 ? 'text-[#1a8245]' : 'text-neutral-700'}`}>

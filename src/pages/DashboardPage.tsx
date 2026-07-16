@@ -11,7 +11,6 @@ import {
   type ShipmentStatus,
   type ReturnStatus,
 } from '../data/catalog'
-import { getReturnCompanyId } from '../lib/returns'
 import { computeCarrierPerformance } from '../lib/carrierScoring'
 import { inRange, lastNDaysRange, previousPeriod, pctDelta, type DateWindow } from '../lib/dashboard'
 import { Donut, type DonutSegment } from '../components/ui/Donut'
@@ -223,7 +222,7 @@ export function DashboardPage() {
     () =>
       carrierRows(
         returnCarrierData,
-        (r) => getReturnCompanyId(r, shipments),
+        (r) => r.companyId,
         (r) => r.status,
         RETURN_STATUS_KEYS,
         (k) => RETURN_STATUS_CHART_COLORS[k as ReturnStatus],

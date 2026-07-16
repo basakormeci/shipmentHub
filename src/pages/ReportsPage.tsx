@@ -47,13 +47,10 @@ export function ReportsPage() {
       const day = x.requestDate.slice(0, 10)
       if (dateFrom && day < dateFrom) return false
       if (dateTo && day > dateTo) return false
-      if (companyId) {
-        const orig = shipments.find((s) => s.id === x.originalShipmentId)
-        if (!orig || orig.companyId !== +companyId) return false
-      }
+      if (companyId && x.companyId !== +companyId) return false
       return true
     })
-  }, [returns, shipments, dateFrom, dateTo, companyId])
+  }, [returns, dateFrom, dateTo, companyId])
 
   const total = filtered.length
   const delivered = filtered.filter((s) => s.status === 'DeliveredToCustomer' || s.status === 'DeliveredToStore').length

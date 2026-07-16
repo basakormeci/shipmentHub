@@ -50,6 +50,7 @@ interface UiState {
   returnsFilterReason: string
   returnsDateFrom: string
   returnsDateTo: string
+  returnsPage: number
   returnsVisibleColumns: Partial<Record<ReturnColumnKey, boolean>>
   transfersSearch: string
   transfersSearchField: TransferSearchField
@@ -99,6 +100,7 @@ interface UiState {
         | 'returnsFilterReason'
         | 'returnsDateFrom'
         | 'returnsDateTo'
+        | 'returnsPage'
         | 'returnsVisibleColumns'
       >
     >,
@@ -157,6 +159,7 @@ export const useUiStore = create<UiState>()(
       returnsFilterReason: '',
       returnsDateFrom: '',
       returnsDateTo: '',
+      returnsPage: 1,
       returnsVisibleColumns: {},
       transfersSearch: '',
       transfersSearchField: 'transferNo',
@@ -201,6 +204,7 @@ export const useUiStore = create<UiState>()(
           returnsFilterReason: '',
           returnsDateFrom: '',
           returnsDateTo: '',
+          returnsPage: 1,
         }),
       setTransfersFilter: (patch) => set(patch),
       resetTransfersFilters: () =>
@@ -249,6 +253,7 @@ export const useUiStore = create<UiState>()(
         returnsFilterReason: s.returnsFilterReason,
         returnsDateFrom: s.returnsDateFrom,
         returnsDateTo: s.returnsDateTo,
+        returnsPage: s.returnsPage,
         returnsVisibleColumns: s.returnsVisibleColumns,
         transfersSearch: s.transfersSearch,
         transfersSearchField: s.transfersSearchField,

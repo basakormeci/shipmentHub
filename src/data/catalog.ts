@@ -16778,14 +16778,22 @@ export const RETURN_STATUS_GROUPS: { key: string; label: string; statuses: Retur
 export interface ReturnItem {
   id: number
   returnNo: number
-  originalShipmentId: number
-  reason: string
-  status: ReturnStatus
+  orderNo: number
+  companyId: number
+  trackingNo: string
+  shipFrom: string
+  shipTo: { district: string; province: string; addressLine?: string; phone?: string; email?: string }
   requestDate: string
+  status: ReturnStatus
+  referenceId: string
+  packageNo: string
+  customerName: string
+  channel: string
+  reason: string
   pickup: boolean
   note: string
-  companyId?: number
-  pickupAddress?: { district: string; province: string }
+  desi?: number
+  orderAmount?: number
   routingDecision?: ShipmentRoutingDecision
   statusHistory: { status: ReturnStatus; at: string }[]
 }
@@ -16794,34 +16802,23 @@ export const SEED_RETURNS: ReturnItem[] = [
   {
     "id": 1,
     "returnNo": 9300001,
-    "originalShipmentId": 2,
-    "reason": "kusurlu",
-    "status": "ReceivedByReturnCenter",
+    "orderNo": 61200002,
+    "companyId": 1,
+    "trackingNo": "YK-2026-R0000137",
+    "shipFrom": "Ankara İade Merkezi",
+    "shipTo": {
+      "district": "Nilüfer",
+      "province": "Bursa"
+    },
     "requestDate": "2026-04-14T01:06:29",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R00271",
+    "packageNo": "PKT-R000001",
+    "customerName": "Aslı Aydın",
+    "channel": "Trendyol",
+    "reason": "kusurlu",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-04-13T22:06:29.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-04-14T11:47:17.000Z"
-      },
-      {
-        "status": "OnReturnAddress",
-        "at": "2026-04-15T06:30:29.000Z"
-      },
-      {
-        "status": "ReturnReceivedByProvider",
-        "at": "2026-04-16T01:13:41.000Z"
-      },
-      {
-        "status": "ReceivedByReturnCenter",
-        "at": "2026-04-16T19:56:53.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -16862,39 +16859,50 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 1,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-04-13T22:06:29.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-04-14T11:47:17.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-04-15T06:30:29.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-04-16T01:13:41.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-04-16T19:56:53.000Z"
+      }
+    ]
   },
   {
     "id": 2,
     "returnNo": 9300002,
-    "originalShipmentId": 4,
-    "reason": "degisim",
-    "status": "ReceivedByReturnCenter",
+    "orderNo": 61200004,
+    "companyId": 4,
+    "trackingNo": "PTT-2026-R0000274",
+    "shipFrom": "İzmir İade Merkezi",
+    "shipTo": {
+      "district": "Keçiören",
+      "province": "Ankara"
+    },
     "requestDate": "2026-04-21T21:09:36",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R00542",
+    "packageNo": "PKT-R000002",
+    "customerName": "Selin Kurt",
+    "channel": "Hepsiburada",
+    "reason": "degisim",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-04-21T18:09:36.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-04-22T14:19:12.000Z"
-      },
-      {
-        "status": "OnReturnAddress",
-        "at": "2026-04-23T16:14:24.000Z"
-      },
-      {
-        "status": "ReturnReceivedByProvider",
-        "at": "2026-04-24T18:09:36.000Z"
-      },
-      {
-        "status": "ReceivedByReturnCenter",
-        "at": "2026-04-25T18:09:36.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -16948,39 +16956,50 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 4,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-04-21T18:09:36.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-04-22T14:19:12.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-04-23T16:14:24.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-04-24T18:09:36.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-04-25T18:09:36.000Z"
+      }
+    ]
   },
   {
     "id": 3,
     "returnNo": 9300003,
-    "originalShipmentId": 13,
-    "reason": "kusurlu",
-    "status": "ReceivedByReturnCenter",
+    "orderNo": 61200013,
+    "companyId": 2,
+    "trackingNo": "ARAS-2026-R0000411",
+    "shipFrom": "Bursa İade Merkezi",
+    "shipTo": {
+      "district": "Selçuklu",
+      "province": "Konya"
+    },
     "requestDate": "2026-04-23T09:25:03",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R00813",
+    "packageNo": "PKT-R000003",
+    "customerName": "Fatma Yıldız",
+    "channel": "Trendyol",
+    "reason": "kusurlu",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-04-23T06:25:03.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-04-24T10:01:03.000Z"
-      },
-      {
-        "status": "OnReturnAddress",
-        "at": "2026-04-25T19:37:03.000Z"
-      },
-      {
-        "status": "ReturnReceivedByProvider",
-        "at": "2026-04-27T05:13:03.000Z"
-      },
-      {
-        "status": "ReceivedByReturnCenter",
-        "at": "2026-04-28T06:25:03.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -17034,39 +17053,50 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 2,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-04-23T06:25:03.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-04-24T10:01:03.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-04-25T19:37:03.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-04-27T05:13:03.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-04-28T06:25:03.000Z"
+      }
+    ]
   },
   {
     "id": 4,
     "returnNo": 9300004,
-    "originalShipmentId": 20,
-    "reason": "diger",
-    "status": "ReceivedByReturnCenter",
+    "orderNo": 61200020,
+    "companyId": 1,
+    "trackingNo": "YK-2026-R0000548",
+    "shipFrom": "İstanbul İade Merkezi",
+    "shipTo": {
+      "district": "Muratpaşa",
+      "province": "Antalya"
+    },
     "requestDate": "2026-04-27T14:11:44",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R01084",
+    "packageNo": "PKT-R000004",
+    "customerName": "Aslı Bulut",
+    "channel": "Kendi Web Sitesi",
+    "reason": "diger",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-04-27T11:11:44.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-04-28T23:11:44.000Z"
-      },
-      {
-        "status": "OnReturnAddress",
-        "at": "2026-04-30T16:57:20.000Z"
-      },
-      {
-        "status": "ReturnReceivedByProvider",
-        "at": "2026-05-02T10:42:56.000Z"
-      },
-      {
-        "status": "ReceivedByReturnCenter",
-        "at": "2026-05-03T03:59:44.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -17107,17 +17137,104 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 1,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-04-27T11:11:44.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-04-28T23:11:44.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-04-30T16:57:20.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-02T10:42:56.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-03T03:59:44.000Z"
+      }
+    ]
   },
   {
     "id": 5,
     "returnNo": 9300005,
-    "originalShipmentId": 28,
-    "reason": "begenmedim",
-    "status": "ReceivedByReturnCenter",
+    "orderNo": 61200028,
+    "companyId": 2,
+    "trackingNo": "ARAS-2026-R0000685",
+    "shipFrom": "Ankara İade Merkezi",
+    "shipTo": {
+      "district": "Melikgazi",
+      "province": "Kayseri"
+    },
     "requestDate": "2026-05-01T13:59:10",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R01355",
+    "packageNo": "PKT-R000005",
+    "customerName": "Doğan Özdemir",
+    "channel": "Trendyol",
+    "reason": "begenmedim",
     "pickup": true,
     "note": "",
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17139,7 +17256,28 @@ export const SEED_RETURNS: ReturnItem[] = [
         "status": "ReceivedByReturnCenter",
         "at": "2026-05-08T10:59:10.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 6,
+    "returnNo": 9300006,
+    "orderNo": 61200016,
+    "companyId": 2,
+    "trackingNo": "ARAS-2026-R0000822",
+    "shipFrom": "İzmir İade Merkezi",
+    "shipTo": {
+      "district": "Ortahisar",
+      "province": "Trabzon"
+    },
+    "requestDate": "2026-05-02T13:52:50",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R01626",
+    "packageNo": "PKT-R000006",
+    "customerName": "Onur Arslan",
+    "channel": "Kendi Web Sitesi",
+    "reason": "begenmedim",
+    "pickup": true,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -17193,17 +17331,7 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 2,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 6,
-    "returnNo": 9300006,
-    "originalShipmentId": 16,
-    "reason": "begenmedim",
-    "status": "ReceivedByReturnCenter",
-    "requestDate": "2026-05-02T13:52:50",
-    "pickup": true,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17225,93 +17353,28 @@ export const SEED_RETURNS: ReturnItem[] = [
         "status": "ReceivedByReturnCenter",
         "at": "2026-05-04T10:52:50.000Z"
       }
-    ],
-    "routingDecision": {
-      "mode": "auto",
-      "contractEligibleCompanyIds": [
-        1,
-        4,
-        6,
-        7,
-        8
-      ],
-      "matchedRuleId": 5,
-      "matchedRuleName": "Genel Varsayılan",
-      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
-      "ruleNarrowedCompanyIds": [
-        1
-      ],
-      "weights": {
-        "cost": 0.25,
-        "deliveryTime": 0.2,
-        "successRate": 0.25,
-        "damagedRate": 0.1,
-        "avgPickupHours": 0.1,
-        "costDiffPct": 0.1
-      },
-      "scores": [
-        {
-          "companyId": 2,
-          "companyName": "Aras Kargo",
-          "metrics": {
-            "cost": 0.5853658536585367,
-            "deliveryTime": 0.2800000000000001,
-            "successRate": 0.679563492063492,
-            "damagedRate": 0.4666666666666667,
-            "avgPickupHours": 1,
-            "costDiffPct": 1
-          },
-          "combined": 0.6188990030971738
-        },
-        {
-          "companyId": 1,
-          "companyName": "Yurtiçi Kargo",
-          "metrics": {
-            "cost": 0,
-            "deliveryTime": 0.25000000000000006,
-            "successRate": 0.3408795212073899,
-            "damagedRate": 0,
-            "avgPickupHours": 0.572184029613961,
-            "costDiffPct": 0.9763550805736562
-          },
-          "combined": 0.29007379132060923
-        }
-      ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+    ]
   },
   {
     "id": 7,
     "returnNo": 9300007,
-    "originalShipmentId": 30,
-    "reason": "degisim",
-    "status": "ReceivedByReturnCenter",
+    "orderNo": 61200030,
+    "companyId": 8,
+    "trackingNo": "HPS-2026-R0000959",
+    "shipFrom": "Bursa İade Merkezi",
+    "shipTo": {
+      "district": "Karatay",
+      "province": "Konya"
+    },
     "requestDate": "2026-05-02T19:17:17",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R01897",
+    "packageNo": "PKT-R000007",
+    "customerName": "Cem Erdoğan",
+    "channel": "Trendyol",
+    "reason": "degisim",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-05-02T16:17:17.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-05-03T14:36:29.000Z"
-      },
-      {
-        "status": "OnReturnAddress",
-        "at": "2026-05-04T01:24:29.000Z"
-      },
-      {
-        "status": "ReturnReceivedByProvider",
-        "at": "2026-05-05T00:26:53.000Z"
-      },
-      {
-        "status": "ReceivedByReturnCenter",
-        "at": "2026-05-05T11:14:53.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -17365,17 +17428,104 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 8,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-02T16:17:17.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-03T14:36:29.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-04T01:24:29.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-05T00:26:53.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-05T11:14:53.000Z"
+      }
+    ]
   },
   {
     "id": 8,
     "returnNo": 9300008,
-    "originalShipmentId": 33,
-    "reason": "yanlis_urun",
-    "status": "ReceivedByReturnCenter",
+    "orderNo": 61200033,
+    "companyId": 2,
+    "trackingNo": "ARAS-2026-R0001096",
+    "shipFrom": "İstanbul İade Merkezi",
+    "shipTo": {
+      "district": "Ortahisar",
+      "province": "Trabzon"
+    },
     "requestDate": "2026-05-07T05:26:59",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R02168",
+    "packageNo": "PKT-R000008",
+    "customerName": "Ayşe Polat",
+    "channel": "Trendyol",
+    "reason": "yanlis_urun",
     "pickup": true,
     "note": "",
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 2,
+          "companyName": "Aras Kargo",
+          "metrics": {
+            "cost": 0.5853658536585367,
+            "deliveryTime": 0.2800000000000001,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.4666666666666667,
+            "avgPickupHours": 1,
+            "costDiffPct": 1
+          },
+          "combined": 0.6188990030971738
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 2,
+      "tieBreakUsedDefault": false
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17397,7 +17547,28 @@ export const SEED_RETURNS: ReturnItem[] = [
         "status": "ReceivedByReturnCenter",
         "at": "2026-05-11T00:31:47.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 9,
+    "returnNo": 9300009,
+    "orderNo": 61200036,
+    "companyId": 2,
+    "trackingNo": "ARAS-2026-R0001233",
+    "shipFrom": "Ankara İade Merkezi",
+    "shipTo": {
+      "district": "Yenimahalle",
+      "province": "Ankara"
+    },
+    "requestDate": "2026-05-08T06:03:41",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R02439",
+    "packageNo": "PKT-R000009",
+    "customerName": "Hakan Özdemir",
+    "channel": "Hepsiburada",
+    "reason": "begenmedim",
+    "pickup": true,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -17451,17 +17622,7 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 2,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 9,
-    "returnNo": 9300009,
-    "originalShipmentId": 36,
-    "reason": "begenmedim",
-    "status": "ReceivedByReturnCenter",
-    "requestDate": "2026-05-08T06:03:41",
-    "pickup": true,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17483,7 +17644,28 @@ export const SEED_RETURNS: ReturnItem[] = [
         "status": "ReceivedByReturnCenter",
         "at": "2026-05-13T03:03:41.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 10,
+    "returnNo": 9300010,
+    "orderNo": 61200032,
+    "companyId": 3,
+    "trackingNo": "MNG-2026-R0001370",
+    "shipFrom": "İzmir İade Merkezi",
+    "shipTo": {
+      "district": "Mamak",
+      "province": "Ankara"
+    },
+    "requestDate": "2026-05-08T14:25:53",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R02710",
+    "packageNo": "PKT-R000010",
+    "customerName": "Kerem Doğan",
+    "channel": "Hepsiburada",
+    "reason": "begenmedim",
+    "pickup": true,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -17509,17 +17691,17 @@ export const SEED_RETURNS: ReturnItem[] = [
       },
       "scores": [
         {
-          "companyId": 2,
-          "companyName": "Aras Kargo",
+          "companyId": 3,
+          "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
-            "deliveryTime": 0.2800000000000001,
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
-            "damagedRate": 0.4666666666666667,
-            "avgPickupHours": 1,
-            "costDiffPct": 1
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
           },
-          "combined": 0.6188990030971738
+          "combined": 0.47222420634920637
         },
         {
           "companyId": 1,
@@ -17535,19 +17717,9 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
+      "chosenCompanyId": 3,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 10,
-    "returnNo": 9300010,
-    "originalShipmentId": 32,
-    "reason": "begenmedim",
-    "status": "ReceivedByReturnCenter",
-    "requestDate": "2026-05-08T14:25:53",
-    "pickup": true,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17569,7 +17741,28 @@ export const SEED_RETURNS: ReturnItem[] = [
         "status": "ReceivedByReturnCenter",
         "at": "2026-05-14T11:25:53.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 11,
+    "returnNo": 9300011,
+    "orderNo": 61200035,
+    "companyId": 3,
+    "trackingNo": "MNG-2026-R0001507",
+    "shipFrom": "Bursa İade Merkezi",
+    "shipTo": {
+      "district": "Osmangazi",
+      "province": "Bursa"
+    },
+    "requestDate": "2026-05-10T09:09:17",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R02981",
+    "packageNo": "PKT-R000011",
+    "customerName": "Gül Doğan",
+    "channel": "Hepsiburada",
+    "reason": "begenmedim",
+    "pickup": false,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -17623,17 +17816,7 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 3,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 11,
-    "returnNo": 9300011,
-    "originalShipmentId": 35,
-    "reason": "begenmedim",
-    "status": "ReceivedByReturnCenter",
-    "requestDate": "2026-05-10T09:09:17",
-    "pickup": false,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17655,7 +17838,28 @@ export const SEED_RETURNS: ReturnItem[] = [
         "status": "ReceivedByReturnCenter",
         "at": "2026-05-16T23:26:05.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 12,
+    "returnNo": 9300012,
+    "orderNo": 61200018,
+    "companyId": 3,
+    "trackingNo": "MNG-2026-R0001644",
+    "shipFrom": "İstanbul İade Merkezi",
+    "shipTo": {
+      "district": "Şehitkamil",
+      "province": "Gaziantep"
+    },
+    "requestDate": "2026-05-10T19:23:50",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R03252",
+    "packageNo": "PKT-R000012",
+    "customerName": "Mehmet Doğan",
+    "channel": "Trendyol",
+    "reason": "kusurlu",
+    "pickup": true,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -17709,17 +17913,7 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 3,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 12,
-    "returnNo": 9300012,
-    "originalShipmentId": 18,
-    "reason": "kusurlu",
-    "status": "ReceivedByReturnCenter",
-    "requestDate": "2026-05-10T19:23:50",
-    "pickup": true,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17741,93 +17935,28 @@ export const SEED_RETURNS: ReturnItem[] = [
         "status": "ReceivedByReturnCenter",
         "at": "2026-05-12T16:23:50.000Z"
       }
-    ],
-    "routingDecision": {
-      "mode": "auto",
-      "contractEligibleCompanyIds": [
-        1,
-        4,
-        6,
-        7,
-        8
-      ],
-      "matchedRuleId": 5,
-      "matchedRuleName": "Genel Varsayılan",
-      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
-      "ruleNarrowedCompanyIds": [
-        1
-      ],
-      "weights": {
-        "cost": 0.25,
-        "deliveryTime": 0.2,
-        "successRate": 0.25,
-        "damagedRate": 0.1,
-        "avgPickupHours": 0.1,
-        "costDiffPct": 0.1
-      },
-      "scores": [
-        {
-          "companyId": 3,
-          "companyName": "MNG Kargo",
-          "metrics": {
-            "cost": 0.5,
-            "deliveryTime": 0.5199999999999999,
-            "successRate": 0.679563492063492,
-            "damagedRate": 0.7333333333333334,
-            "avgPickupHours": 0,
-            "costDiffPct": 0
-          },
-          "combined": 0.47222420634920637
-        },
-        {
-          "companyId": 1,
-          "companyName": "Yurtiçi Kargo",
-          "metrics": {
-            "cost": 0,
-            "deliveryTime": 0.25000000000000006,
-            "successRate": 0.3408795212073899,
-            "damagedRate": 0,
-            "avgPickupHours": 0.572184029613961,
-            "costDiffPct": 0.9763550805736562
-          },
-          "combined": 0.29007379132060923
-        }
-      ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+    ]
   },
   {
     "id": 13,
     "returnNo": 9300013,
-    "originalShipmentId": 46,
-    "reason": "degisim",
-    "status": "ReceivedByReturnCenter",
+    "orderNo": 61200046,
+    "companyId": 1,
+    "trackingNo": "YK-2026-R0001781",
+    "shipFrom": "Ankara İade Merkezi",
+    "shipTo": {
+      "district": "Çukurova",
+      "province": "Adana"
+    },
     "requestDate": "2026-05-11T16:06:33",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R03523",
+    "packageNo": "PKT-R000013",
+    "customerName": "Mehmet Öztürk",
+    "channel": "Kendi Web Sitesi",
+    "reason": "degisim",
     "pickup": false,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-05-11T13:06:33.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-05-12T07:49:45.000Z"
-      },
-      {
-        "status": "OnReturnAddress",
-        "at": "2026-05-12T22:56:57.000Z"
-      },
-      {
-        "status": "ReturnReceivedByProvider",
-        "at": "2026-05-13T14:04:09.000Z"
-      },
-      {
-        "status": "ReceivedByReturnCenter",
-        "at": "2026-05-14T13:06:33.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -17868,39 +17997,50 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 1,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-11T13:06:33.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-12T07:49:45.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-12T22:56:57.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-13T14:04:09.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-14T13:06:33.000Z"
+      }
+    ]
   },
   {
     "id": 14,
     "returnNo": 9300014,
-    "originalShipmentId": 45,
-    "reason": "begenmedim",
-    "status": "ReceivedByReturnCenter",
+    "orderNo": 61200045,
+    "companyId": 1,
+    "trackingNo": "YK-2026-R0001918",
+    "shipFrom": "İzmir İade Merkezi",
+    "shipTo": {
+      "district": "Bornova",
+      "province": "İzmir"
+    },
     "requestDate": "2026-05-11T19:19:17",
+    "status": "ReceivedByReturnCenter",
+    "referenceId": "REF-R03794",
+    "packageNo": "PKT-R000014",
+    "customerName": "İrem Aksoy",
+    "channel": "Trendyol",
+    "reason": "begenmedim",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-05-11T16:19:17.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-05-12T19:12:05.000Z"
-      },
-      {
-        "status": "OnReturnAddress",
-        "at": "2026-05-13T16:19:17.000Z"
-      },
-      {
-        "status": "ReturnReceivedByProvider",
-        "at": "2026-05-14T13:26:29.000Z"
-      },
-      {
-        "status": "ReceivedByReturnCenter",
-        "at": "2026-05-15T10:33:41.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -17991,27 +18131,50 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 1,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-11T16:19:17.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-05-12T19:12:05.000Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-05-13T16:19:17.000Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-05-14T13:26:29.000Z"
+      },
+      {
+        "status": "ReceivedByReturnCenter",
+        "at": "2026-05-15T10:33:41.000Z"
+      }
+    ]
   },
   {
     "id": 15,
     "returnNo": 9300015,
-    "originalShipmentId": 42,
-    "reason": "diger",
-    "status": "ReturnShipmentError",
+    "orderNo": 61200042,
+    "companyId": 1,
+    "trackingNo": "YK-2026-R0002055",
+    "shipFrom": "Bursa İade Merkezi",
+    "shipTo": {
+      "district": "Keçiören",
+      "province": "Ankara"
+    },
     "requestDate": "2026-05-12T04:05:30",
+    "status": "ReturnShipmentError",
+    "referenceId": "REF-R04065",
+    "packageNo": "PKT-R000015",
+    "customerName": "Ceren Polat",
+    "channel": "N11",
+    "reason": "diger",
     "pickup": false,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-05-12T01:05:30.000Z"
-      },
-      {
-        "status": "ReturnShipmentError",
-        "at": "2026-05-17T01:05:30.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -18052,27 +18215,38 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 1,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-12T01:05:30.000Z"
+      },
+      {
+        "status": "ReturnShipmentError",
+        "at": "2026-05-17T01:05:30.000Z"
+      }
+    ]
   },
   {
     "id": 16,
     "returnNo": 9300016,
-    "originalShipmentId": 39,
-    "reason": "yanlis_urun",
-    "status": "ReturnShipmentError",
+    "orderNo": 61200039,
+    "companyId": 2,
+    "trackingNo": "ARAS-2026-R0002192",
+    "shipFrom": "İstanbul İade Merkezi",
+    "shipTo": {
+      "district": "Melikgazi",
+      "province": "Kayseri"
+    },
     "requestDate": "2026-05-13T05:14:02",
+    "status": "ReturnShipmentError",
+    "referenceId": "REF-R04336",
+    "packageNo": "PKT-R000016",
+    "customerName": "Hakan Aksoy",
+    "channel": "Hepsiburada",
+    "reason": "yanlis_urun",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-05-13T02:14:02.000Z"
-      },
-      {
-        "status": "ReturnShipmentError",
-        "at": "2026-05-19T02:14:02.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -18126,27 +18300,38 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 2,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-13T02:14:02.000Z"
+      },
+      {
+        "status": "ReturnShipmentError",
+        "at": "2026-05-19T02:14:02.000Z"
+      }
+    ]
   },
   {
     "id": 17,
     "returnNo": 9300017,
-    "originalShipmentId": 57,
-    "reason": "kusurlu",
-    "status": "ReturnShipmentError",
+    "orderNo": 61200057,
+    "companyId": 6,
+    "trackingNo": "DHL-2026-R0002329",
+    "shipFrom": "Ankara İade Merkezi",
+    "shipTo": {
+      "district": "Kocasinan",
+      "province": "Kayseri"
+    },
     "requestDate": "2026-05-16T02:54:24",
+    "status": "ReturnShipmentError",
+    "referenceId": "REF-R04607",
+    "packageNo": "PKT-R000017",
+    "customerName": "Fatma Özdemir",
+    "channel": "Trendyol",
+    "reason": "kusurlu",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-05-15T23:54:24.000Z"
-      },
-      {
-        "status": "ReturnShipmentError",
-        "at": "2026-05-22T10:28:00.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -18200,27 +18385,38 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 6,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-15T23:54:24.000Z"
+      },
+      {
+        "status": "ReturnShipmentError",
+        "at": "2026-05-22T10:28:00.000Z"
+      }
+    ]
   },
   {
     "id": 18,
     "returnNo": 9300018,
-    "originalShipmentId": 41,
-    "reason": "diger",
-    "status": "ReturnCodeExpired",
+    "orderNo": 61200041,
+    "companyId": 3,
+    "trackingNo": "MNG-2026-R0002466",
+    "shipFrom": "İzmir İade Merkezi",
+    "shipTo": {
+      "district": "Selçuklu",
+      "province": "Konya"
+    },
     "requestDate": "2026-05-16T18:56:58",
+    "status": "ReturnCodeExpired",
+    "referenceId": "REF-R04878",
+    "packageNo": "PKT-R000018",
+    "customerName": "Yusuf Kaya",
+    "channel": "Hepsiburada",
+    "reason": "diger",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-05-16T15:56:58.000Z"
-      },
-      {
-        "status": "ReturnCodeExpired",
-        "at": "2026-05-18T13:04:10.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -18274,17 +18470,92 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 3,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-16T15:56:58.000Z"
+      },
+      {
+        "status": "ReturnCodeExpired",
+        "at": "2026-05-18T13:04:10.000Z"
+      }
+    ]
   },
   {
     "id": 19,
     "returnNo": 9300019,
-    "originalShipmentId": 53,
-    "reason": "diger",
-    "status": "ReturnReceivedByProvider",
+    "orderNo": 61200053,
+    "companyId": 3,
+    "trackingNo": "MNG-2026-R0002603",
+    "shipFrom": "Bursa İade Merkezi",
+    "shipTo": {
+      "district": "Ortahisar",
+      "province": "Trabzon"
+    },
     "requestDate": "2026-05-17T05:22:19",
+    "status": "ReturnReceivedByProvider",
+    "referenceId": "REF-R05149",
+    "packageNo": "PKT-R000019",
+    "customerName": "Aslı Aksoy",
+    "channel": "Kendi Web Sitesi",
+    "reason": "diger",
     "pickup": false,
     "note": "",
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18302,7 +18573,28 @@ export const SEED_RETURNS: ReturnItem[] = [
         "status": "ReturnReceivedByProvider",
         "at": "2026-07-15T09:00:00.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 20,
+    "returnNo": 9300020,
+    "orderNo": 61200052,
+    "companyId": 1,
+    "trackingNo": "YK-2026-R0002740",
+    "shipFrom": "İstanbul İade Merkezi",
+    "shipTo": {
+      "district": "Pendik",
+      "province": "İstanbul"
+    },
+    "requestDate": "2026-05-25T15:13:40",
+    "status": "ReturnReceivedByProvider",
+    "referenceId": "REF-R05420",
+    "packageNo": "PKT-R000020",
+    "customerName": "Kaan Koç",
+    "channel": "Hepsiburada",
+    "reason": "kusurlu",
+    "pickup": true,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -18328,19 +18620,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       },
       "scores": [
         {
-          "companyId": 3,
-          "companyName": "MNG Kargo",
-          "metrics": {
-            "cost": 0.5,
-            "deliveryTime": 0.5199999999999999,
-            "successRate": 0.679563492063492,
-            "damagedRate": 0.7333333333333334,
-            "avgPickupHours": 0,
-            "costDiffPct": 0
-          },
-          "combined": 0.47222420634920637
-        },
-        {
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
@@ -18354,19 +18633,9 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
+      "chosenCompanyId": 1,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 20,
-    "returnNo": 9300020,
-    "originalShipmentId": 52,
-    "reason": "kusurlu",
-    "status": "ReturnReceivedByProvider",
-    "requestDate": "2026-05-25T15:13:40",
-    "pickup": true,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18384,7 +18653,28 @@ export const SEED_RETURNS: ReturnItem[] = [
         "status": "ReturnReceivedByProvider",
         "at": "2026-07-15T09:00:00.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 21,
+    "returnNo": 9300021,
+    "orderNo": 61200077,
+    "companyId": 1,
+    "trackingNo": "YK-2026-R0002877",
+    "shipFrom": "Ankara İade Merkezi",
+    "shipTo": {
+      "district": "Yenimahalle",
+      "province": "Ankara"
+    },
+    "requestDate": "2026-05-27T04:27:22",
+    "status": "ReturnReceivedByProvider",
+    "referenceId": "REF-R05691",
+    "packageNo": "PKT-R000021",
+    "customerName": "Onur Arslan",
+    "channel": "Trendyol",
+    "reason": "diger",
+    "pickup": true,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -18425,17 +18715,7 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 1,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 21,
-    "returnNo": 9300021,
-    "originalShipmentId": 77,
-    "reason": "diger",
-    "status": "ReturnReceivedByProvider",
-    "requestDate": "2026-05-27T04:27:22",
-    "pickup": true,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18453,76 +18733,28 @@ export const SEED_RETURNS: ReturnItem[] = [
         "status": "ReturnReceivedByProvider",
         "at": "2026-07-15T09:00:00.000Z"
       }
-    ],
-    "routingDecision": {
-      "mode": "auto",
-      "contractEligibleCompanyIds": [
-        1,
-        4,
-        6,
-        7,
-        8
-      ],
-      "matchedRuleId": 5,
-      "matchedRuleName": "Genel Varsayılan",
-      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
-      "ruleNarrowedCompanyIds": [
-        1
-      ],
-      "weights": {
-        "cost": 0.25,
-        "deliveryTime": 0.2,
-        "successRate": 0.25,
-        "damagedRate": 0.1,
-        "avgPickupHours": 0.1,
-        "costDiffPct": 0.1
-      },
-      "scores": [
-        {
-          "companyId": 1,
-          "companyName": "Yurtiçi Kargo",
-          "metrics": {
-            "cost": 0,
-            "deliveryTime": 0.25000000000000006,
-            "successRate": 0.3408795212073899,
-            "damagedRate": 0,
-            "avgPickupHours": 0.572184029613961,
-            "costDiffPct": 0.9763550805736562
-          },
-          "combined": 0.29007379132060923
-        }
-      ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+    ]
   },
   {
     "id": 22,
     "returnNo": 9300022,
-    "originalShipmentId": 66,
-    "reason": "yanlis_urun",
-    "status": "ReturnReceivedByProvider",
+    "orderNo": 61200066,
+    "companyId": 6,
+    "trackingNo": "DHL-2026-R0003014",
+    "shipFrom": "İzmir İade Merkezi",
+    "shipTo": {
+      "district": "Çukurova",
+      "province": "Adana"
+    },
     "requestDate": "2026-05-30T14:22:48",
+    "status": "ReturnReceivedByProvider",
+    "referenceId": "REF-R05962",
+    "packageNo": "PKT-R000022",
+    "customerName": "Mehmet Koç",
+    "channel": "Trendyol",
+    "reason": "yanlis_urun",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-05-30T11:22:48.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-06-15T16:37:08.640Z"
-      },
-      {
-        "status": "OnReturnAddress",
-        "at": "2026-07-03T06:54:24.240Z"
-      },
-      {
-        "status": "ReturnReceivedByProvider",
-        "at": "2026-07-13T01:55:08.400Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -18576,35 +18808,46 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 6,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-05-30T11:22:48.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-06-15T16:37:08.640Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-07-03T06:54:24.240Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-07-13T01:55:08.400Z"
+      }
+    ]
   },
   {
     "id": 23,
     "returnNo": 9300023,
-    "originalShipmentId": 68,
-    "reason": "kusurlu",
-    "status": "ReturnReceivedByProvider",
+    "orderNo": 61200068,
+    "companyId": 1,
+    "trackingNo": "YK-2026-R0003151",
+    "shipFrom": "Bursa İade Merkezi",
+    "shipTo": {
+      "district": "Kocasinan",
+      "province": "Kayseri"
+    },
     "requestDate": "2026-06-04T00:37:07",
+    "status": "ReturnReceivedByProvider",
+    "referenceId": "REF-R06233",
+    "packageNo": "PKT-R000023",
+    "customerName": "Kaan Bulut",
+    "channel": "Hepsiburada",
+    "reason": "kusurlu",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-06-03T21:37:07.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-06-19T09:13:39.586Z"
-      },
-      {
-        "status": "OnReturnAddress",
-        "at": "2026-06-28T15:31:46.223Z"
-      },
-      {
-        "status": "ReturnReceivedByProvider",
-        "at": "2026-07-14T23:02:46.270Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -18645,35 +18888,46 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 1,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-03T21:37:07.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-06-19T09:13:39.586Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-06-28T15:31:46.223Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-07-14T23:02:46.270Z"
+      }
+    ]
   },
   {
     "id": 24,
     "returnNo": 9300024,
-    "originalShipmentId": 96,
-    "reason": "begenmedim",
-    "status": "ReturnReceivedByProvider",
+    "orderNo": 61200096,
+    "companyId": 7,
+    "trackingNo": "HRZ-2026-R0003288",
+    "shipFrom": "İstanbul İade Merkezi",
+    "shipTo": {
+      "district": "Seyhan",
+      "province": "Adana"
+    },
     "requestDate": "2026-06-05T15:49:09",
+    "status": "ReturnReceivedByProvider",
+    "referenceId": "REF-R06504",
+    "packageNo": "PKT-R000024",
+    "customerName": "Serkan Kurt",
+    "channel": "Trendyol",
+    "reason": "begenmedim",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-06-05T12:49:09.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-06-21T04:55:01.060Z"
-      },
-      {
-        "status": "OnReturnAddress",
-        "at": "2026-06-30T12:01:32.960Z"
-      },
-      {
-        "status": "ReturnReceivedByProvider",
-        "at": "2026-07-15T09:00:00.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -18727,35 +18981,46 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 7,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 25,
-    "returnNo": 9300025,
-    "originalShipmentId": 75,
-    "reason": "degisim",
-    "status": "ReturnReceivedByProvider",
-    "requestDate": "2026-06-06T06:09:15",
-    "pickup": true,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
-        "at": "2026-06-06T03:09:15.000Z"
+        "at": "2026-06-05T12:49:09.000Z"
       },
       {
         "status": "ReturnOnTheWay",
-        "at": "2026-06-22T08:27:01.600Z"
+        "at": "2026-06-21T04:55:01.060Z"
       },
       {
         "status": "OnReturnAddress",
-        "at": "2026-07-01T21:37:58.550Z"
+        "at": "2026-06-30T12:01:32.960Z"
       },
       {
         "status": "ReturnReceivedByProvider",
         "at": "2026-07-15T09:00:00.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 25,
+    "returnNo": 9300025,
+    "orderNo": 61200075,
+    "companyId": 1,
+    "trackingNo": "YK-2026-R0003425",
+    "shipFrom": "Ankara İade Merkezi",
+    "shipTo": {
+      "district": "Meram",
+      "province": "Konya"
+    },
+    "requestDate": "2026-06-06T06:09:15",
+    "status": "ReturnReceivedByProvider",
+    "referenceId": "REF-R06775",
+    "packageNo": "PKT-R000025",
+    "customerName": "Fatma Aydın",
+    "channel": "Kendi Web Sitesi",
+    "reason": "degisim",
+    "pickup": true,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -18796,35 +19061,46 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 1,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-06T03:09:15.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-06-22T08:27:01.600Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-07-01T21:37:58.550Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ]
   },
   {
     "id": 26,
     "returnNo": 9300026,
-    "originalShipmentId": 70,
-    "reason": "yanlis_urun",
-    "status": "ReturnReceivedByProvider",
+    "orderNo": 61200070,
+    "companyId": 2,
+    "trackingNo": "ARAS-2026-R0003562",
+    "shipFrom": "İzmir İade Merkezi",
+    "shipTo": {
+      "district": "Kocasinan",
+      "province": "Kayseri"
+    },
     "requestDate": "2026-06-09T15:20:19",
+    "status": "ReturnReceivedByProvider",
+    "referenceId": "REF-R07046",
+    "packageNo": "PKT-R000026",
+    "customerName": "Gizem Bulut",
+    "channel": "Hepsiburada",
+    "reason": "yanlis_urun",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-06-09T12:20:19.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-06-18T22:58:45.996Z"
-      },
-      {
-        "status": "OnReturnAddress",
-        "at": "2026-07-04T03:19:33.953Z"
-      },
-      {
-        "status": "ReturnReceivedByProvider",
-        "at": "2026-07-13T05:21:37.140Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -18878,27 +19154,46 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 2,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-09T12:20:19.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-06-18T22:58:45.996Z"
+      },
+      {
+        "status": "OnReturnAddress",
+        "at": "2026-07-04T03:19:33.953Z"
+      },
+      {
+        "status": "ReturnReceivedByProvider",
+        "at": "2026-07-13T05:21:37.140Z"
+      }
+    ]
   },
   {
     "id": 27,
     "returnNo": 9300027,
-    "originalShipmentId": 102,
-    "reason": "diger",
-    "status": "ReturnOnTheWay",
+    "orderNo": 61200102,
+    "companyId": 4,
+    "trackingNo": "PTT-2026-R0003699",
+    "shipFrom": "Bursa İade Merkezi",
+    "shipTo": {
+      "district": "Ortahisar",
+      "province": "Trabzon"
+    },
     "requestDate": "2026-06-11T05:01:37",
+    "status": "ReturnOnTheWay",
+    "referenceId": "REF-R07317",
+    "packageNo": "PKT-R000027",
+    "customerName": "Barış Bulut",
+    "channel": "Trendyol",
+    "reason": "diger",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-06-11T02:01:37.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-07-13T15:51:04.850Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -18952,27 +19247,38 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 4,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-11T02:01:37.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-07-13T15:51:04.850Z"
+      }
+    ]
   },
   {
     "id": 28,
     "returnNo": 9300028,
-    "originalShipmentId": 74,
-    "reason": "begenmedim",
-    "status": "ReturnOnTheWay",
+    "orderNo": 61200074,
+    "companyId": 3,
+    "trackingNo": "MNG-2026-R0003836",
+    "shipFrom": "İstanbul İade Merkezi",
+    "shipTo": {
+      "district": "Yıldırım",
+      "province": "Bursa"
+    },
     "requestDate": "2026-06-11T22:59:12",
+    "status": "ReturnOnTheWay",
+    "referenceId": "REF-R07588",
+    "packageNo": "PKT-R000028",
+    "customerName": "Aslı Aksoy",
+    "channel": "Trendyol",
+    "reason": "begenmedim",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-06-11T19:59:12.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-07-14T08:50:58.560Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -19026,27 +19332,38 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 3,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-11T19:59:12.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-07-14T08:50:58.560Z"
+      }
+    ]
   },
   {
     "id": 29,
     "returnNo": 9300029,
-    "originalShipmentId": 94,
-    "reason": "begenmedim",
-    "status": "ReturnOnTheWay",
+    "orderNo": 61200094,
+    "companyId": 6,
+    "trackingNo": "DHL-2026-R0003973",
+    "shipFrom": "Ankara İade Merkezi",
+    "shipTo": {
+      "district": "Yüreğir",
+      "province": "Adana"
+    },
     "requestDate": "2026-06-14T00:24:11",
+    "status": "ReturnOnTheWay",
+    "referenceId": "REF-R07859",
+    "packageNo": "PKT-R000029",
+    "customerName": "Ayşe Doğan",
+    "channel": "Trendyol",
+    "reason": "begenmedim",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-06-13T21:24:11.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-07-15T01:26:38.510Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -19100,27 +19417,38 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 6,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-13T21:24:11.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-07-15T01:26:38.510Z"
+      }
+    ]
   },
   {
     "id": 30,
     "returnNo": 9300030,
-    "originalShipmentId": 83,
-    "reason": "degisim",
-    "status": "ReturnOnTheWay",
+    "orderNo": 61200083,
+    "companyId": 8,
+    "trackingNo": "HPS-2026-R0004110",
+    "shipFrom": "İzmir İade Merkezi",
+    "shipTo": {
+      "district": "Keçiören",
+      "province": "Ankara"
+    },
     "requestDate": "2026-06-14T08:25:56",
+    "status": "ReturnOnTheWay",
+    "referenceId": "REF-R08130",
+    "packageNo": "PKT-R000030",
+    "customerName": "Ebru Aksoy",
+    "channel": "Trendyol",
+    "reason": "degisim",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-06-14T05:25:56.000Z"
-      },
-      {
-        "status": "ReturnOnTheWay",
-        "at": "2026-07-15T09:00:00.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -19174,27 +19502,38 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 8,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 31,
-    "returnNo": 9300031,
-    "originalShipmentId": 111,
-    "reason": "diger",
-    "status": "ReturnOnTheWay",
-    "requestDate": "2026-06-15T03:41:53",
-    "pickup": true,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
-        "at": "2026-06-15T00:41:53.000Z"
+        "at": "2026-06-14T05:25:56.000Z"
       },
       {
         "status": "ReturnOnTheWay",
         "at": "2026-07-15T09:00:00.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 31,
+    "returnNo": 9300031,
+    "orderNo": 61200111,
+    "companyId": 1,
+    "trackingNo": "YK-2026-R0004247",
+    "shipFrom": "Bursa İade Merkezi",
+    "shipTo": {
+      "district": "Selçuklu",
+      "province": "Konya"
+    },
+    "requestDate": "2026-06-15T03:41:53",
+    "status": "ReturnOnTheWay",
+    "referenceId": "REF-R08401",
+    "packageNo": "PKT-R000031",
+    "customerName": "Serkan Arslan",
+    "channel": "Trendyol",
+    "reason": "diger",
+    "pickup": true,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -19235,27 +19574,38 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 1,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 32,
-    "returnNo": 9300032,
-    "originalShipmentId": 98,
-    "reason": "kusurlu",
-    "status": "ReturnOnTheWay",
-    "requestDate": "2026-06-16T21:15:22",
-    "pickup": true,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
-        "at": "2026-06-16T18:15:22.000Z"
+        "at": "2026-06-15T00:41:53.000Z"
       },
       {
         "status": "ReturnOnTheWay",
         "at": "2026-07-15T09:00:00.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 32,
+    "returnNo": 9300032,
+    "orderNo": 61200098,
+    "companyId": 2,
+    "trackingNo": "ARAS-2026-R0004384",
+    "shipFrom": "İstanbul İade Merkezi",
+    "shipTo": {
+      "district": "Çiğli",
+      "province": "İzmir"
+    },
+    "requestDate": "2026-06-16T21:15:22",
+    "status": "ReturnOnTheWay",
+    "referenceId": "REF-R08672",
+    "packageNo": "PKT-R000032",
+    "customerName": "Zeynep Demir",
+    "channel": "N11",
+    "reason": "kusurlu",
+    "pickup": true,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -19360,23 +19710,38 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 2,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-16T18:15:22.000Z"
+      },
+      {
+        "status": "ReturnOnTheWay",
+        "at": "2026-07-15T09:00:00.000Z"
+      }
+    ]
   },
   {
     "id": 33,
     "returnNo": 9300033,
-    "originalShipmentId": 90,
-    "reason": "degisim",
-    "status": "ReturnCodeCreated",
+    "orderNo": 61200090,
+    "companyId": 2,
+    "trackingNo": "ARAS-2026-R0004521",
+    "shipFrom": "Ankara İade Merkezi",
+    "shipTo": {
+      "district": "Şahinbey",
+      "province": "Gaziantep"
+    },
     "requestDate": "2026-06-18T13:21:21",
+    "status": "ReturnCodeCreated",
+    "referenceId": "REF-R08943",
+    "packageNo": "PKT-R000033",
+    "customerName": "Kerem Özdemir",
+    "channel": "Kendi Web Sitesi",
+    "reason": "degisim",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-06-18T10:21:21.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -19430,23 +19795,34 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 2,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-18T10:21:21.000Z"
+      }
+    ]
   },
   {
     "id": 34,
     "returnNo": 9300034,
-    "originalShipmentId": 107,
-    "reason": "yanlis_urun",
-    "status": "ReturnCodeCreated",
+    "orderNo": 61200107,
+    "companyId": 7,
+    "trackingNo": "HRZ-2026-R0004658",
+    "shipFrom": "İzmir İade Merkezi",
+    "shipTo": {
+      "district": "Seyhan",
+      "province": "Adana"
+    },
     "requestDate": "2026-06-21T23:44:44",
+    "status": "ReturnCodeCreated",
+    "referenceId": "REF-R09214",
+    "packageNo": "PKT-R000034",
+    "customerName": "Gül Demir",
+    "channel": "Hepsiburada",
+    "reason": "yanlis_urun",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-06-21T20:44:44.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -19500,23 +19876,115 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 7,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-21T20:44:44.000Z"
+      }
+    ]
   },
   {
     "id": 35,
     "returnNo": 9300035,
-    "originalShipmentId": 116,
-    "reason": "diger",
-    "status": "ReturnCodeCreated",
+    "orderNo": 61200116,
+    "companyId": 3,
+    "trackingNo": "MNG-2026-R0004795",
+    "shipFrom": "Bursa İade Merkezi",
+    "shipTo": {
+      "district": "Akçaabat",
+      "province": "Trabzon"
+    },
     "requestDate": "2026-06-23T02:33:36",
+    "status": "ReturnCodeCreated",
+    "referenceId": "REF-R09485",
+    "packageNo": "PKT-R000035",
+    "customerName": "Deniz Kurt",
+    "channel": "Hepsiburada",
+    "reason": "diger",
     "pickup": true,
     "note": "",
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
         "at": "2026-06-22T23:33:36.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 36,
+    "returnNo": 9300036,
+    "orderNo": 61200108,
+    "companyId": 3,
+    "trackingNo": "MNG-2026-R0004932",
+    "shipFrom": "İstanbul İade Merkezi",
+    "shipTo": {
+      "district": "Seyhan",
+      "province": "Adana"
+    },
+    "requestDate": "2026-06-24T08:46:59",
+    "status": "ReturnCodeCreated",
+    "referenceId": "REF-R09756",
+    "packageNo": "PKT-R000036",
+    "customerName": "Barış Özdemir",
+    "channel": "Trendyol",
+    "reason": "kusurlu",
+    "pickup": true,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -19570,93 +20038,34 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 3,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 36,
-    "returnNo": 9300036,
-    "originalShipmentId": 108,
-    "reason": "kusurlu",
-    "status": "ReturnCodeCreated",
-    "requestDate": "2026-06-24T08:46:59",
-    "pickup": true,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
         "at": "2026-06-24T05:46:59.000Z"
       }
-    ],
-    "routingDecision": {
-      "mode": "auto",
-      "contractEligibleCompanyIds": [
-        1,
-        4,
-        6,
-        7,
-        8
-      ],
-      "matchedRuleId": 5,
-      "matchedRuleName": "Genel Varsayılan",
-      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
-      "ruleNarrowedCompanyIds": [
-        1
-      ],
-      "weights": {
-        "cost": 0.25,
-        "deliveryTime": 0.2,
-        "successRate": 0.25,
-        "damagedRate": 0.1,
-        "avgPickupHours": 0.1,
-        "costDiffPct": 0.1
-      },
-      "scores": [
-        {
-          "companyId": 3,
-          "companyName": "MNG Kargo",
-          "metrics": {
-            "cost": 0.5,
-            "deliveryTime": 0.5199999999999999,
-            "successRate": 0.679563492063492,
-            "damagedRate": 0.7333333333333334,
-            "avgPickupHours": 0,
-            "costDiffPct": 0
-          },
-          "combined": 0.47222420634920637
-        },
-        {
-          "companyId": 1,
-          "companyName": "Yurtiçi Kargo",
-          "metrics": {
-            "cost": 0,
-            "deliveryTime": 0.25000000000000006,
-            "successRate": 0.3408795212073899,
-            "damagedRate": 0,
-            "avgPickupHours": 0.572184029613961,
-            "costDiffPct": 0.9763550805736562
-          },
-          "combined": 0.29007379132060923
-        }
-      ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+    ]
   },
   {
     "id": 37,
     "returnNo": 9300037,
-    "originalShipmentId": 127,
-    "reason": "kusurlu",
-    "status": "ReturnCodeCreated",
+    "orderNo": 61200127,
+    "companyId": 1,
+    "trackingNo": "YK-2026-R0005069",
+    "shipFrom": "Ankara İade Merkezi",
+    "shipTo": {
+      "district": "Kocasinan",
+      "province": "Kayseri"
+    },
     "requestDate": "2026-06-25T07:58:48",
+    "status": "ReturnCodeCreated",
+    "referenceId": "REF-R10027",
+    "packageNo": "PKT-R000037",
+    "customerName": "Ceren Erdoğan",
+    "channel": "Trendyol",
+    "reason": "kusurlu",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-06-25T04:58:48.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -19697,23 +20106,115 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 1,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-06-25T04:58:48.000Z"
+      }
+    ]
   },
   {
     "id": 38,
     "returnNo": 9300038,
-    "originalShipmentId": 101,
-    "reason": "degisim",
-    "status": "ReturnCodeCreated",
+    "orderNo": 61200101,
+    "companyId": 3,
+    "trackingNo": "MNG-2026-R0005206",
+    "shipFrom": "İzmir İade Merkezi",
+    "shipTo": {
+      "district": "Mamak",
+      "province": "Ankara"
+    },
     "requestDate": "2026-06-26T09:09:09",
+    "status": "ReturnCodeCreated",
+    "referenceId": "REF-R10298",
+    "packageNo": "PKT-R000038",
+    "customerName": "Kerem Aydın",
+    "channel": "N11",
+    "reason": "degisim",
     "pickup": true,
     "note": "",
+    "routingDecision": {
+      "mode": "auto",
+      "contractEligibleCompanyIds": [
+        1,
+        4,
+        6,
+        7,
+        8
+      ],
+      "matchedRuleId": 5,
+      "matchedRuleName": "Genel Varsayılan",
+      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
+      "ruleNarrowedCompanyIds": [
+        1
+      ],
+      "weights": {
+        "cost": 0.25,
+        "deliveryTime": 0.2,
+        "successRate": 0.25,
+        "damagedRate": 0.1,
+        "avgPickupHours": 0.1,
+        "costDiffPct": 0.1
+      },
+      "scores": [
+        {
+          "companyId": 3,
+          "companyName": "MNG Kargo",
+          "metrics": {
+            "cost": 0.5,
+            "deliveryTime": 0.5199999999999999,
+            "successRate": 0.679563492063492,
+            "damagedRate": 0.7333333333333334,
+            "avgPickupHours": 0,
+            "costDiffPct": 0
+          },
+          "combined": 0.47222420634920637
+        },
+        {
+          "companyId": 1,
+          "companyName": "Yurtiçi Kargo",
+          "metrics": {
+            "cost": 0,
+            "deliveryTime": 0.25000000000000006,
+            "successRate": 0.3408795212073899,
+            "damagedRate": 0,
+            "avgPickupHours": 0.572184029613961,
+            "costDiffPct": 0.9763550805736562
+          },
+          "combined": 0.29007379132060923
+        }
+      ],
+      "chosenCompanyId": 3,
+      "tieBreakUsedDefault": false
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
         "at": "2026-06-26T06:09:09.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 39,
+    "returnNo": 9300039,
+    "orderNo": 61200113,
+    "companyId": 3,
+    "trackingNo": "MNG-2026-R0005343",
+    "shipFrom": "Bursa İade Merkezi",
+    "shipTo": {
+      "district": "Seyhan",
+      "province": "Adana"
+    },
+    "requestDate": "2026-06-30T10:07:29",
+    "status": "ReturnCodeCreated",
+    "referenceId": "REF-R10569",
+    "packageNo": "PKT-R000039",
+    "customerName": "Yusuf Şahin",
+    "channel": "Trendyol",
+    "reason": "diger",
+    "pickup": true,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -19767,23 +20268,34 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 3,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 39,
-    "returnNo": 9300039,
-    "originalShipmentId": 113,
-    "reason": "diger",
-    "status": "ReturnCodeCreated",
-    "requestDate": "2026-06-30T10:07:29",
-    "pickup": true,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
         "at": "2026-06-30T07:07:29.000Z"
       }
-    ],
+    ]
+  },
+  {
+    "id": 40,
+    "returnNo": 9300040,
+    "orderNo": 61200114,
+    "companyId": 3,
+    "trackingNo": "MNG-2026-R0005480",
+    "shipFrom": "İstanbul İade Merkezi",
+    "shipTo": {
+      "district": "Şişli",
+      "province": "İstanbul"
+    },
+    "requestDate": "2026-06-30T19:24:30",
+    "status": "ReturnCodeCreated",
+    "referenceId": "REF-R10840",
+    "packageNo": "PKT-R000040",
+    "customerName": "Pınar Çelik",
+    "channel": "Trendyol",
+    "reason": "degisim",
+    "pickup": true,
+    "note": "",
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -19837,93 +20349,34 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 3,
       "tieBreakUsedDefault": false
-    }
-  },
-  {
-    "id": 40,
-    "returnNo": 9300040,
-    "originalShipmentId": 114,
-    "reason": "degisim",
-    "status": "ReturnCodeCreated",
-    "requestDate": "2026-06-30T19:24:30",
-    "pickup": true,
-    "note": "",
+    },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
         "at": "2026-06-30T16:24:30.000Z"
       }
-    ],
-    "routingDecision": {
-      "mode": "auto",
-      "contractEligibleCompanyIds": [
-        1,
-        4,
-        6,
-        7,
-        8
-      ],
-      "matchedRuleId": 5,
-      "matchedRuleName": "Genel Varsayılan",
-      "matchedRuleSummary": "0–999 desi · Tüm bölgeler",
-      "ruleNarrowedCompanyIds": [
-        1
-      ],
-      "weights": {
-        "cost": 0.25,
-        "deliveryTime": 0.2,
-        "successRate": 0.25,
-        "damagedRate": 0.1,
-        "avgPickupHours": 0.1,
-        "costDiffPct": 0.1
-      },
-      "scores": [
-        {
-          "companyId": 3,
-          "companyName": "MNG Kargo",
-          "metrics": {
-            "cost": 0.5,
-            "deliveryTime": 0.5199999999999999,
-            "successRate": 0.679563492063492,
-            "damagedRate": 0.7333333333333334,
-            "avgPickupHours": 0,
-            "costDiffPct": 0
-          },
-          "combined": 0.47222420634920637
-        },
-        {
-          "companyId": 1,
-          "companyName": "Yurtiçi Kargo",
-          "metrics": {
-            "cost": 0,
-            "deliveryTime": 0.25000000000000006,
-            "successRate": 0.3408795212073899,
-            "damagedRate": 0,
-            "avgPickupHours": 0.572184029613961,
-            "costDiffPct": 0.9763550805736562
-          },
-          "combined": 0.29007379132060923
-        }
-      ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+    ]
   },
   {
     "id": 41,
     "returnNo": 9300041,
-    "originalShipmentId": 128,
-    "reason": "diger",
-    "status": "ReturnCodeCreated",
+    "orderNo": 61200128,
+    "companyId": 2,
+    "trackingNo": "ARAS-2026-R0005617",
+    "shipFrom": "Ankara İade Merkezi",
+    "shipTo": {
+      "district": "Akçaabat",
+      "province": "Trabzon"
+    },
     "requestDate": "2026-07-05T16:51:47",
+    "status": "ReturnCodeCreated",
+    "referenceId": "REF-R11111",
+    "packageNo": "PKT-R000041",
+    "customerName": "Ceren Öztürk",
+    "channel": "Trendyol",
+    "reason": "diger",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-07-05T13:51:47.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -19977,23 +20430,34 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 2,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-07-05T13:51:47.000Z"
+      }
+    ]
   },
   {
     "id": 42,
     "returnNo": 9300042,
-    "originalShipmentId": 129,
-    "reason": "yanlis_urun",
-    "status": "ReturnCodeCreated",
+    "orderNo": 61200129,
+    "companyId": 4,
+    "trackingNo": "PTT-2026-R0005754",
+    "shipFrom": "İzmir İade Merkezi",
+    "shipTo": {
+      "district": "Çiğli",
+      "province": "İzmir"
+    },
     "requestDate": "2026-07-08T15:00:00",
+    "status": "ReturnCodeCreated",
+    "referenceId": "REF-R11382",
+    "packageNo": "PKT-R000042",
+    "customerName": "Ceren Şimşek",
+    "channel": "Trendyol",
+    "reason": "yanlis_urun",
     "pickup": true,
     "note": "",
-    "statusHistory": [
-      {
-        "status": "ReturnCodeCreated",
-        "at": "2026-07-08T12:00:00.000Z"
-      }
-    ],
     "routingDecision": {
       "mode": "auto",
       "contractEligibleCompanyIds": [
@@ -20084,7 +20548,13 @@ export const SEED_RETURNS: ReturnItem[] = [
       ],
       "chosenCompanyId": 4,
       "tieBreakUsedDefault": false
-    }
+    },
+    "statusHistory": [
+      {
+        "status": "ReturnCodeCreated",
+        "at": "2026-07-08T12:00:00.000Z"
+      }
+    ]
   }
 ]
 
@@ -27420,7 +27890,8 @@ export const SEED_CARRIER_PRICING: CarrierPricing[] = [
 export interface CarrierInvoice {
   id: number
   companyId: number
-  shipmentNo: number
+  shipmentNo?: number
+  returnNo?: number
   invoiceNo: string
   expectedCost: number
   realCost: number
@@ -28638,6 +29109,426 @@ export const SEED_CARRIER_INVOICES: CarrierInvoice[] = [
     "realCost": 48,
     "invoiceDate": "2026-06-24T16:20:29",
     "status": "matched"
+  },
+  {
+    "id": 122,
+    "companyId": 1,
+    "returnNo": 9300001,
+    "invoiceNo": "FTR-2026-00422",
+    "expectedCost": 58,
+    "realCost": 60,
+    "invoiceDate": "2026-04-16T22:06:29.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 123,
+    "companyId": 4,
+    "returnNo": 9300002,
+    "invoiceNo": "FTR-2026-00423",
+    "expectedCost": 66,
+    "realCost": 78,
+    "invoiceDate": "2026-04-25T18:09:36.000Z",
+    "status": "pending"
+  },
+  {
+    "id": 124,
+    "companyId": 2,
+    "returnNo": 9300003,
+    "invoiceNo": "FTR-2026-00424",
+    "expectedCost": 74,
+    "realCost": 75,
+    "invoiceDate": "2026-04-28T06:25:03.000Z",
+    "status": "disputed"
+  },
+  {
+    "id": 125,
+    "companyId": 1,
+    "returnNo": 9300004,
+    "invoiceNo": "FTR-2026-00425",
+    "expectedCost": 82,
+    "realCost": 93,
+    "invoiceDate": "2026-05-03T11:11:44.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 126,
+    "companyId": 2,
+    "returnNo": 9300005,
+    "invoiceNo": "FTR-2026-00426",
+    "expectedCost": 90,
+    "realCost": 90,
+    "invoiceDate": "2026-05-03T10:59:10.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 127,
+    "companyId": 2,
+    "returnNo": 9300006,
+    "invoiceNo": "FTR-2026-00427",
+    "expectedCost": 98,
+    "realCost": 108,
+    "invoiceDate": "2026-05-05T10:52:50.000Z",
+    "status": "pending"
+  },
+  {
+    "id": 128,
+    "companyId": 8,
+    "returnNo": 9300007,
+    "invoiceNo": "FTR-2026-00428",
+    "expectedCost": 50,
+    "realCost": 49,
+    "invoiceDate": "2026-05-06T16:17:17.000Z",
+    "status": "disputed"
+  },
+  {
+    "id": 129,
+    "companyId": 2,
+    "returnNo": 9300008,
+    "invoiceNo": "FTR-2026-00429",
+    "expectedCost": 58,
+    "realCost": 67,
+    "invoiceDate": "2026-05-12T02:26:59.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 130,
+    "companyId": 2,
+    "returnNo": 9300009,
+    "invoiceNo": "FTR-2026-00430",
+    "expectedCost": 66,
+    "realCost": 64,
+    "invoiceDate": "2026-05-14T03:03:41.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 131,
+    "companyId": 3,
+    "returnNo": 9300010,
+    "invoiceNo": "FTR-2026-00431",
+    "expectedCost": 74,
+    "realCost": 82,
+    "invoiceDate": "2026-05-10T11:25:53.000Z",
+    "status": "pending"
+  },
+  {
+    "id": 132,
+    "companyId": 3,
+    "returnNo": 9300011,
+    "invoiceNo": "FTR-2026-00432",
+    "expectedCost": 82,
+    "realCost": 79,
+    "invoiceDate": "2026-05-13T06:09:17.000Z",
+    "status": "disputed"
+  },
+  {
+    "id": 133,
+    "companyId": 3,
+    "returnNo": 9300012,
+    "invoiceNo": "FTR-2026-00433",
+    "expectedCost": 90,
+    "realCost": 97,
+    "invoiceDate": "2026-05-14T16:23:50.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 134,
+    "companyId": 1,
+    "returnNo": 9300013,
+    "invoiceNo": "FTR-2026-00434",
+    "expectedCost": 98,
+    "realCost": 94,
+    "invoiceDate": "2026-05-16T13:06:33.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 135,
+    "companyId": 1,
+    "returnNo": 9300014,
+    "invoiceNo": "FTR-2026-00435",
+    "expectedCost": 50,
+    "realCost": 56,
+    "invoiceDate": "2026-05-17T16:19:17.000Z",
+    "status": "pending"
+  },
+  {
+    "id": 136,
+    "companyId": 1,
+    "returnNo": 9300015,
+    "invoiceNo": "FTR-2026-00436",
+    "expectedCost": 58,
+    "realCost": 53,
+    "invoiceDate": "2026-05-14T01:05:30.000Z",
+    "status": "disputed"
+  },
+  {
+    "id": 137,
+    "companyId": 2,
+    "returnNo": 9300016,
+    "invoiceNo": "FTR-2026-00437",
+    "expectedCost": 66,
+    "realCost": 71,
+    "invoiceDate": "2026-05-16T02:14:02.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 138,
+    "companyId": 6,
+    "returnNo": 9300017,
+    "invoiceNo": "FTR-2026-00438",
+    "expectedCost": 74,
+    "realCost": 68,
+    "invoiceDate": "2026-05-19T23:54:24.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 139,
+    "companyId": 3,
+    "returnNo": 9300018,
+    "invoiceNo": "FTR-2026-00439",
+    "expectedCost": 82,
+    "realCost": 86,
+    "invoiceDate": "2026-05-21T15:56:58.000Z",
+    "status": "pending"
+  },
+  {
+    "id": 140,
+    "companyId": 3,
+    "returnNo": 9300019,
+    "invoiceNo": "FTR-2026-00440",
+    "expectedCost": 90,
+    "realCost": 83,
+    "invoiceDate": "2026-05-23T02:22:19.000Z",
+    "status": "disputed"
+  },
+  {
+    "id": 141,
+    "companyId": 1,
+    "returnNo": 9300020,
+    "invoiceNo": "FTR-2026-00441",
+    "expectedCost": 98,
+    "realCost": 101,
+    "invoiceDate": "2026-05-27T12:13:40.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 142,
+    "companyId": 1,
+    "returnNo": 9300021,
+    "invoiceNo": "FTR-2026-00442",
+    "expectedCost": 50,
+    "realCost": 42,
+    "invoiceDate": "2026-05-30T01:27:22.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 143,
+    "companyId": 6,
+    "returnNo": 9300022,
+    "invoiceNo": "FTR-2026-00443",
+    "expectedCost": 58,
+    "realCost": 60,
+    "invoiceDate": "2026-06-03T11:22:48.000Z",
+    "status": "pending"
+  },
+  {
+    "id": 144,
+    "companyId": 1,
+    "returnNo": 9300023,
+    "invoiceNo": "FTR-2026-00444",
+    "expectedCost": 66,
+    "realCost": 78,
+    "invoiceDate": "2026-06-08T21:37:07.000Z",
+    "status": "disputed"
+  },
+  {
+    "id": 145,
+    "companyId": 7,
+    "returnNo": 9300024,
+    "invoiceNo": "FTR-2026-00445",
+    "expectedCost": 74,
+    "realCost": 75,
+    "invoiceDate": "2026-06-11T12:49:09.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 146,
+    "companyId": 1,
+    "returnNo": 9300025,
+    "invoiceNo": "FTR-2026-00446",
+    "expectedCost": 82,
+    "realCost": 93,
+    "invoiceDate": "2026-06-08T03:09:15.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 147,
+    "companyId": 2,
+    "returnNo": 9300026,
+    "invoiceNo": "FTR-2026-00447",
+    "expectedCost": 90,
+    "realCost": 90,
+    "invoiceDate": "2026-06-12T12:20:19.000Z",
+    "status": "pending"
+  },
+  {
+    "id": 148,
+    "companyId": 4,
+    "returnNo": 9300027,
+    "invoiceNo": "FTR-2026-00448",
+    "expectedCost": 98,
+    "realCost": 108,
+    "invoiceDate": "2026-06-15T02:01:37.000Z",
+    "status": "disputed"
+  },
+  {
+    "id": 149,
+    "companyId": 3,
+    "returnNo": 9300028,
+    "invoiceNo": "FTR-2026-00449",
+    "expectedCost": 50,
+    "realCost": 49,
+    "invoiceDate": "2026-06-16T19:59:12.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 150,
+    "companyId": 6,
+    "returnNo": 9300029,
+    "invoiceNo": "FTR-2026-00450",
+    "expectedCost": 58,
+    "realCost": 67,
+    "invoiceDate": "2026-06-19T21:24:11.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 151,
+    "companyId": 8,
+    "returnNo": 9300030,
+    "invoiceNo": "FTR-2026-00451",
+    "expectedCost": 66,
+    "realCost": 64,
+    "invoiceDate": "2026-06-16T05:25:56.000Z",
+    "status": "pending"
+  },
+  {
+    "id": 152,
+    "companyId": 1,
+    "returnNo": 9300031,
+    "invoiceNo": "FTR-2026-00452",
+    "expectedCost": 74,
+    "realCost": 82,
+    "invoiceDate": "2026-06-18T00:41:53.000Z",
+    "status": "disputed"
+  },
+  {
+    "id": 153,
+    "companyId": 2,
+    "returnNo": 9300032,
+    "invoiceNo": "FTR-2026-00453",
+    "expectedCost": 82,
+    "realCost": 79,
+    "invoiceDate": "2026-06-20T18:15:22.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 154,
+    "companyId": 2,
+    "returnNo": 9300033,
+    "invoiceNo": "FTR-2026-00454",
+    "expectedCost": 90,
+    "realCost": 97,
+    "invoiceDate": "2026-06-23T10:21:21.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 155,
+    "companyId": 7,
+    "returnNo": 9300034,
+    "invoiceNo": "FTR-2026-00455",
+    "expectedCost": 98,
+    "realCost": 94,
+    "invoiceDate": "2026-06-27T20:44:44.000Z",
+    "status": "pending"
+  },
+  {
+    "id": 156,
+    "companyId": 3,
+    "returnNo": 9300035,
+    "invoiceNo": "FTR-2026-00456",
+    "expectedCost": 50,
+    "realCost": 56,
+    "invoiceDate": "2026-06-24T23:33:36.000Z",
+    "status": "disputed"
+  },
+  {
+    "id": 157,
+    "companyId": 3,
+    "returnNo": 9300036,
+    "invoiceNo": "FTR-2026-00457",
+    "expectedCost": 58,
+    "realCost": 53,
+    "invoiceDate": "2026-06-27T05:46:59.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 158,
+    "companyId": 1,
+    "returnNo": 9300037,
+    "invoiceNo": "FTR-2026-00458",
+    "expectedCost": 66,
+    "realCost": 71,
+    "invoiceDate": "2026-06-29T04:58:48.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 159,
+    "companyId": 3,
+    "returnNo": 9300038,
+    "invoiceNo": "FTR-2026-00459",
+    "expectedCost": 74,
+    "realCost": 68,
+    "invoiceDate": "2026-07-01T06:09:09.000Z",
+    "status": "pending"
+  },
+  {
+    "id": 160,
+    "companyId": 3,
+    "returnNo": 9300039,
+    "invoiceNo": "FTR-2026-00460",
+    "expectedCost": 82,
+    "realCost": 86,
+    "invoiceDate": "2026-07-06T07:07:29.000Z",
+    "status": "disputed"
+  },
+  {
+    "id": 161,
+    "companyId": 3,
+    "returnNo": 9300040,
+    "invoiceNo": "FTR-2026-00461",
+    "expectedCost": 90,
+    "realCost": 83,
+    "invoiceDate": "2026-07-02T16:24:30.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 162,
+    "companyId": 2,
+    "returnNo": 9300041,
+    "invoiceNo": "FTR-2026-00462",
+    "expectedCost": 98,
+    "realCost": 101,
+    "invoiceDate": "2026-07-08T13:51:47.000Z",
+    "status": "matched"
+  },
+  {
+    "id": 163,
+    "companyId": 4,
+    "returnNo": 9300042,
+    "invoiceNo": "FTR-2026-00463",
+    "expectedCost": 50,
+    "realCost": 42,
+    "invoiceDate": "2026-07-12T12:00:00.000Z",
+    "status": "pending"
   }
 ]
 
@@ -29074,6 +29965,19 @@ export function actualDeliveryDate(s: Shipment) {
   if (s.status !== 'DeliveredToCustomer' && s.status !== 'DeliveredToStore' && s.status !== 'ReturnToSender') return null
   const d = new Date(s.shipTime)
   d.setHours(d.getHours() + 20 + (s.id % 30))
+  return d.toISOString()
+}
+
+export function plannedReturnDate(r: ReturnItem) {
+  const d = new Date(r.requestDate)
+  d.setDate(d.getDate() + Math.ceil(1 + (r.id % 4) * 0.5))
+  return d.toISOString()
+}
+
+export function actualReturnDate(r: ReturnItem) {
+  if (r.status !== 'ReceivedByReturnCenter') return null
+  const d = new Date(r.requestDate)
+  d.setHours(d.getHours() + 20 + (r.id % 30))
   return d.toISOString()
 }
 

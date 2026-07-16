@@ -120,16 +120,23 @@ export function addressLineFor(shipmentId: number, district: string) {
   return `${district} Mahallesi, ${street} Sokak No: ${no} Daire: ${daire}`
 }
 
-export function recipientAddressLine(shipment: Shipment) {
-  return shipment.shipTo.addressLine || addressLineFor(shipment.id, shipment.shipTo.district)
+/** Shared shape for anything with a recipient address (Shipment, ReturnItem, …). */
+export interface Recipient {
+  id: number
+  customerName: string
+  shipTo: Shipment['shipTo']
 }
 
-export function recipientPhone(shipment: Shipment) {
-  return shipment.shipTo.phone || phoneFor(shipment.id)
+export function recipientAddressLine(entity: Recipient) {
+  return entity.shipTo.addressLine || addressLineFor(entity.id, entity.shipTo.district)
 }
 
-export function recipientEmail(shipment: Shipment) {
-  return shipment.shipTo.email || emailFor(shipment.customerName)
+export function recipientPhone(entity: Recipient) {
+  return entity.shipTo.phone || phoneFor(entity.id)
+}
+
+export function recipientEmail(entity: Recipient) {
+  return entity.shipTo.email || emailFor(entity.customerName)
 }
 
 export function generateTrackingNo(companyId: number) {

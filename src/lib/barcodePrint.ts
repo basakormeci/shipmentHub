@@ -1,5 +1,59 @@
-import { getCompany, type Shipment } from '../data/catalog'
+import { getCompany, type ReturnItem, type Shipment } from '../data/catalog'
 import { packageItemsFor } from './shipments'
+
+/** Common shape both Shipment and ReturnItem carry — every label renderer below only needs
+ * these fields, so either can be printed through the same carrier-specific templates. */
+export interface PrintableParcel {
+  id: number
+  docNo: number
+  orderNo: number
+  companyId: number
+  trackingNo: string
+  shipFrom: string
+  shipTo: { district: string; province: string }
+  shipTime: string
+  referenceId: string
+  packageNo: string
+  customerName: string
+  channel: string
+  desi?: number
+}
+
+function parcelFromShipment(s: Shipment): PrintableParcel {
+  return {
+    id: s.id,
+    docNo: s.shipmentNo,
+    orderNo: s.orderNo,
+    companyId: s.companyId,
+    trackingNo: s.trackingNo,
+    shipFrom: s.shipFrom,
+    shipTo: s.shipTo,
+    shipTime: s.shipTime,
+    referenceId: s.referenceId,
+    packageNo: s.packageNo,
+    customerName: s.customerName,
+    channel: s.channel,
+    desi: s.desi,
+  }
+}
+
+function parcelFromReturn(r: ReturnItem): PrintableParcel {
+  return {
+    id: r.id,
+    docNo: r.returnNo,
+    orderNo: r.orderNo,
+    companyId: r.companyId,
+    trackingNo: r.trackingNo,
+    shipFrom: r.shipFrom,
+    shipTo: r.shipTo,
+    shipTime: r.requestDate,
+    referenceId: r.referenceId,
+    packageNo: r.packageNo,
+    customerName: r.customerName,
+    channel: r.channel,
+    desi: r.desi,
+  }
+}
 
 export interface BarcodeLabelItem {
   companyName: string
@@ -10,15 +64,15 @@ export interface BarcodeLabelItem {
   address: string
 }
 
-export function shipmentBarcodeLabel(shipment: Shipment): BarcodeLabelItem {
-  const co = getCompany(shipment.companyId)
+function parcelBarcodeLabel(p: PrintableParcel): BarcodeLabelItem {
+  const co = getCompany(p.companyId)
   return {
     companyName: co?.name ?? '—',
-    docNo: `#${shipment.shipmentNo}`,
-    trackingNo: shipment.trackingNo,
-    from: shipment.shipFrom,
-    to: shipment.customerName,
-    address: `${shipment.shipTo.district} / ${shipment.shipTo.province}`,
+    docNo: `#${p.docNo}`,
+    trackingNo: p.trackingNo,
+    from: p.shipFrom,
+    to: p.customerName,
+    address: `${p.shipTo.district} / ${p.shipTo.province}`,
   }
 }
 
@@ -82,7 +136,7 @@ const FAKE_QR_BG =
   'repeating-conic-gradient(#000 0deg 90deg,#fff 90deg 180deg) 0 0/8px 8px, repeating-conic-gradient(#000 0deg 90deg,#fff 90deg 180deg) 4px 4px/8px 8px'
 
 // ---- Yurtiçi Kargo ----
-function renderYurticiLabel(s: Shipment, companyName: string): string {
+function renderYurticiLabel(s: PrintableParcel, companyName: string): string {
   const qty = totalQtyFor(s.id)
   return `
     <div class="label ycl ycl-yurtici">
@@ -106,7 +160,7 @@ function renderYurticiLabel(s: Shipment, companyName: string): string {
 }
 
 // ---- DHL eCommerce (also used by MNG Kargo, which shares this label layout) ----
-function renderDhlLabel(s: Shipment, companyName: string): string {
+function renderDhlLabel(s: PrintableParcel, companyName: string): string {
   const qty = totalQtyFor(s.id)
   const desi = s.desi ?? desiFor(s.id)
   return `
@@ -132,7 +186,7 @@ function renderDhlLabel(s: Shipment, companyName: string): string {
 }
 
 // ---- Horoz Lojistik ----
-function renderHorozLabel(s: Shipment): string {
+function renderHorozLabel(s: PrintableParcel): string {
   const { date, time } = printDate(s.shipTime)
   const desi = s.desi ?? desiFor(s.id)
   const routeNo = 1 + (s.id % 6)
@@ -168,7 +222,7 @@ function renderHorozLabel(s: Shipment): string {
 }
 
 // ---- Hepsijet ----
-function renderHepsijetLabel(s: Shipment): string {
+function renderHepsijetLabel(s: PrintableParcel): string {
   const { date, time } = printDate(s.shipTime)
   const desi = s.desi ?? desiFor(s.id)
   const plate = plateCodeFor(s.shipTo.province)
@@ -180,7 +234,7 @@ function renderHepsijetLabel(s: Shipment): string {
       </div>
       <div class="hpj-body">
         <div class="hpj-top">
-          <span>{{shortcode}}${s.shipmentNo}</span>
+          <span>{{shortcode}}${s.docNo}</span>
           <span class="hpj-logo">hepsi<b>JET</b></span>
         </div>
         <div class="hpj-dest">${escapeHtml(s.shipTo.district.toLowerCase())}</div>
@@ -216,18 +270,18 @@ function renderGenericLabel(it: BarcodeLabelItem): string {
     </div>`
 }
 
-function renderLabel(shipment: Shipment): string {
-  const company = getCompany(shipment.companyId)
+function renderLabel(parcel: PrintableParcel): string {
+  const company = getCompany(parcel.companyId)
   const name = company?.name ?? ''
-  if (name === 'Yurtiçi Kargo') return renderYurticiLabel(shipment, name)
-  if (name === 'DHL eCommerce' || name === 'MNG Kargo') return renderDhlLabel(shipment, name)
-  if (name === 'Horoz Lojistik') return renderHorozLabel(shipment)
-  if (name === 'Hepsijet') return renderHepsijetLabel(shipment)
-  return renderGenericLabel(shipmentBarcodeLabel(shipment))
+  if (name === 'Yurtiçi Kargo') return renderYurticiLabel(parcel, name)
+  if (name === 'DHL eCommerce' || name === 'MNG Kargo') return renderDhlLabel(parcel, name)
+  if (name === 'Horoz Lojistik') return renderHorozLabel(parcel)
+  if (name === 'Hepsijet') return renderHepsijetLabel(parcel)
+  return renderGenericLabel(parcelBarcodeLabel(parcel))
 }
 
-function buildLabelHtml(shipments: Shipment[]): string {
-  const labels = shipments.map(renderLabel).join('')
+function buildLabelHtml(parcels: PrintableParcel[]): string {
+  const labels = parcels.map(renderLabel).join('')
 
   return `<!doctype html>
 <html lang="tr"><head><meta charset="utf-8"><title>Kargo Etiketi</title>
@@ -311,14 +365,23 @@ function buildLabelHtml(shipments: Shipment[]): string {
 </body></html>`
 }
 
-/** Opens a printable label window for one or more shipments. Each label uses the carrier's
- * own layout when one is known (Yurtiçi Kargo, DHL eCommerce, Horoz Lojistik, Hepsijet);
- * any other carrier falls back to the generic label design. */
-export function openShipmentBarcodePrint(shipments: Shipment[]): void {
-  if (shipments.length === 0) return
-  const html = buildLabelHtml(shipments)
+function openParcelBarcodePrint(parcels: PrintableParcel[]): void {
+  if (parcels.length === 0) return
+  const html = buildLabelHtml(parcels)
   const blob = new Blob([html], { type: 'text/html' })
   const url = URL.createObjectURL(blob)
   window.open(url, '_blank', 'noopener,noreferrer')
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
+}
+
+/** Opens a printable label window for one or more shipments. Each label uses the carrier's
+ * own layout when one is known (Yurtiçi Kargo, DHL eCommerce, Horoz Lojistik, Hepsijet);
+ * any other carrier falls back to the generic label design. */
+export function openShipmentBarcodePrint(shipments: Shipment[]): void {
+  openParcelBarcodePrint(shipments.map(parcelFromShipment))
+}
+
+/** Same as `openShipmentBarcodePrint`, for return shipments — uses the same carrier templates. */
+export function openReturnBarcodePrint(returns: ReturnItem[]): void {
+  openParcelBarcodePrint(returns.map(parcelFromReturn))
 }

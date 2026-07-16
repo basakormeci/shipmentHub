@@ -104,7 +104,10 @@ interface DataState {
 
   updateReturn: (id: number, patch: Partial<ReturnItem>) => ReturnItem | null
   addReturn: (
-    input: Omit<ReturnItem, 'id' | 'returnNo' | 'requestDate' | 'status' | 'statusHistory'> & { status?: ReturnStatus },
+    input: Omit<ReturnItem, 'id' | 'returnNo' | 'trackingNo' | 'requestDate' | 'status' | 'statusHistory'> & {
+      trackingNo?: string
+      status?: ReturnStatus
+    },
   ) => ReturnItem
   cancelReturn: (id: number) => ReturnItem | null
   recallReturn: (id: number) => ReturnItem | null
@@ -398,6 +401,7 @@ export const useDataStore = create<DataState>()(
           ...input,
           id,
           returnNo,
+          trackingNo: input.trackingNo ?? generateTrackingNo(input.companyId),
           requestDate,
           status,
           statusHistory: [{ status, at: requestDate }],
@@ -571,28 +575,23 @@ export const useDataStore = create<DataState>()(
               }) ??
               undefined,
           })),
-          returns: (merged.returns ?? []).map((r) => {
-            const orig = shipments.find((s) => s.id === r.originalShipmentId)
-            const provinceName = r.pickupAddress?.province ?? orig?.shipTo.province
-            return {
-              ...r,
-              statusHistory: r.statusHistory?.length ? r.statusHistory : synthesizeReturnHistory(r.status, r.requestDate, r.id),
-              routingDecision:
-                r.routingDecision ??
-                (r.companyId != null && provinceName
-                  ? synthesizeRoutingDecision({
-                      id: r.id,
-                      companyId: r.companyId,
-                      provinceId: provinceIdForName(provinceName),
-                      desi: orig?.desi,
-                      amount: orig?.orderAmount,
-                      cargoType: 'return',
-                      shippingType: 'returnShipping',
-                      ...scoringArgs,
-                    }) ?? undefined
-                  : undefined),
-            }
-          }),
+          returns: (merged.returns ?? []).map((r) => ({
+            ...r,
+            statusHistory: r.statusHistory?.length ? r.statusHistory : synthesizeReturnHistory(r.status, r.requestDate, r.id),
+            routingDecision:
+              r.routingDecision ??
+              synthesizeRoutingDecision({
+                id: r.id,
+                companyId: r.companyId,
+                provinceId: provinceIdForName(r.shipTo.province),
+                desi: r.desi,
+                amount: r.orderAmount,
+                cargoType: 'return',
+                shippingType: 'returnShipping',
+                ...scoringArgs,
+              }) ??
+              undefined,
+          })),
           transfers: (merged.transfers ?? []).map((tr) => ({
             ...tr,
             statusHistory: tr.statusHistory?.length ? tr.statusHistory : synthesizeShipmentHistory(tr.status, tr.createdAt, tr.id),

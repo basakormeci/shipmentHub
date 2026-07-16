@@ -1,5 +1,13 @@
-import { CARRIER_METRIC_KEYS, type CarrierMetricKey, type Contract, type RoutingRule, type Shipment, type ShipmentRoutingDecision } from '../data/catalog'
-import { getDefaultCompanyId, getEligibleCompanyIds } from './contracts'
+import {
+  CARRIER_METRIC_KEYS,
+  type CarrierMetricKey,
+  type Contract,
+  type RoutingCargoType,
+  type RoutingRule,
+  type Shipment,
+  type ShipmentRoutingDecision,
+} from '../data/catalog'
+import { getDefaultCompanyId, getEligibleCompanyIds, type ShippingType } from './contracts'
 import { computeNormalizedCarrierScores, matchRoutingRule, ruleConditionsSummary } from './carrierScoring'
 
 export interface DecideCarrierInput {
@@ -12,6 +20,8 @@ export interface DecideCarrierInput {
   shipments: Shipment[]
   carrierInvoices: { companyId: number; realCost: number; expectedCost: number }[]
   carrierPricing: { companyId: number; price: number }[]
+  shippingType?: ShippingType
+  cargoType?: RoutingCargoType
 }
 
 const TIE_EPSILON = 0.0005
@@ -27,12 +37,24 @@ const TIE_EPSILON = 0.0005
  * detail page can show exactly what was checked.
  */
 export function decideCarrier(input: DecideCarrierInput): ShipmentRoutingDecision | null {
-  const { provinceId, desi, amount, contracts, routingRules, routingWeights, shipments, carrierInvoices, carrierPricing } = input
+  const {
+    provinceId,
+    desi,
+    amount,
+    contracts,
+    routingRules,
+    routingWeights,
+    shipments,
+    carrierInvoices,
+    carrierPricing,
+    shippingType = 'orderShipping',
+    cargoType = 'shipment',
+  } = input
 
-  const eligible = new Set(getEligibleCompanyIds(contracts, 'orderShipping'))
+  const eligible = new Set(getEligibleCompanyIds(contracts, shippingType))
   if (eligible.size === 0) return null
 
-  const matchedRule = matchRoutingRule(routingRules, desi, provinceId, amount, 'shipment')
+  const matchedRule = matchRoutingRule(routingRules, desi, provinceId, amount, cargoType)
   let narrowed = eligible
   let ruleNarrowedCompanyIds: number[] | null = null
   if (matchedRule) {
@@ -55,7 +77,7 @@ export function decideCarrier(input: DecideCarrierInput): ShipmentRoutingDecisio
   let chosen = eligibleScores[0]
   let tieBreakUsedDefault = false
   if (tied.length > 1) {
-    const defaultCompanyId = getDefaultCompanyId(contracts, 'orderShipping')
+    const defaultCompanyId = getDefaultCompanyId(contracts, shippingType)
     const defaultTied = defaultCompanyId != null ? tied.find((s) => s.companyId === defaultCompanyId) : undefined
     if (defaultTied) {
       chosen = defaultTied

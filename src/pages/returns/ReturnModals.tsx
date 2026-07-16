@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { COMPANIES, RETURN_STATUS, type ReturnItem, type ReturnStatus } from '../../data/catalog'
 import { useT } from '../../hooks/useT'
 import { Dropdown } from '../../components/ui/Dropdown'
+import { openReturnBarcodePrint } from '../../lib/barcodePrint'
+import { toast } from '../../lib/toast'
 
 export function CancelReturnModal({
   item,
@@ -256,3 +258,50 @@ export function ReturnAddressModal({
     </div>
   )
 }
+
+export function ReturnBarcodePrintModal({
+  returns,
+  onClose,
+}: {
+  returns: ReturnItem[]
+  onClose: () => void
+}) {
+  const t = useT()
+  if (returns.length === 0) return null
+
+  const subtitle =
+    returns.length === 1
+      ? t('barcodeModal.single', { no: returns[0].returnNo })
+      : t('barcodeModal.bulk', { n: returns.length })
+
+  function handlePrint() {
+    openReturnBarcodePrint(returns)
+    toast(t('barcodeModal.opened', { n: returns.length }), 'success')
+    onClose()
+  }
+
+  return (
+    <div
+      className="overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div className="modal-box w-full max-w-sm p-6">
+        <h3 className="font-semibold text-neutral-950 mb-1">{t('barcodeModal.title')}</h3>
+        <p className="text-sm text-neutral-500 mb-2">{subtitle}</p>
+        <p className="text-xs text-neutral-400 mb-4 font-mono">{returns.map((r) => r.trackingNo).join(', ')}</p>
+        <div className="flex justify-end gap-3 mt-6">
+          <button className="secondary-btn" type="button" onClick={onClose}>
+            {t('common.cancel')}
+          </button>
+          <button className="primary-btn" type="button" onClick={handlePrint}>
+            {t('barcodeModal.print_btn')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export { ColumnPanelModal } from '../../components/ui/ColumnPanelModal'

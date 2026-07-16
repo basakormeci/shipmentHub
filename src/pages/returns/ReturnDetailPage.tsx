@@ -3,21 +3,25 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   CARRIER_METRIC_KEYS,
   CARRIER_METRIC_LABELS,
+  INVOICE_STATUS,
   RETURN_STATUS,
+  actualReturnDate,
   getCompany,
+  plannedReturnDate,
   type ReturnItem,
   type ReturnStatus,
 } from '../../data/catalog'
 import { useDataStore } from '../../stores/dataStore'
 import { useT } from '../../hooks/useT'
 import { copyToClipboard } from '../../lib/clipboard'
-import { fmtDateTimeStr } from '../../lib/format'
+import { fmtDate, fmtDateTimeStr } from '../../lib/format'
 import { toast } from '../../lib/toast'
-import { getOriginalShipment, getReturnCompanyId } from '../../lib/returns'
+import { desiKgFor, packageItemsFor, recipientAddressLine, recipientEmail, recipientPhone } from '../../lib/shipments'
 import {
   CancelReturnModal,
   RecallReturnModal,
   ReturnAddressModal,
+  ReturnBarcodePrintModal,
   ReturnCarrierModal,
   ReturnStatusModal,
 } from './ReturnModals'
@@ -188,22 +192,23 @@ export function ReturnDetailPage() {
   const id = Number(returnId)
 
   const returns = useDataStore((s) => s.returns)
-  const shipments = useDataStore((s) => s.shipments)
+  const carrierInvoices = useDataStore((s) => s.carrierInvoices)
   const updateReturn = useDataStore((s) => s.updateReturn)
   const cancelReturn = useDataStore((s) => s.cancelReturn)
   const recallReturn = useDataStore((s) => s.recallReturn)
 
   const item = returns.find((r) => r.id === id)
 
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [statusOpen, setStatusOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [recallOpen, setRecallOpen] = useState(false)
   const [carrierOpen, setCarrierOpen] = useState(false)
   const [addressOpen, setAddressOpen] = useState(false)
+  const [barcodeOpen, setBarcodeOpen] = useState(false)
   const [carrierId, setCarrierId] = useState<number | ''>('')
   const [district, setDistrict] = useState('')
   const [province, setProvince] = useState('')
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
 
   function toggleSection(key: string) {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -217,13 +222,152 @@ export function ReturnDetailPage() {
 
   if (!item) return null
 
-  const orig = getOriginalShipment(shipments, item.originalShipmentId)
-  const companyId = getReturnCompanyId(item, shipments)
-  const co = companyId != null ? getCompany(companyId) : null
-  const pickupAddr = item.pickupAddress ?? (orig ? orig.shipTo : null)
+  const co = getCompany(item.companyId)
   const st = RETURN_STATUS[item.status]
+  const contentItems = packageItemsFor(item.id)
+  const totalQty = contentItems.reduce((sum, it) => sum + it.qty, 0)
+  const dk = item.desi != null ? { ...desiKgFor(item.id), desi: item.desi } : desiKgFor(item.id)
+  const planned = plannedReturnDate(item)
+  const actual = actualReturnDate(item)
   const statusLabel = (key: ReturnStatus) => t(`returnStatus.${key}`)
   const reasonLabel = (key: string) => t(`returnReason.${key}`)
+
+  function openCarrierModal() {
+    setCarrierId(item!.companyId)
+    setCarrierOpen(true)
+  }
+
+  function openAddressModal() {
+    setDistrict(item!.shipTo.district)
+    setProvince(item!.shipTo.province)
+    setAddressOpen(true)
+  }
+
+  function applyStatus(status: ReturnStatus) {
+    const updated = updateReturn(item!.id, { status })
+    if (updated) toast(t('toast.return_status_updated', { no: updated.returnNo, status: statusLabel(status) }), 'success')
+    setStatusOpen(false)
+  }
+
+  function applyCancel() {
+    const updated = cancelReturn(item!.id)
+    if (updated) toast(t('toast.return_cancelled', { no: updated.returnNo }), 'info')
+    setCancelOpen(false)
+  }
+
+  function applyRecall() {
+    const updated = recallReturn(item!.id)
+    if (updated) toast(t('toast.return_recalled', { no: updated.returnNo }), 'info')
+    setRecallOpen(false)
+  }
+
+  function applyCarrier() {
+    if (carrierId === '') return
+    const updated = updateReturn(item!.id, { companyId: carrierId })
+    const carrier = getCompany(carrierId)
+    if (updated) toast(t('toast.return_carrier_updated', { no: updated.returnNo, carrier: carrier?.name ?? '' }), 'success')
+    setCarrierOpen(false)
+  }
+
+  function applyAddress() {
+    const updated = updateReturn(item!.id, {
+      shipTo: { ...item!.shipTo, district: district.trim(), province: province.trim() },
+    })
+    if (updated) toast(t('toast.return_address_updated', { no: updated.returnNo }), 'success')
+    setAddressOpen(false)
+  }
+
+  const packageExpanded = (
+    <div className="flex flex-col gap-2">
+      {contentItems.map((it) => (
+        <div key={it.sku} className="flex items-center gap-4 bg-white border border-neutral-200 rounded-lg p-3">
+          <div className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: it.color }}>
+            <svg className="w-6 h-6 text-white opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.59 13.41L11 3.83A2 2 0 009.59 3.24L3 3v6.59a2 2 0 00.59 1.41l9.58 9.58a2 2 0 002.83 0l4.59-4.59a2 2 0 000-2.83z" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-neutral-950">
+              {it.name} <span className="text-neutral-400 font-normal">× {it.qty}</span>
+            </p>
+            <p className="text-xs text-neutral-400 mt-0.5">{it.variant}</p>
+            <p className="text-xs text-neutral-400 mt-1">
+              SKU: <span className="font-mono text-neutral-500">{it.sku}</span> &nbsp;·&nbsp; Barkod:{' '}
+              <span className="font-mono text-neutral-500">{it.barcode}</span>
+            </p>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <p className="text-xs text-neutral-400 mb-0.5">{t('shipmentDetail.total')}</p>
+            {it.originalPrice !== it.price ? (
+              <span className="text-xs text-neutral-300 line-through mr-1.5">₺{it.originalPrice}</span>
+            ) : null}
+            <span className="text-sm font-semibold text-neutral-950">₺{it.price * it.qty}</span>
+          </div>
+        </div>
+      ))}
+      <div className="flex items-center gap-4 bg-neutral-50/50 border border-dashed border-neutral-200 rounded-lg p-3">
+        <div className="flex-1 flex items-center gap-5 text-xs">
+          <span className="text-neutral-400">
+            Desi: <span className="font-semibold text-neutral-700">{dk.desi}</span>
+          </span>
+          <span className="text-neutral-400">
+            Ağırlık: <span className="font-semibold text-neutral-700">{dk.weight} kg</span>
+          </span>
+          <span className="text-neutral-400">
+            Toplam Ürün: <span className="font-semibold text-neutral-700">{totalQty}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+
+  const deliveryExpanded = (
+    <div className="flex items-center gap-6 bg-white border border-neutral-200 rounded-lg p-3.5">
+      <div className="flex-1">
+        <p className="text-xs text-neutral-400 mb-1">{t('shipmentDetail.planned_delivery')}</p>
+        <p className="text-sm font-semibold text-neutral-800">{fmtDateTimeStr(planned)}</p>
+      </div>
+      <div className="w-px h-8 bg-neutral-200" />
+      <div className="flex-1">
+        <p className="text-xs text-neutral-400 mb-1">{t('shipmentDetail.actual_delivery')}</p>
+        <p className={`text-sm font-semibold ${actual ? 'text-neutral-800' : 'text-neutral-300'}`}>
+          {actual ? fmtDateTimeStr(actual) : t('shipmentDetail.not_delivered_yet')}
+        </p>
+      </div>
+      {actual ? (
+        <>
+          <div className="w-px h-8 bg-neutral-200" />
+          <div className="flex-1">
+            <p className="text-xs text-neutral-400 mb-1">{t('shipmentDetail.difference')}</p>
+            <p className={`text-sm font-semibold ${new Date(actual) <= new Date(planned) ? 'text-[#1a8245]' : 'text-[#ad1f2b]'}`}>
+              {Math.round((new Date(actual).getTime() - new Date(planned).getTime()) / 3600000) >= 0 ? '+' : ''}
+              {Math.round((new Date(actual).getTime() - new Date(planned).getTime()) / 3600000)} {t('shipmentDetail.hours')}
+            </p>
+          </div>
+        </>
+      ) : null}
+    </div>
+  )
+
+  const returnExpanded = (
+    <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+      {(item.statusHistory ?? []).map((h, i) => (
+        <div key={i} className="flex items-center gap-1.5 flex-shrink-0">
+          {i > 0 ? (
+            <svg className="w-3 h-3 text-neutral-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          ) : null}
+          <div className="flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white flex-shrink-0">
+            <span className={`badge ${RETURN_STATUS[h.status].badge}`} style={{ fontSize: 11 }}>
+              {statusLabel(h.status)}
+            </span>
+            <span className="text-[10px] text-neutral-400 whitespace-nowrap">{fmtDateTimeStr(h.at)}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 
   const routing = item.routingDecision
   const routingFields =
@@ -316,48 +460,45 @@ export function ReturnDetailPage() {
       </div>
     ) : null
 
-  function openCarrierModal() {
-    setCarrierId(companyId ?? '')
-    setCarrierOpen(true)
-  }
+  const invoice = carrierInvoices.find((inv) => inv.returnNo === item.returnNo) ?? null
+  const costDiff = invoice ? invoice.realCost - invoice.expectedCost : 0
+  const costDiffPct = invoice && invoice.expectedCost ? (costDiff / invoice.expectedCost) * 100 : 0
 
-  function openAddressModal() {
-    setDistrict(pickupAddr?.district ?? '')
-    setProvince(pickupAddr?.province ?? '')
-    setAddressOpen(true)
-  }
+  const financeFields = !invoice
+    ? [{ label: '', value: <span className="text-neutral-400">{t('shipmentDetail.finance_no_invoice')}</span> }]
+    : [
+        { label: t('shipmentDetail.finance_expected'), value: `₺${invoice.expectedCost.toLocaleString('tr-TR')}` },
+        { label: t('shipmentDetail.finance_real'), value: `₺${invoice.realCost.toLocaleString('tr-TR')}` },
+        {
+          label: t('shipmentDetail.finance_diff'),
+          value: (
+            <span className={costDiff <= 0 ? 'font-semibold text-[#1a8245]' : 'font-semibold text-[#ad1f2b]'}>
+              {costDiff >= 0 ? '+' : ''}
+              ₺{costDiff.toLocaleString('tr-TR')} ({costDiffPct >= 0 ? '+' : ''}
+              {costDiffPct.toFixed(1)}%)
+            </span>
+          ),
+        },
+      ]
 
-  function applyStatus(status: ReturnStatus) {
-    const updated = updateReturn(item!.id, { status })
-    if (updated) toast(t('toast.return_status_updated', { no: updated.returnNo, status: statusLabel(status) }), 'success')
-    setStatusOpen(false)
-  }
-
-  function applyCancel() {
-    const updated = cancelReturn(item!.id)
-    if (updated) toast(t('toast.return_cancelled', { no: updated.returnNo }), 'info')
-    setCancelOpen(false)
-  }
-
-  function applyRecall() {
-    const updated = recallReturn(item!.id)
-    if (updated) toast(t('toast.return_recalled', { no: updated.returnNo }), 'info')
-    setRecallOpen(false)
-  }
-
-  function applyCarrier() {
-    if (carrierId === '') return
-    const updated = updateReturn(item!.id, { companyId: carrierId })
-    const carrier = getCompany(carrierId)
-    if (updated) toast(t('toast.return_carrier_updated', { no: updated.returnNo, carrier: carrier?.name ?? '' }), 'success')
-    setCarrierOpen(false)
-  }
-
-  function applyAddress() {
-    const updated = updateReturn(item!.id, { pickupAddress: { district: district.trim(), province: province.trim() } })
-    if (updated) toast(t('toast.return_address_updated', { no: updated.returnNo }), 'success')
-    setAddressOpen(false)
-  }
+  const financeExpanded = invoice ? (
+    <div className="flex items-center gap-6 bg-white border border-neutral-200 rounded-lg p-3.5 flex-wrap">
+      <div className="flex-1" style={{ minWidth: 120 }}>
+        <p className="text-xs text-neutral-400 mb-1">{t('shipmentDetail.finance_invoice_no')}</p>
+        <p className="text-sm font-semibold text-neutral-800 font-mono">{invoice.invoiceNo}</p>
+      </div>
+      <div className="w-px h-8 bg-neutral-200" />
+      <div className="flex-1" style={{ minWidth: 120 }}>
+        <p className="text-xs text-neutral-400 mb-1">{t('shipmentDetail.finance_invoice_date')}</p>
+        <p className="text-sm font-semibold text-neutral-800">{fmtDate(invoice.invoiceDate)}</p>
+      </div>
+      <div className="w-px h-8 bg-neutral-200" />
+      <div className="flex-1" style={{ minWidth: 120 }}>
+        <p className="text-xs text-neutral-400 mb-1">{t('shipmentDetail.finance_status')}</p>
+        <span className={`badge ${INVOICE_STATUS[invoice.status].badge}`}>{INVOICE_STATUS[invoice.status].label}</span>
+      </div>
+    </div>
+  ) : null
 
   return (
     <div className="page-container">
@@ -378,7 +519,7 @@ export function ReturnDetailPage() {
             </svg>
             {t('returnDetail.back')}
           </Link>
-          <button className="secondary-btn" type="button" onClick={() => toast(t('returns.barcode_soon'), 'info')}>
+          <button className="secondary-btn" type="button" onClick={() => setBarcodeOpen(true)}>
             {t('returnDetail.print_barcode')}
           </button>
           <ActionMenu
@@ -403,59 +544,29 @@ export function ReturnDetailPage() {
 
       <div className="flex flex-col gap-3">
         <DetailSection
+          title={t('shipmentDetail.section_order')}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
+          fields={[
+            { label: t('shipmentDetail.field_order_no'), value: <span className="text-primary">{item.orderNo}</span>, copy: String(item.orderNo) },
+            { label: t('shipmentDetail.field_channel'), value: item.channel },
+          ]}
+        />
+        <DetailSection
           title={t('returnDetail.section_detail')}
           icon={
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z" />
+              <path strokeLinecap="round" d="M9 13h6M9 17h6M13 3v5h5" />
             </svg>
           }
           fields={[
             { label: t('returnDetail.field_return_no'), value: <span className="text-primary">{item.returnNo}</span>, copy: String(item.returnNo) },
-            { label: t('returnDetail.field_reason'), value: reasonLabel(item.reason) },
-            { label: t('returnDetail.field_request_date'), value: fmtDateTimeStr(item.requestDate) },
-          ]}
-        />
-        <DetailSection
-          title={t('returnDetail.section_original')}
-          icon={
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />
-            </svg>
-          }
-          fields={
-            orig
-              ? [
-                  { label: t('returnDetail.field_shipment_no'), value: <span className="font-semibold">#{orig.shipmentNo}</span>, copy: String(orig.shipmentNo) },
-                  { label: t('returnDetail.field_order_no'), value: orig.orderNo },
-                  { label: t('returnDetail.field_customer'), value: orig.customerName },
-                ]
-              : [{ label: '', value: t('returnDetail.original_not_found') }]
-          }
-          actionBtn={
-            orig ? (
-              <Link
-                to={`/shipments/${orig.id}`}
-                className="w-8 h-8 rounded-lg bg-primary-lighter hover:bg-primary-light text-primary flex items-center justify-center flex-shrink-0 transition-colors"
-                title={t('returnDetail.go_shipment')}
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
-                </svg>
-              </Link>
-            ) : undefined
-          }
-        />
-        <DetailSection
-          title={t('returnDetail.section_pickup')}
-          icon={
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="8" r="4" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-            </svg>
-          }
-          fields={[
-            { label: t('returnDetail.field_carrier'), value: <span className="font-semibold">{co ? co.name : t('common.unknown')}</span> },
+            { label: t('shipmentDetail.field_reference_id'), value: item.referenceId || '-', copy: item.referenceId || '-' },
+            { label: t('returnDetail.field_reason'), value: <span className="font-semibold">{reasonLabel(item.reason)}</span> },
             {
               label: t('returnDetail.field_pickup'),
               value: item.pickup ? (
@@ -464,8 +575,86 @@ export function ReturnDetailPage() {
                 <span className="text-neutral-400">{t('returnDetail.pickup_no')}</span>
               ),
             },
-            { label: '', value: pickupAddr ? `${pickupAddr.district} / ${pickupAddr.province}` : '-' },
+            { label: t('returnDetail.field_note'), value: item.note || '-' },
           ]}
+        />
+        <DetailSection
+          title={t('shipmentDetail.section_customer')}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="8" r="4" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+            </svg>
+          }
+          fields={[
+            { label: '', value: <span className="font-semibold">{item.customerName}</span> },
+            { label: t('shipmentDetail.field_email'), value: recipientEmail(item) },
+            { label: t('shipmentDetail.field_phone'), value: recipientPhone(item) },
+            { label: t('shipmentDetail.field_address_line'), value: recipientAddressLine(item), copy: recipientAddressLine(item) },
+          ]}
+        />
+        <DetailSection
+          title={t('shipmentDetail.section_package')}
+          expandable
+          expanded={!!expanded.paket}
+          onToggle={() => toggleSection('paket')}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />
+            </svg>
+          }
+          fields={[
+            { label: t('shipmentDetail.field_product_count'), value: String(totalQty) },
+            { label: t('shipmentDetail.field_package_no'), value: item.packageNo, copy: item.packageNo },
+            { label: 'Desi / Kilo', value: `${dk.desi} desi / ${dk.weight} kg` },
+          ]}
+          expandedContent={packageExpanded}
+        />
+        <DetailSection
+          title={t('returnDetail.section_pickup')}
+          expandable
+          expanded={!!expanded.iade}
+          onToggle={() => toggleSection('iade')}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />
+            </svg>
+          }
+          fields={[
+            { label: t('returnDetail.field_carrier'), value: <span className="font-semibold">{co ? co.name : t('common.unknown')}</span> },
+            { label: t('shipmentDetail.field_tracking_no'), value: <span className="font-mono text-xs">{item.trackingNo}</span>, copy: item.trackingNo },
+            {
+              label: '',
+              value: (
+                <>
+                  {item.shipFrom} <span className="text-neutral-300 mx-1">→</span> {item.shipTo.district} / {item.shipTo.province}
+                </>
+              ),
+            },
+          ]}
+          expandedContent={returnExpanded}
+        />
+        <DetailSection
+          title={t('shipmentDetail.section_delivery')}
+          expandable
+          expanded={!!expanded.teslimat}
+          onToggle={() => toggleSection('teslimat')}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="9" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3" />
+            </svg>
+          }
+          fields={[
+            { label: t('shipmentDetail.planned_delivery'), value: fmtDateTimeStr(planned) },
+            {
+              label: t('shipmentDetail.actual_delivery'),
+              value: actual ? fmtDateTimeStr(actual) : <span className="text-neutral-300">{t('shipmentDetail.not_delivered_yet')}</span>,
+            },
+          ]}
+          expandedContent={deliveryExpanded}
         />
         <DetailSection
           title={t('shipmentDetail.section_routing')}
@@ -484,18 +673,20 @@ export function ReturnDetailPage() {
           fields={routingFields}
           expandedContent={routingExpanded}
         />
-        {item.note ? (
-          <DetailSection
-            title={t('returnDetail.section_note')}
-            icon={
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z" />
-                <path strokeLinecap="round" d="M9 13h6M9 17h6M13 3v5h5" />
-              </svg>
-            }
-            fields={[{ label: '', value: item.note }]}
-          />
-        ) : null}
+        <DetailSection
+          title={t('shipmentDetail.section_finance')}
+          expandable={!!invoice}
+          expanded={!!expanded.finans}
+          onToggle={() => toggleSection('finans')}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 2v8m0 0v2m0-2c-1.11 0-2.08-.402-2.599-1" />
+              <circle cx="12" cy="12" r="9" />
+            </svg>
+          }
+          fields={financeFields}
+          expandedContent={financeExpanded}
+        />
       </div>
 
       {statusOpen ? <ReturnStatusModal item={item} onClose={() => setStatusOpen(false)} onConfirm={applyStatus} /> : null}
@@ -521,6 +712,7 @@ export function ReturnDetailPage() {
           onConfirm={applyAddress}
         />
       ) : null}
+      {barcodeOpen ? <ReturnBarcodePrintModal returns={[item]} onClose={() => setBarcodeOpen(false)} /> : null}
     </div>
   )
 }
