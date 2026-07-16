@@ -88,7 +88,7 @@ function CredCard({
             <div className="relative">
               <input
                 type={showPw ? 'text' : 'password'}
-                className="form-input pr-10"
+                className="form-input form-input-icon-right"
                 value={cred.password || ''}
                 placeholder="••••••••"
                 onChange={(e) => onUpdate('password', e.target.value)}
@@ -107,7 +107,7 @@ function CredCard({
             <div className="relative">
               <input
                 type={showPw ? 'text' : 'password'}
-                className="form-input pr-10"
+                className="form-input form-input-icon-right"
                 value={cred.apiKey || ''}
                 placeholder="••••••••••••"
                 onChange={(e) => onUpdate('apiKey', e.target.value)}

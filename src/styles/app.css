@@ -416,3 +416,19 @@ input[type="radio"] {
 .search-input {
   padding-left: 36px;
 }
+
+/*
+ * Same cascade-layer problem as .search-input above, generalized: any
+ * .form-input with an absolutely-positioned leading/trailing icon or symbol
+ * (currency prefix, password-visibility toggle, …) needs its padding set
+ * through an un-layered class like this one — a Tailwind pl- or pr- utility
+ * on the same element is silently ignored because .form-input's padding
+ * shorthand always wins the cascade over @layer utilities.
+ */
+.form-input-icon-left {
+  padding-left: 30px;
+}
+
+.form-input-icon-right {
+  padding-right: 40px;
+}

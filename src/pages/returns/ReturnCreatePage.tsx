@@ -415,7 +415,7 @@ export function ReturnCreatePage() {
                   <input
                     type="text"
                     inputMode="numeric"
-                    className="form-input pl-7"
+                    className="form-input form-input-icon-left"
                     value={form.orderAmount}
                     onChange={(e) => setField('orderAmount', e.target.value)}
                   />

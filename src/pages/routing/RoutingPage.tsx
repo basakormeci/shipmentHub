@@ -316,7 +316,7 @@ function RulesTab() {
               <input
                 type="text"
                 inputMode="numeric"
-                className="form-input pl-7"
+                className="form-input form-input-icon-left"
                 placeholder="Örn. 500"
                 value={simulator.amount}
                 onChange={(e) => setRoutingSimulator({ amount: e.target.value, resultId: null })}

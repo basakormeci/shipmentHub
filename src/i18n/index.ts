@@ -423,7 +423,7 @@ const tr: Dict = {
   'step1.default_order_label': 'Sipariş gönderileri için varsayılan yap',
   'step1.default_return_label': 'İade gönderileri için varsayılan yap',
   'step1.default_transfer_label': 'Transfer gönderileri için varsayılan yap',
-  'step1.extra_rules': 'Ek Kurallar',
+  'step1.product_type_section': 'Ürün Tipi Kısıtı',
   'step1.extra_rules_hint': '(isteğe bağlı — boş bırakılırsa kısıt uygulanmaz)',
 
   'validation.company_required': 'Kargo firması seçilmelidir.',
@@ -1481,7 +1481,7 @@ const en: Dict = {
   'step1.default_order_label': 'Set as default for order shipments',
   'step1.default_return_label': 'Set as default for return shipments',
   'step1.default_transfer_label': 'Set as default for transfer shipments',
-  'step1.extra_rules': 'Extra Rules',
+  'step1.product_type_section': 'Product Type Restriction',
   'step1.extra_rules_hint': '(optional — no restriction if left empty)',
 
   'validation.company_required': 'Cargo company is required.',

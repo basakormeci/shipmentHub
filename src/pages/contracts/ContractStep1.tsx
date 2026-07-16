@@ -1,14 +1,25 @@
-import {
-  COMPANIES,
-  CUSTOMER_SEGMENTS,
-  ORDER_PAYMENT_TYPES,
-  PACKAGE_TYPES,
-  PRODUCT_TYPES,
-  SHIPMENT_CHANNELS,
-  type ContractForm,
-} from '../../data/catalog'
+import type { ReactNode } from 'react'
+import { COMPANIES, PRODUCT_TYPES, type ContractForm } from '../../data/catalog'
 import { useT } from '../../hooks/useT'
 import { Dropdown } from '../../components/ui/Dropdown'
+
+const PRODUCT_TYPE_ICONS: Record<string, ReactNode> = {
+  gida: (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v4.5m3.75-4.5v4.5m-7.5 0h11.25M6 7.5v13.5a1 1 0 001 1h10a1 1 0 001-1V7.5M9.75 12v6m4.5-6v6" />
+    </svg>
+  ),
+  elektronik: (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 2L3 14h7l-1 8 11-14h-7l1-6z" />
+    </svg>
+  ),
+  tekstil: (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 2l4 2 4-2 3 4-3 2v14H5V8L2 6l3-4h3zm4 2v18" />
+    </svg>
+  ),
+}
 
 function Toggle({
   val,
@@ -133,7 +144,7 @@ export function ContractStep1({
               <input
                 type="text"
                 inputMode="numeric"
-                className={`form-input pl-7 ${errors.minOrderAmount ? 'error' : ''}`}
+                className={`form-input form-input-icon-left ${errors.minOrderAmount ? 'error' : ''}`}
                 value={f.minOrderAmount}
                 placeholder={t('step1.no_limit')}
                 onChange={(e) => onChange({ minOrderAmount: e.target.value })}
@@ -148,7 +159,7 @@ export function ContractStep1({
               <input
                 type="text"
                 inputMode="numeric"
-                className={`form-input pl-7 ${errors.maxOrderAmount ? 'error' : ''}`}
+                className={`form-input form-input-icon-left ${errors.maxOrderAmount ? 'error' : ''}`}
                 value={f.maxOrderAmount}
                 placeholder={t('step1.no_limit')}
                 onChange={(e) => onChange({ maxOrderAmount: e.target.value })}
@@ -206,77 +217,38 @@ export function ContractStep1({
       <div className="col-span-2">
         <div className="h-px bg-neutral-100 my-1" />
         <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-4 mb-1">
-          {t('step1.extra_rules')} <span className="font-normal normal-case text-neutral-400">{t('step1.extra_rules_hint')}</span>
+          {t('step1.product_type_section')} <span className="font-normal normal-case text-neutral-400">{t('step1.extra_rules_hint')}</span>
         </p>
-
-        <p className="text-xs font-medium text-neutral-500 mt-4 mb-2">Ürün Tipi Kısıtı</p>
-        <div className="flex flex-wrap gap-1.5">
-          {Object.entries(PRODUCT_TYPES).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              className={`filter-tab ${f.productTypes.includes(key) ? 'active' : ''}`}
-              onClick={() => toggleMulti('productTypes', key)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <p className="text-xs font-medium text-neutral-500 mt-4 mb-2">Müşteri Segmenti Kuralı</p>
-        <div className="flex flex-wrap gap-1.5">
-          {Object.entries(CUSTOMER_SEGMENTS).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              className={`filter-tab ${f.customerSegments.includes(key) ? 'active' : ''}`}
-              onClick={() => toggleMulti('customerSegments', key)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <p className="text-xs font-medium text-neutral-500 mt-4 mb-2">Paket Tipi Kuralı</p>
-        <div className="flex flex-wrap gap-1.5">
-          {Object.entries(PACKAGE_TYPES).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              className={`filter-tab ${f.packageTypes.includes(key) ? 'active' : ''}`}
-              onClick={() => toggleMulti('packageTypes', key)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <p className="text-xs font-medium text-neutral-500 mt-4 mb-2">Sipariş Kanalı Kuralı</p>
-        <div className="flex flex-wrap gap-1.5">
-          {SHIPMENT_CHANNELS.map((val) => (
-            <button
-              key={val}
-              type="button"
-              className={`filter-tab ${f.channels.includes(val) ? 'active' : ''}`}
-              onClick={() => toggleMulti('channels', val)}
-            >
-              {val}
-            </button>
-          ))}
-        </div>
-
-        <p className="text-xs font-medium text-neutral-500 mt-4 mb-2">Ödeme Tipi Kuralı</p>
-        <div className="flex flex-wrap gap-1.5">
-          {Object.entries(ORDER_PAYMENT_TYPES).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              className={`filter-tab ${f.paymentTypes.includes(key) ? 'active' : ''}`}
-              onClick={() => toggleMulti('paymentTypes', key)}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="grid grid-cols-3 gap-3 mt-3" style={{ maxWidth: 480 }}>
+          {Object.entries(PRODUCT_TYPES).map(([key, label]) => {
+            const active = f.productTypes.includes(key)
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => toggleMulti('productTypes', key)}
+                className={`relative flex flex-col items-center gap-2 py-4 px-3 rounded-lg border text-center transition-colors ${
+                  active ? 'border-primary bg-primary-lighter/30' : 'border-neutral-200 hover:bg-neutral-50'
+                }`}
+              >
+                {active ? (
+                  <span className="absolute top-2 right-2 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                ) : null}
+                <div
+                  className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                    active ? 'bg-primary text-white' : 'bg-neutral-100 text-neutral-500'
+                  }`}
+                >
+                  {PRODUCT_TYPE_ICONS[key]}
+                </div>
+                <p className={`text-xs font-semibold ${active ? 'text-primary-darker' : 'text-neutral-700'}`}>{label}</p>
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>

@@ -31080,10 +31080,6 @@ export interface Contract {
   isDefaultReturn?: boolean
   isDefaultTransfer?: boolean
   productTypes?: string[]
-  customerSegments?: string[]
-  packageTypes?: string[]
-  channels?: string[]
-  paymentTypes?: string[]
 }
 
 export interface ContractForm {
@@ -31100,10 +31096,6 @@ export interface ContractForm {
   returnShipping: boolean
   transferShipping: boolean
   productTypes: string[]
-  customerSegments: string[]
-  packageTypes: string[]
-  channels: string[]
-  paymentTypes: string[]
   coveredRegions: CoveredRegion[]
   search2: string
   activeProvinceId2: number | ''
@@ -31115,26 +31107,6 @@ export const PRODUCT_TYPES: Record<string, string> = {
   elektronik: 'Elektronik',
   tekstil: 'Tekstil',
 }
-
-export const CUSTOMER_SEGMENTS: Record<string, string> = {
-  vip: 'VIP',
-  standart: 'Standart',
-  kurumsal: 'Kurumsal',
-}
-
-export const PACKAGE_TYPES: Record<string, string> = {
-  kirilacak: 'Kırılacak Eşya',
-  soguk_zincir: 'Soğuk Zincir',
-  standart: 'Standart Paket',
-}
-
-export const ORDER_PAYMENT_TYPES: Record<string, string> = {
-  kapida_odeme: 'Kapıda Ödeme',
-  kredi_karti: 'Kredi Kartı',
-  on_odemeli: 'Ön Ödemeli',
-}
-
-export const SHIPMENT_CHANNELS = ['Trendyol', 'Hepsiburada', 'N11', 'Kendi Web Sitesi'] as const
 
 export const SEED_CONTRACTS: Contract[] = [
   {
