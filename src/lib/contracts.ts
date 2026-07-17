@@ -24,9 +24,6 @@ export function emptyContractForm(): ContractForm {
   return {
     companyId: '',
     name: '',
-    isDefaultOrder: false,
-    isDefaultReturn: false,
-    isDefaultTransfer: false,
     minDesi: '',
     maxDesi: '',
     minOrderAmount: '',
@@ -46,9 +43,6 @@ export function contractFormFromContract(c: Contract): ContractForm {
   return {
     companyId: c.companyId,
     name: c.name,
-    isDefaultOrder: !!c.isDefaultOrder,
-    isDefaultReturn: !!c.isDefaultReturn,
-    isDefaultTransfer: !!c.isDefaultTransfer,
     minDesi: c.minDesi,
     maxDesi: c.maxDesi,
     minOrderAmount: c.minOrderAmount,
@@ -73,19 +67,6 @@ export function getEligibleCompanyIds(contracts: Contract[], type: ShippingType)
     if (c.status === 'active' && c[type]) ids.add(c.companyId)
   })
   return [...ids]
-}
-
-const DEFAULT_FIELD: Record<ShippingType, 'isDefaultOrder' | 'isDefaultReturn' | 'isDefaultTransfer'> = {
-  orderShipping: 'isDefaultOrder',
-  returnShipping: 'isDefaultReturn',
-  transferShipping: 'isDefaultTransfer',
-}
-
-/** Company of the active contract marked as default for the given shipping type (order/return/transfer each have their own default). */
-export function getDefaultCompanyId(contracts: Contract[], type: ShippingType): number | null {
-  const field = DEFAULT_FIELD[type]
-  const def = contracts.find((c) => c.status === 'active' && c[type] && c[field])
-  return def ? def.companyId : null
 }
 
 export function getNodeUsage(nodeId: number, contracts: Contract[] = SEED_CONTRACTS): NodeUsage[] {
@@ -139,9 +120,6 @@ export function validateContractStep(
 
 export function contractPayloadFromForm(f: ContractForm, editingId: number | null, contracts: Contract[]) {
   const extraFields = {
-    isDefaultOrder: f.isDefaultOrder,
-    isDefaultReturn: f.isDefaultReturn,
-    isDefaultTransfer: f.isDefaultTransfer,
     transferShipping: f.transferShipping,
     productTypes: f.productTypes,
   }
@@ -190,34 +168,8 @@ export function exportContractsCsv(contracts: Contract[], lang: 'tr' | 'en' = 't
 
   const headers =
     lang === 'tr'
-      ? [
-          'Firma',
-          'Sözleşme Adı',
-          'Sipariş',
-          'Varsayılan Sipariş',
-          'İade',
-          'Varsayılan İade',
-          'Transfer',
-          'Varsayılan Transfer',
-          'Min Desi',
-          'Max Desi',
-          'Durum',
-          'Tarih',
-        ]
-      : [
-          'Company',
-          'Contract Name',
-          'Order',
-          'Default Order',
-          'Return',
-          'Default Return',
-          'Transfer',
-          'Default Transfer',
-          'Min Desi',
-          'Max Desi',
-          'Status',
-          'Date',
-        ]
+      ? ['Firma', 'Sözleşme Adı', 'Sipariş', 'İade', 'Transfer', 'Min Desi', 'Max Desi', 'Durum', 'Tarih']
+      : ['Company', 'Contract Name', 'Order', 'Return', 'Transfer', 'Min Desi', 'Max Desi', 'Status', 'Date']
 
   const yes = lang === 'tr' ? 'Evet' : 'Yes'
   const no = lang === 'tr' ? 'Hayır' : 'No'
@@ -230,11 +182,8 @@ export function exportContractsCsv(contracts: Contract[], lang: 'tr' | 'en' = 't
       co ? co.name : '',
       c.name,
       c.orderShipping ? yes : no,
-      c.isDefaultOrder ? yes : no,
       c.returnShipping ? yes : no,
-      c.isDefaultReturn ? yes : no,
       c.transferShipping ? yes : no,
-      c.isDefaultTransfer ? yes : no,
       c.minDesi,
       c.maxDesi,
       c.status === 'active' ? active : passive,

@@ -162,7 +162,6 @@ export interface ShipmentRoutingDecision {
   scores: { companyId: number; companyName: string; metrics: Record<CarrierMetricKey, number>; combined: number }[]
   /** Step 4: final pick. */
   chosenCompanyId: number
-  tieBreakUsedDefault: boolean
 }
 
 export interface Shipment {
@@ -291,9 +290,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 2,
@@ -385,9 +383,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 3,
@@ -479,9 +476,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 4,
@@ -586,9 +582,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 4
+          }
   },
   {
     "id": 5,
@@ -693,9 +688,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 6,
@@ -800,9 +794,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 7,
@@ -894,9 +887,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 8,
@@ -988,9 +980,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 9,
@@ -1095,9 +1086,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 4
+          }
   },
   {
     "id": 10,
@@ -1202,9 +1192,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 11,
@@ -1296,9 +1285,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 12,
@@ -1403,9 +1391,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 13,
@@ -1510,9 +1497,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 14,
@@ -1605,9 +1591,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 15,
@@ -1712,9 +1697,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 16,
@@ -1819,9 +1803,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 17,
@@ -1926,9 +1909,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 18,
@@ -2033,9 +2015,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 19,
@@ -2140,9 +2121,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 20,
@@ -2234,9 +2214,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 21,
@@ -2328,9 +2307,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 22,
@@ -2435,9 +2413,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 4
+          }
   },
   {
     "id": 23,
@@ -2542,9 +2519,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 24,
@@ -2649,9 +2625,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 25,
@@ -2743,9 +2718,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 26,
@@ -2837,9 +2811,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 27,
@@ -2931,9 +2904,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 28,
@@ -3038,9 +3010,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 29,
@@ -3132,9 +3103,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 30,
@@ -3239,9 +3209,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 8,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 8
+          }
   },
   {
     "id": 31,
@@ -3346,9 +3315,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 32,
@@ -3453,9 +3421,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 33,
@@ -3560,9 +3527,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 34,
@@ -3643,9 +3609,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 35,
@@ -3750,9 +3715,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 36,
@@ -3857,9 +3821,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 37,
@@ -3964,9 +3927,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.6188990030971738
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 4
+          }
   },
   {
     "id": 38,
@@ -4058,9 +4020,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 39,
@@ -4165,9 +4126,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 40,
@@ -4259,9 +4219,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 41,
@@ -4366,9 +4325,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 42,
@@ -4460,9 +4418,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 43,
@@ -4554,9 +4511,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 44,
@@ -4648,9 +4604,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 45,
@@ -4755,9 +4710,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 46,
@@ -4849,9 +4803,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 47,
@@ -4956,9 +4909,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 48,
@@ -5039,9 +4991,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 49,
@@ -5133,9 +5084,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 50,
@@ -5240,9 +5190,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 51,
@@ -5323,9 +5272,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 8,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 8
+          }
   },
   {
     "id": 52,
@@ -5417,9 +5365,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 53,
@@ -5524,9 +5471,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 54,
@@ -5618,9 +5564,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 55,
@@ -5712,9 +5657,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 56,
@@ -5819,9 +5763,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 57,
@@ -5926,9 +5869,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 58,
@@ -6033,9 +5975,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 59,
@@ -6140,9 +6081,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 60,
@@ -6247,9 +6187,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 61,
@@ -6354,9 +6293,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 62,
@@ -6461,9 +6399,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 63,
@@ -6568,9 +6505,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 64,
@@ -6675,9 +6611,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 65,
@@ -6745,9 +6680,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 66,
@@ -6852,9 +6786,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 67,
@@ -6959,9 +6892,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 68,
@@ -7053,9 +6985,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 69,
@@ -7160,9 +7091,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 70,
@@ -7267,9 +7197,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 71,
@@ -7361,9 +7290,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 72,
@@ -7468,9 +7396,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 8,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 8
+          }
   },
   {
     "id": 73,
@@ -7562,9 +7489,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 74,
@@ -7669,9 +7595,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 75,
@@ -7763,9 +7688,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 76,
@@ -7870,9 +7794,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 77,
@@ -7964,9 +7887,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 78,
@@ -8071,9 +7993,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 79,
@@ -8165,9 +8086,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.6188990030971738
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 80,
@@ -8259,9 +8179,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 81,
@@ -8366,9 +8285,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 82,
@@ -8460,9 +8378,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 83,
@@ -8567,9 +8484,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 8,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 8
+          }
   },
   {
     "id": 84,
@@ -8637,9 +8553,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 85,
@@ -8744,9 +8659,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 86,
@@ -8851,9 +8765,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 87,
@@ -8958,9 +8871,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 88,
@@ -9052,9 +8964,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 89,
@@ -9146,9 +9057,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 90,
@@ -9253,9 +9163,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 91,
@@ -9360,9 +9269,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 4
+          }
   },
   {
     "id": 92,
@@ -9454,9 +9362,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 93,
@@ -9561,9 +9468,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 94,
@@ -9668,9 +9574,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 95,
@@ -9775,9 +9680,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 96,
@@ -9882,9 +9786,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 97,
@@ -9989,9 +9892,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 98,
@@ -10083,9 +9985,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.6188990030971738
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 99,
@@ -10190,9 +10091,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 100,
@@ -10297,9 +10197,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 101,
@@ -10404,9 +10303,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 102,
@@ -10511,9 +10409,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 4
+          }
   },
   {
     "id": 103,
@@ -10605,9 +10502,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 104,
@@ -10712,9 +10608,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 105,
@@ -10819,9 +10714,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 106,
@@ -10913,9 +10807,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 107,
@@ -11020,9 +10913,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 108,
@@ -11127,9 +11019,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 109,
@@ -11221,9 +11112,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 110,
@@ -11315,9 +11205,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 111,
@@ -11409,9 +11298,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 112,
@@ -11516,9 +11404,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 113,
@@ -11623,9 +11510,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 114,
@@ -11730,9 +11616,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 115,
@@ -11851,9 +11736,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 116,
@@ -11958,9 +11842,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 117,
@@ -12040,9 +11923,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 118,
@@ -12147,9 +12029,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 4
+          }
   },
   {
     "id": 119,
@@ -12241,9 +12122,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 120,
@@ -12335,9 +12215,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.6188990030971738
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 121,
@@ -12442,9 +12321,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 122,
@@ -12549,9 +12427,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 123,
@@ -12656,9 +12533,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 124,
@@ -12726,9 +12602,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 125,
@@ -12833,9 +12708,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 126,
@@ -12940,9 +12814,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 4
+          }
   },
   {
     "id": 127,
@@ -13034,9 +12907,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 128,
@@ -13141,9 +13013,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 129,
@@ -13248,9 +13119,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.6188990030971738
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 4
+          }
   },
   {
     "id": 130,
@@ -13343,9 +13213,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 8,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 8
+          }
   },
   {
     "id": 131,
@@ -13422,9 +13291,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 132,
@@ -13501,9 +13369,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 133,
@@ -13583,9 +13450,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 134,
@@ -13662,9 +13528,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 135,
@@ -13744,9 +13609,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 136,
@@ -13823,9 +13687,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 137,
@@ -13902,9 +13765,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 138,
@@ -13981,9 +13843,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 139,
@@ -14076,9 +13937,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 140,
@@ -14155,9 +14015,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 141,
@@ -14237,9 +14096,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 142,
@@ -14316,9 +14174,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 143,
@@ -14398,9 +14255,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 144,
@@ -14480,9 +14336,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 145,
@@ -14562,9 +14417,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 146,
@@ -14657,9 +14511,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 147,
@@ -14736,9 +14589,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 148,
@@ -14831,9 +14683,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 149,
@@ -14913,9 +14764,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 150,
@@ -14979,9 +14829,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 151,
@@ -15061,9 +14910,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 152,
@@ -15127,9 +14975,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 153,
@@ -15222,9 +15069,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 154,
@@ -15304,9 +15150,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 155,
@@ -15399,9 +15244,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 156,
@@ -15494,9 +15338,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 157,
@@ -15576,9 +15419,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 158,
@@ -15655,9 +15497,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 159,
@@ -15750,9 +15591,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 160,
@@ -15845,9 +15685,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 4
+          }
   },
   {
     "id": 161,
@@ -15940,9 +15779,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 162,
@@ -16022,9 +15860,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 163,
@@ -16104,9 +15941,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 164,
@@ -16183,9 +16019,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 165,
@@ -16292,9 +16127,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 166,
@@ -16374,9 +16208,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 167,
@@ -16453,9 +16286,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 168,
@@ -16548,9 +16380,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 169,
@@ -16643,9 +16474,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 170,
@@ -16725,9 +16555,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "combined": 0.6188990030971738
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   }
 ]
 
@@ -16859,9 +16688,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 1
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -16956,9 +16784,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 4
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17053,9 +16880,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 2
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17137,9 +16963,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 1
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17234,9 +17059,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 2
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17331,9 +17155,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 2
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17428,9 +17251,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 8,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 8
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17525,9 +17347,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 2
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17622,9 +17443,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 2
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17719,9 +17539,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 3
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17816,9 +17635,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 3
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17913,9 +17731,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 3
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -17997,9 +17814,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 1
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18131,9 +17947,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 1
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18215,9 +18030,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 1
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18300,9 +18114,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 2
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18385,9 +18198,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 6
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18470,9 +18282,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 3
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18555,9 +18366,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 3
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18635,9 +18445,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 1
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18715,9 +18524,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 1
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18808,9 +18616,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 6
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18888,9 +18695,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 1
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -18981,9 +18787,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 7
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -19061,9 +18866,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 1
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -19154,9 +18958,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 2
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -19247,9 +19050,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 4
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -19332,9 +19134,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 3
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -19417,9 +19218,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 6
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -19502,9 +19302,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 8,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 8
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -19574,9 +19373,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 1
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -19710,9 +19508,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 2
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -19795,9 +19592,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 2
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -19876,9 +19672,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 7
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -19957,9 +19752,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 3
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -20038,9 +19832,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 3
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -20106,9 +19899,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 1
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -20187,9 +19979,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 3
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -20268,9 +20059,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 3
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -20349,9 +20139,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 3
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -20430,9 +20219,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 2
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -20548,9 +20336,8 @@ export const SEED_RETURNS: ReturnItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 4,
-      "tieBreakUsedDefault": false
-    },
+      "chosenCompanyId": 4
+          },
     "statusHistory": [
       {
         "status": "ReturnCodeCreated",
@@ -20665,9 +20452,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 2,
@@ -20768,9 +20554,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 3,
@@ -20858,9 +20643,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 4,
@@ -20961,9 +20745,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 5,
@@ -21064,9 +20847,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 6,
@@ -21167,9 +20949,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.47222420634920637
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 7,
@@ -21270,9 +21051,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 8,
@@ -21373,9 +21153,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 9,
@@ -21476,9 +21255,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 10,
@@ -21566,9 +21344,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 11,
@@ -21656,9 +21433,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 12,
@@ -21759,9 +21535,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 13,
@@ -21862,9 +21637,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 14,
@@ -21965,9 +21739,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 15,
@@ -22055,9 +21828,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 16,
@@ -22146,9 +21918,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 17,
@@ -22236,9 +22007,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 18,
@@ -22339,9 +22109,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 19,
@@ -22442,9 +22211,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 20,
@@ -22521,9 +22289,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 21,
@@ -22624,9 +22391,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 22,
@@ -22727,9 +22493,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 23,
@@ -22830,9 +22595,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 24,
@@ -22933,9 +22697,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 25,
@@ -23036,9 +22799,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 26,
@@ -23139,9 +22901,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 27,
@@ -23242,9 +23003,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 28,
@@ -23345,9 +23105,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 29,
@@ -23448,9 +23207,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 30,
@@ -23538,9 +23296,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 31,
@@ -23617,9 +23374,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 32,
@@ -23720,9 +23476,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 33,
@@ -23810,9 +23565,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 34,
@@ -23888,9 +23642,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 35,
@@ -23978,9 +23731,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 36,
@@ -24081,9 +23833,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 37,
@@ -24171,9 +23922,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 38,
@@ -24250,9 +24000,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.4170402640088454
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 39,
@@ -24329,9 +24078,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 40,
@@ -24419,9 +24167,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 41,
@@ -24522,9 +24269,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 42,
@@ -24625,9 +24371,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 43,
@@ -24728,9 +24473,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 44,
@@ -24831,9 +24575,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 45,
@@ -24921,9 +24664,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 46,
@@ -25024,9 +24766,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.47222420634920637
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 47,
@@ -25127,9 +24868,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.47222420634920637
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 48,
@@ -25244,9 +24984,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 49,
@@ -25334,9 +25073,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 50,
@@ -25437,9 +25175,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 7,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 7
+          }
   },
   {
     "id": 51,
@@ -25527,9 +25264,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 52,
@@ -25617,9 +25353,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 53,
@@ -25679,9 +25414,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 54,
@@ -25770,9 +25504,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 55,
@@ -25845,9 +25578,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.4170402640088454
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 56,
@@ -25923,9 +25655,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 57,
@@ -26014,9 +25745,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 58,
@@ -26089,9 +25819,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 59,
@@ -26151,9 +25880,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 60,
@@ -26226,9 +25954,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 61,
@@ -26304,9 +26031,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 62,
@@ -26395,9 +26121,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 63,
@@ -26470,9 +26195,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 64,
@@ -26548,9 +26272,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 65,
@@ -26639,9 +26362,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 66,
@@ -26730,9 +26452,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 67,
@@ -26821,9 +26542,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 68,
@@ -26912,9 +26632,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 3,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 3
+          }
   },
   {
     "id": 69,
@@ -27003,9 +26722,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 70,
@@ -27094,9 +26812,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 71,
@@ -27185,9 +26902,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 72,
@@ -27260,9 +26976,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 73,
@@ -27335,9 +27050,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 74,
@@ -27410,9 +27124,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.4170402640088454
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   },
   {
     "id": 75,
@@ -27488,9 +27201,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 76,
@@ -27550,9 +27262,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 1,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 1
+          }
   },
   {
     "id": 77,
@@ -27641,9 +27352,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 78,
@@ -27732,9 +27442,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 79,
@@ -27823,9 +27532,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.5712562562500053
         }
       ],
-      "chosenCompanyId": 2,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 2
+          }
   },
   {
     "id": 80,
@@ -27914,9 +27622,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "combined": 0.29007379132060923
         }
       ],
-      "chosenCompanyId": 6,
-      "tieBreakUsedDefault": false
-    }
+      "chosenCompanyId": 6
+          }
   }
 ]
 
@@ -31078,18 +30785,12 @@ export interface Contract {
   maxOrderAmount: number | ''
   coveredRegions: CoveredRegion[]
   credentials: ContractCredential[]
-  isDefaultOrder?: boolean
-  isDefaultReturn?: boolean
-  isDefaultTransfer?: boolean
   productTypes?: string[]
 }
 
 export interface ContractForm {
   companyId: number | ''
   name: string
-  isDefaultOrder: boolean
-  isDefaultReturn: boolean
-  isDefaultTransfer: boolean
   minDesi: string | number
   maxDesi: string | number
   minOrderAmount: string | number

@@ -4,18 +4,18 @@ import { COMPANIES } from '../../data/catalog'
 import { useDataStore } from '../../stores/dataStore'
 import { useT } from '../../hooks/useT'
 import { toast } from '../../lib/toast'
-import { getDefaultCompanyId, getEligibleCompanyIds } from '../../lib/contracts'
+import { getEligibleCompanyIds } from '../../lib/contracts'
 import { Dropdown } from '../../components/ui/Dropdown'
 
 type FormErrors = Partial<Record<'dispatchNo' | 'fromNodeId' | 'toNodeId' | 'companyId' | 'desi', string>>
 
-function buildInitial(defaultCompanyId: number | null) {
+function buildInitial() {
   return {
     dispatchNo: '',
     referenceId: '',
     fromNodeId: '',
     toNodeId: '',
-    companyId: defaultCompanyId != null ? String(defaultCompanyId) : '',
+    companyId: '',
     desi: '',
     packageNo: '',
     note: '',
@@ -31,8 +31,7 @@ export function TransferCreatePage() {
 
   const eligibleCompanyIds = new Set(getEligibleCompanyIds(contracts, 'transferShipping'))
   const companyOptions = COMPANIES.filter((c) => eligibleCompanyIds.has(c.id))
-  const defaultCompanyId = getDefaultCompanyId(contracts, 'transferShipping')
-  const [form, setForm] = useState(() => buildInitial(defaultCompanyId))
+  const [form, setForm] = useState(() => buildInitial())
   const [errors, setErrors] = useState<FormErrors>({})
 
   function setField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -76,7 +75,7 @@ export function TransferCreatePage() {
       note: form.note,
     })
     toast(t('transferCreate.toast_created', { no: created.transferNo }), 'success')
-    setForm(buildInitial(defaultCompanyId))
+    setForm(buildInitial())
     setErrors({})
     navigate(`/transfers/${created.id}`)
   }
@@ -170,17 +169,7 @@ export function TransferCreatePage() {
                   placeholder={t('transferCreate.company_placeholder')}
                   options={companyOptions.map((c) => ({ value: String(c.id), label: c.name }))}
                 />
-                {errors.companyId ? (
-                  <p className="form-error">{errors.companyId}</p>
-                ) : defaultCompanyId != null && form.companyId === String(defaultCompanyId) ? (
-                  <p className="text-[11px] text-primary-darker mt-1.5 flex items-center gap-1">
-                    <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <circle cx="12" cy="12" r="9" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
-                    </svg>
-                    {t('common.default_carrier_hint')}
-                  </p>
-                ) : null}
+                {errors.companyId ? <p className="form-error">{errors.companyId}</p> : null}
               </div>
               <div>
                 <label className="form-label">

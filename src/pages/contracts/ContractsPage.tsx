@@ -9,14 +9,6 @@ import { exportContractsCsv, type ContractFilterStatus } from '../../lib/contrac
 import { toast } from '../../lib/toast'
 import { ContractDeleteModal } from './ContractModals'
 
-function DefaultStar() {
-  return (
-    <svg className="w-3 h-3 text-[#f0b429] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-label="Varsayılan">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-    </svg>
-  )
-}
-
 function ContractRow({
   contract,
   index,
@@ -46,35 +38,23 @@ function ContractRow({
       <td className="px-5 py-3.5 text-neutral-600">{contract.name}</td>
       <td className="px-5 py-3.5">
         <div className="flex items-center gap-2 flex-wrap">
-          <span
-            className={`flex items-center gap-1 text-xs ${contract.orderShipping ? 'text-primary' : 'text-neutral-300'}`}
-            title={contract.isDefaultOrder ? t('contracts.default_for', { type: t('contracts.shipping_order') }) : undefined}
-          >
+          <span className={`flex items-center gap-1 text-xs ${contract.orderShipping ? 'text-primary' : 'text-neutral-300'}`}>
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
             </svg>
             {t('contracts.shipping_order')}
-            {contract.isDefaultOrder ? <DefaultStar /> : null}
           </span>
-          <span
-            className={`flex items-center gap-1 text-xs ${contract.returnShipping ? 'text-[#7d52f4]' : 'text-neutral-300'}`}
-            title={contract.isDefaultReturn ? t('contracts.default_for', { type: t('contracts.shipping_return') }) : undefined}
-          >
+          <span className={`flex items-center gap-1 text-xs ${contract.returnShipping ? 'text-[#7d52f4]' : 'text-neutral-300'}`}>
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
             </svg>
             {t('contracts.shipping_return')}
-            {contract.isDefaultReturn ? <DefaultStar /> : null}
           </span>
-          <span
-            className={`flex items-center gap-1 text-xs ${contract.transferShipping ? 'text-[#c2570e]' : 'text-neutral-300'}`}
-            title={contract.isDefaultTransfer ? t('contracts.default_for', { type: t('contracts.shipping_transfer') }) : undefined}
-          >
+          <span className={`flex items-center gap-1 text-xs ${contract.transferShipping ? 'text-[#c2570e]' : 'text-neutral-300'}`}>
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h13M8 7l4-4M8 7l4 4M16 17H3m13 0l-4 4m4-4l-4-4" />
             </svg>
             {t('contracts.shipping_transfer')}
-            {contract.isDefaultTransfer ? <DefaultStar /> : null}
           </span>
         </div>
       </td>

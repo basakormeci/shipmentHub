@@ -6,7 +6,7 @@ import { useUiStore } from '../../stores/uiStore'
 import { useT } from '../../hooks/useT'
 import { toast } from '../../lib/toast'
 import { SHIPMENT_CHANNELS } from '../../lib/shipments'
-import { getDefaultCompanyId, getEligibleCompanyIds } from '../../lib/contracts'
+import { getEligibleCompanyIds } from '../../lib/contracts'
 import { decideCarrier } from '../../lib/carrierRouting'
 import { RETURN_REASONS, getPickupAvailability } from '../../lib/returns'
 import { Dropdown } from '../../components/ui/Dropdown'
@@ -52,11 +52,11 @@ type FormErrors = Partial<
   >
 >
 
-function buildInitial(defaultCompanyId: number | null) {
+function buildInitial() {
   return {
     orderNo: '',
     routingMode: 'auto' as 'auto' | 'manual',
-    companyId: defaultCompanyId != null ? String(defaultCompanyId) : '',
+    companyId: '',
     desi: '',
     orderAmount: '',
     customerName: '',
@@ -91,8 +91,7 @@ export function ReturnCreatePage() {
 
   const eligibleCompanyIds = new Set(getEligibleCompanyIds(contracts, 'returnShipping'))
   const companyOptions = COMPANIES.filter((c) => eligibleCompanyIds.has(c.id))
-  const defaultCompanyId = getDefaultCompanyId(contracts, 'returnShipping')
-  const [form, setForm] = useState(() => buildInitial(defaultCompanyId))
+  const [form, setForm] = useState(() => buildInitial())
   const [errors, setErrors] = useState<FormErrors>({})
 
   const province = form.provinceId ? getProvince(+form.provinceId) : undefined
@@ -169,7 +168,7 @@ export function ReturnCreatePage() {
   }, [pickupDays])
 
   function reset() {
-    setForm(buildInitial(defaultCompanyId))
+    setForm(buildInitial())
     setErrors({})
   }
 
@@ -213,7 +212,6 @@ export function ReturnCreatePage() {
         weights: { cost: 0, deliveryTime: 0, successRate: 0, damagedRate: 0, avgPickupHours: 0, costDiffPct: 0 },
         scores: [],
         chosenCompanyId: companyId,
-        tieBreakUsedDefault: false,
       }
     } else {
       const decision = decideCarrier({
@@ -518,17 +516,7 @@ export function ReturnCreatePage() {
                         placeholder={t('shipmentCreate.company_placeholder')}
                         options={companyOptions.map((c) => ({ value: String(c.id), label: c.name }))}
                       />
-                      {errors.companyId ? (
-                        <p className="form-error">{errors.companyId}</p>
-                      ) : defaultCompanyId != null && form.companyId === String(defaultCompanyId) ? (
-                        <p className="text-[11px] text-primary-darker mt-1.5 flex items-center gap-1">
-                          <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                            <circle cx="12" cy="12" r="9" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
-                          </svg>
-                          {t('common.default_carrier_hint')}
-                        </p>
-                      ) : null}
+                      {errors.companyId ? <p className="form-error">{errors.companyId}</p> : null}
                     </>
                   ) : (
                     <>
@@ -546,10 +534,7 @@ export function ReturnCreatePage() {
                               </div>
                               <span className="badge badge-info flex-shrink-0">{t('shipmentCreate.auto_preview_badge')}</span>
                             </div>
-                            <p className="text-xs text-neutral-500 mt-2">
-                              {t('shipmentCreate.auto_preview_reason_default')}
-                              {routingPreview.tieBreakUsedDefault ? t('shipmentCreate.auto_preview_tiebreak') : ''}
-                            </p>
+                            <p className="text-xs text-neutral-500 mt-2">{t('shipmentCreate.auto_preview_reason_default')}</p>
                           </>
                         )}
                       </div>

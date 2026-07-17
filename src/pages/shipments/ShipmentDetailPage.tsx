@@ -438,7 +438,6 @@ export function ShipmentDetailPage() {
           </p>
           <p className="text-xs text-neutral-600">
             {t('shipmentDetail.routing_step_result_desc', { name: getCompany(routing.chosenCompanyId)?.name ?? '' })}
-            {routing.tieBreakUsedDefault ? ' ' + t('shipmentDetail.routing_tiebreak_note') : ''}
           </p>
         </div>
       </div>

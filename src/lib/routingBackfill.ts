@@ -89,6 +89,5 @@ export function synthesizeRoutingDecision(params: {
     weights: normalizedWeights,
     scores: eligibleScores.map((s) => ({ companyId: s.companyId, companyName: s.companyName, metrics: s.metrics, combined: s.combined })),
     chosenCompanyId: params.companyId,
-    tieBreakUsedDefault: false,
   }
 }
