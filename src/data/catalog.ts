@@ -16794,6 +16794,8 @@ export interface ReturnItem {
   note: string
   desi?: number
   orderAmount?: number
+  pickupDate?: string
+  pickupTimeSlot?: string
   routingDecision?: ShipmentRoutingDecision
   statusHistory: { status: ReturnStatus; at: string }[]
 }

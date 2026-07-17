@@ -8,6 +8,50 @@ export function getReturnStatusTabs(): { key: ReturnStatus | 'all' }[] {
 export const RETURN_REASONS = ['begenmedim', 'yanlis_urun', 'kusurlu', 'degisim', 'diger'] as const
 export type ReturnReasonKey = (typeof RETURN_REASONS)[number]
 
+export interface PickupSlot {
+  key: string
+  label: string
+}
+
+export interface PickupDay {
+  date: string
+  label: string
+  slots: PickupSlot[]
+}
+
+const PICKUP_SLOT_POOL: PickupSlot[] = [
+  { key: 'morning', label: '09:00 - 12:00' },
+  { key: 'noon', label: '12:00 - 15:00' },
+  { key: 'afternoon', label: '15:00 - 18:00' },
+]
+
+/**
+ * Dummy courier-pickup availability for a carrier: starts the day after "today"
+ * (a pickup can never be booked for today or earlier), skips Sundays, and varies
+ * which time slots are open per day/carrier so the picker looks like real data.
+ */
+export function getPickupAvailability(companyId: number, count = 6): PickupDay[] {
+  const days: PickupDay[] = []
+  const cursor = new Date()
+  cursor.setHours(0, 0, 0, 0)
+  cursor.setDate(cursor.getDate() + 1)
+  let i = 0
+  while (days.length < count) {
+    if (cursor.getDay() !== 0) {
+      const seed = (companyId * 31 + i * 7) % 3
+      const slots = seed === 0 ? PICKUP_SLOT_POOL : seed === 1 ? PICKUP_SLOT_POOL.slice(0, 2) : PICKUP_SLOT_POOL.slice(1)
+      days.push({
+        date: cursor.toISOString().slice(0, 10),
+        label: cursor.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' }),
+        slots,
+      })
+    }
+    cursor.setDate(cursor.getDate() + 1)
+    i++
+  }
+  return days
+}
+
 export const RETURN_SEARCH_FIELDS = [
   { key: 'returnNo' as const },
   { key: 'orderNo' as const },
