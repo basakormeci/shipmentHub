@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { AUTH_PASSWORD, type User } from '../data/seed'
-import { useDataStore } from './dataStore'
+import { useUsersStore } from './usersStore'
+import { setActiveUserEmail } from '../lib/activeUser'
 
 interface AuthState {
   loggedIn: boolean
@@ -21,18 +22,21 @@ export const useAuthStore = create<AuthState>()(
         if (!trimmed || !password) {
           return { ok: false, error: 'login.error_required' }
         }
-        const user = useDataStore.getState().users.find((u) => u.email.toLowerCase() === trimmed)
+        const user = useUsersStore.getState().users.find((u) => u.email.toLowerCase() === trimmed)
         if (!user) return { ok: false, error: 'login.error_user' }
         if (password !== AUTH_PASSWORD) return { ok: false, error: 'login.error_password' }
         if (user.status !== 'active') return { ok: false, error: 'login.error_passive' }
         set({ loggedIn: true, userId: user.id })
         return { ok: true }
       },
-      logout: () => set({ loggedIn: false, userId: null }),
+      logout: () => {
+        setActiveUserEmail(null)
+        set({ loggedIn: false, userId: null })
+      },
       currentUser: () => {
         const { userId } = get()
         if (!userId) return null
-        return useDataStore.getState().users.find((u) => u.id === userId) ?? null
+        return useUsersStore.getState().users.find((u) => u.id === userId) ?? null
       },
     }),
     {

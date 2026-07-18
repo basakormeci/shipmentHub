@@ -1,7 +1,7 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
-import { useDataStore } from '../../stores/dataStore'
+import { useUsersStore } from '../../stores/usersStore'
 import { useUiStore } from '../../stores/uiStore'
 import { USER_ROLES } from '../../data/seed'
 import { useT } from '../../hooks/useT'
@@ -22,7 +22,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
   const { pathname } = useLocation()
   const logout = useAuthStore((s) => s.logout)
   const userId = useAuthStore((s) => s.userId)
-  const users = useDataStore((s) => s.users)
+  const users = useUsersStore((s) => s.users)
   const user = users.find((u) => u.id === userId) ?? null
   const display = user ?? { name: '—', role: 'operation' as const }
   const initials = display.name

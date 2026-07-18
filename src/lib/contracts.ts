@@ -2,7 +2,6 @@ import {
   COMPANIES,
   PROVINCES,
   PRODUCT_TYPES,
-  SEED_CONTRACTS,
   getCompany,
   type Contract,
   type ContractForm,
@@ -75,7 +74,7 @@ export function getEligibleCompanyIds(contracts: Contract[], type: ShippingType)
   return [...ids]
 }
 
-export function getNodeUsage(nodeId: number, contracts: Contract[] = SEED_CONTRACTS): NodeUsage[] {
+export function getNodeUsage(nodeId: number, contracts: Contract[]): NodeUsage[] {
   const usage: NodeUsage[] = []
   contracts.forEach((c) => {
     const co = getCompany(c.companyId)

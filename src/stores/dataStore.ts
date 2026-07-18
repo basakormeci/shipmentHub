@@ -5,46 +5,36 @@ import { synthesizeShipmentHistory, synthesizeReturnHistory } from '../lib/statu
 import { synthesizeRoutingDecision, provinceIdForName } from '../lib/routingBackfill'
 import { PROVINCES } from '../data/catalog'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { SEED_NODES, SEED_USERS, type StockNode, type User, type UserRole, type UserStatus } from '../data/seed'
-import {
-  SEED_SHIPMENTS,
-  SEED_RETURNS,
-  SEED_TRANSFERS,
-  SEED_ROUTING_RULES,
-  SEED_ROUTING_HISTORY,
-  SEED_CARRIER_PRICING,
-  SEED_CARRIER_INVOICES,
-  SEED_CARRIER_QUOTAS,
-  SEED_CARRIER_HEALTH,
-  SEED_ERROR_LOGS,
-  SEED_WEBHOOK_QUEUE,
-  SEED_PERMISSION_MATRIX,
-  SEED_TEMPLATES,
-  SEED_BARCODE_TEMPLATES,
-  SEED_CONTRACTS,
-  type Shipment,
-  type Contract,
-  type ShipmentStatus,
-  type ReturnItem,
-  type ReturnStatus,
-  type TransferItem,
-  type RoutingRule,
-  type RoutingHistoryItem,
-  type CarrierPricing,
-  type CarrierInvoice,
-  type CarrierQuota,
-  type CarrierHealth,
-  type ErrorLog,
-  type WebhookItem,
-  type PermissionMatrix,
-  type NotifyTemplate,
-  type BarcodeTemplate,
+import type { StockNode, UserRole } from '../data/seed'
+import { migrateDataState } from '../lib/dataMigrations'
+import { createEmptyUserData, createInitialDataForUser } from '../lib/initialDataFactory'
+import { userScopedRawStorage, CURRENT_DATA_VERSION, clearUserData } from '../lib/userDataRepository'
+import { getActiveUserEmail } from '../lib/activeUser'
+import type {
+  Shipment,
+  Contract,
+  ShipmentStatus,
+  ReturnItem,
+  ReturnStatus,
+  TransferItem,
+  RoutingRule,
+  RoutingHistoryItem,
+  CarrierPricing,
+  CarrierInvoice,
+  CarrierQuota,
+  CarrierHealth,
+  ErrorLog,
+  WebhookItem,
+  PermissionMatrix,
+  NotifyTemplate,
+  BarcodeTemplate,
 } from '../data/catalog'
 
-export type { StockNode, User, UserRole, UserStatus }
+export type { StockNode }
 
+// Per-user-namespaced business data. `users` (the account directory) intentionally lives
+// in a separate, global, non-namespaced store — see src/stores/usersStore.ts.
 interface DataState {
-  users: User[]
   nodes: StockNode[]
   shipments: Shipment[]
   returns: ReturnItem[]
@@ -65,9 +55,6 @@ interface DataState {
   upsertNode: (input: Omit<StockNode, 'id'> & { id?: number | null }) => StockNode
   removeNode: (id: number) => StockNode | null
 
-  upsertUser: (input: Omit<User, 'id' | 'lastLogin'> & { id?: number | null; lastLogin?: string }) => User
-  toggleUserStatus: (id: number) => User | null
-  removeUser: (id: number) => User | null
   togglePermission: (role: UserRole, moduleIndex: number) => void
 
   upsertTemplate: (input: Omit<NotifyTemplate, 'id'> & { id?: number | null }) => NotifyTemplate
@@ -140,23 +127,10 @@ function nextId<T extends { id: number }>(rows: T[]) {
 export const useDataStore = create<DataState>()(
   persist(
     (set, get) => ({
-      users: SEED_USERS,
-      nodes: SEED_NODES,
-      shipments: SEED_SHIPMENTS,
-      returns: SEED_RETURNS,
-      transfers: SEED_TRANSFERS,
-      routingRules: SEED_ROUTING_RULES,
-      routingHistory: SEED_ROUTING_HISTORY,
-      carrierPricing: SEED_CARRIER_PRICING,
-      carrierInvoices: SEED_CARRIER_INVOICES,
-      carrierQuotas: SEED_CARRIER_QUOTAS,
-      carrierHealth: SEED_CARRIER_HEALTH,
-      errorLogs: SEED_ERROR_LOGS,
-      webhookQueue: SEED_WEBHOOK_QUEUE,
-      permissionMatrix: SEED_PERMISSION_MATRIX,
-      templates: SEED_TEMPLATES,
-      barcodeTemplates: SEED_BARCODE_TEMPLATES,
-      contracts: SEED_CONTRACTS,
+      // Pre-hydration placeholder only — every protected route is gated behind
+      // RequireAuth, which rehydrates this store with the active user's real data
+      // (seeded or blank) before any of these fields are ever rendered.
+      ...createEmptyUserData(),
 
       upsertNode: (input) => {
         if (input.id == null) {
@@ -175,44 +149,6 @@ export const useDataStore = create<DataState>()(
         return node
       },
 
-      upsertUser: (input) => {
-        if (input.id == null) {
-          const user: User = {
-            id: nextId(get().users),
-            name: input.name,
-            email: input.email,
-            role: input.role,
-            status: input.status,
-            lastLogin: input.lastLogin ?? '-',
-          }
-          set({ users: [...get().users, user] })
-          return user
-        }
-        set({
-          users: get().users.map((u) =>
-            u.id === input.id
-              ? { ...u, name: input.name, email: input.email, role: input.role, status: input.status }
-              : u,
-          ),
-        })
-        return get().users.find((u) => u.id === input.id)!
-      },
-      toggleUserStatus: (id) => {
-        let updated: User | null = null
-        set({
-          users: get().users.map((u) => {
-            if (u.id !== id) return u
-            updated = { ...u, status: u.status === 'active' ? 'passive' : 'active' }
-            return updated
-          }),
-        })
-        return updated
-      },
-      removeUser: (id) => {
-        const user = get().users.find((u) => u.id === id) ?? null
-        set({ users: get().users.filter((u) => u.id !== id) })
-        return user
-      },
       togglePermission: (role, moduleIndex) => {
         const matrix = { ...get().permissionMatrix, [role]: [...get().permissionMatrix[role]] }
         matrix[role][moduleIndex] = !matrix[role][moduleIndex]
@@ -492,58 +428,9 @@ export const useDataStore = create<DataState>()(
     }),
     {
       name: 'shipment-hub:v1',
-      storage: createJSONStorage(() => localStorage),
-      version: 7,
-      migrate: (persisted, version) => {
-        const state = persisted as DataState
-        if (version < 3) {
-          return { ...state, transfers: state.transfers ?? SEED_TRANSFERS }
-        }
-        if (version < 4) {
-          return { ...state, contracts: state.contracts ?? SEED_CONTRACTS }
-        }
-        if (version < 6) {
-          const shipmentStatusMap: Record<string, ShipmentStatus> = {
-            preparing: 'DispatchLabelCreated',
-            in_transit: 'OnTheWay',
-            delivered: 'DeliveredToCustomer',
-            returned: 'ReturnToSender',
-            cancelled: 'ShipmentCanceled',
-            recalled: 'OnTheWayBackToSender',
-          }
-          const returnStatusMap: Record<string, ReturnStatus> = {
-            requested: 'ReturnCodeCreated',
-            picked_up: 'ReturnOnTheWay',
-            in_warehouse: 'ReturnReceivedByProvider',
-            completed: 'ReceivedByReturnCenter',
-            cancelled: 'ReturnShipmentError',
-            recalled: 'ReturnCodeExpired',
-          }
-          const transferStatusMap: Record<string, ShipmentStatus> = {
-            preparing: 'DispatchLabelCreated',
-            in_transit: 'OnTheWay',
-            delivered: 'DeliveredToStore',
-            cancelled: 'ShipmentCanceled',
-            recalled: 'OnTheWayBackToSender',
-          }
-          return {
-            ...state,
-            shipments: (state.shipments ?? []).map((s) => ({
-              ...s,
-              status: shipmentStatusMap[s.status as string] ?? s.status,
-            })),
-            returns: (state.returns ?? []).map((r) => ({
-              ...r,
-              status: returnStatusMap[r.status as string] ?? r.status,
-            })),
-            transfers: (state.transfers ?? []).map((tr) => ({
-              ...tr,
-              status: transferStatusMap[tr.status as string] ?? tr.status,
-            })),
-          }
-        }
-        return state
-      },
+      storage: createJSONStorage(() => userScopedRawStorage),
+      version: CURRENT_DATA_VERSION,
+      migrate: (persisted, version) => migrateDataState(persisted, version),
       // Runs on every load (unlike migrate, which only fires on a version mismatch) so a
       // record written by a stale browser tab / older bundle can never crash the app by
       // missing a field the current schema requires (e.g. statusHistory).
@@ -614,3 +501,18 @@ export const useDataStore = create<DataState>()(
     },
   ),
 )
+
+// Dev-only helper to reset ONLY the active user's namespace back to their own initial
+// data (seeded for legacy demo accounts, blank for everyone else) — never touches any
+// other user's storage key. Exposed on window in dev so it's reachable from the browser
+// console without adding any new UI surface.
+export function resetCurrentUserData(): void {
+  const email = getActiveUserEmail()
+  if (!email) return
+  clearUserData(email)
+  useDataStore.setState(createInitialDataForUser(email))
+}
+
+if (import.meta.env.DEV) {
+  ;(window as unknown as { __resetCurrentUserData?: () => void }).__resetCurrentUserData = resetCurrentUserData
+}

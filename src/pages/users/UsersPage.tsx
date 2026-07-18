@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useDataStore } from '../../stores/dataStore'
+import { useUsersStore } from '../../stores/usersStore'
 import { USER_ROLES } from '../../data/seed'
 import type { User, UserRole, UserStatus } from '../../data/seed'
 import { fmtDateTimeStr } from '../../lib/format'
@@ -15,8 +16,8 @@ function UserModal({
   editId: number | null
   onClose: () => void
 }) {
-  const users = useDataStore((s) => s.users)
-  const upsertUser = useDataStore((s) => s.upsertUser)
+  const users = useUsersStore((s) => s.users)
+  const upsertUser = useUsersStore((s) => s.upsertUser)
   const existing = editId != null ? users.find((u) => u.id === editId) : null
 
   const [name, setName] = useState(existing?.name ?? '')
@@ -90,7 +91,7 @@ function UserModal({
 }
 
 function UserDeleteModal({ user, onClose }: { user: User | null; onClose: () => void }) {
-  const removeUser = useDataStore((s) => s.removeUser)
+  const removeUser = useUsersStore((s) => s.removeUser)
   if (!user) return null
 
   function confirm() {
@@ -138,7 +139,7 @@ function UserDeleteModal({ user, onClose }: { user: User | null; onClose: () => 
 }
 
 function UserRow({ user, index }: { user: User; index: number }) {
-  const toggleUserStatus = useDataStore((s) => s.toggleUserStatus)
+  const toggleUserStatus = useUsersStore((s) => s.toggleUserStatus)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const role = USER_ROLES[user.role]
@@ -201,7 +202,7 @@ import { TabBar } from '../../components/ui/TabBar'
 import { PERMISSION_MATRIX_MODULES } from '../../data/catalog'
 
 export function UsersPage() {
-  const users = useDataStore((s) => s.users)
+  const users = useUsersStore((s) => s.users)
   const permissionMatrix = useDataStore((s) => s.permissionMatrix)
   const togglePermission = useDataStore((s) => s.togglePermission)
   const roles = Object.keys(USER_ROLES) as UserRole[]

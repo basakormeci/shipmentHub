@@ -1,12 +1,12 @@
 import { useAuthStore } from '../stores/authStore'
-import { useDataStore } from '../stores/dataStore'
+import { useUsersStore } from '../stores/usersStore'
 import { USER_ROLES } from '../data/seed'
 import { useT } from '../hooks/useT'
 
 export function ProfilePage() {
   const t = useT()
   const userId = useAuthStore((s) => s.userId)
-  const users = useDataStore((s) => s.users)
+  const users = useUsersStore((s) => s.users)
   const user = users.find((u) => u.id === userId) ?? null
 
   if (!user) {
