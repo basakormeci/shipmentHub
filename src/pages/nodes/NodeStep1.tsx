@@ -110,6 +110,54 @@ export function NodeStep1({
         />
         {errors.address ? <p className="form-error">{errors.address}</p> : null}
       </div>
+
+      <div className="col-span-2">
+        <div className="h-px bg-neutral-100 my-1" />
+        <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-4 mb-4">{t('nodeWizard.section_contact')}</p>
+      </div>
+
+      <div>
+        <label className="form-label">{t('nodeWizard.field_contact_name')}</label>
+        <input
+          type="text"
+          className="form-input"
+          value={f.contactName}
+          onChange={(e) => onChange({ contactName: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <label className="form-label">{t('nodeWizard.field_contact_email')}</label>
+        <input
+          type="text"
+          className="form-input"
+          value={f.contactEmail}
+          placeholder="ornek@firma.com"
+          onChange={(e) => onChange({ contactEmail: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <label className="form-label">{t('nodeWizard.field_contact_phone')}</label>
+        <input
+          type="text"
+          className="form-input"
+          value={f.contactPhone}
+          placeholder="+90 5xx xxx xx xx"
+          onChange={(e) => onChange({ contactPhone: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <label className="form-label">{t('nodeWizard.field_contact_national_id')}</label>
+        <input
+          type="text"
+          inputMode="numeric"
+          className="form-input"
+          value={f.contactNationalId}
+          onChange={(e) => onChange({ contactNationalId: e.target.value })}
+        />
+      </div>
     </div>
   )
 }

@@ -40,6 +40,10 @@ export interface StockNode {
   dailyAssignmentLimit?: number
   workingHours?: NodeWorkingHours[]
   fulfillment?: NodeFulfillment
+  contactName?: string
+  contactEmail?: string
+  contactPhone?: string
+  contactNationalId?: string
 }
 
 export interface NodeUsage {

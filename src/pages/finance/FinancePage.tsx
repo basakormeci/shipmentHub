@@ -8,6 +8,7 @@ import {
   type CarrierInvoice,
 } from '../../data/catalog'
 import { fmtDateTimeStr } from '../../lib/format'
+import { exportInvoicesCsv } from '../../lib/finance'
 import { toast } from '../../lib/toast'
 import { Dropdown } from '../../components/ui/Dropdown'
 
@@ -367,19 +368,29 @@ function InvoicePanel() {
                     <span className={`badge ${meta.badge}`}>{meta.label}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5 justify-end">
-                      <button className="action-btn btn-edit" type="button" onClick={() => setModalId(inv.id)}>
-                        Düzenle
+                    <div className="flex items-center gap-1 justify-end">
+                      <button
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0"
+                        type="button"
+                        title="Düzenle"
+                        onClick={() => setModalId(inv.id)}
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
                       </button>
                       <button
-                        className="action-btn btn-delete"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[#ad1f2b] hover:bg-[#ffebec] transition-colors flex-shrink-0"
                         type="button"
+                        title="Sil"
                         onClick={() => {
                           removeInvoice(inv.id)
                           toast('Fatura kaydı silindi.', 'info')
                         }}
                       >
-                        Sil
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
                       </button>
                     </div>
                   </td>
@@ -443,8 +454,16 @@ function QuotaPanel() {
 
 export function FinancePage() {
   const { tab } = useParams<{ tab: string }>()
+  const carrierInvoices = useDataStore((s) => s.carrierInvoices)
   const [pricingOpen, setPricingOpen] = useState(false)
-  const [invoiceOpen, setInvoiceOpen] = useState(false)
+
+  function handleExportInvoicesCsv() {
+    if (!exportInvoicesCsv(carrierInvoices)) {
+      toast('Dışa aktarılacak fatura kaydı bulunamadı.', 'info')
+      return
+    }
+    toast(`${carrierInvoices.length} fatura CSV olarak indirildi.`, 'success')
+  }
 
   return (
     <div className="page-container">
@@ -466,8 +485,11 @@ export function FinancePage() {
               Yeni Fiyat Kaydı
             </button>
           ) : tab === 'invoices' ? (
-            <button className="primary-btn" type="button" onClick={() => setInvoiceOpen(true)}>
-              Yeni Fatura Kaydı
+            <button className="secondary-btn" type="button" onClick={handleExportInvoicesCsv}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+              </svg>
+              CSV Olarak İndir
             </button>
           ) : null}
         </div>
@@ -477,7 +499,6 @@ export function FinancePage() {
       </div>
 
       {pricingOpen ? <PricingModal open editId={null} onClose={() => setPricingOpen(false)} /> : null}
-      {invoiceOpen ? <InvoiceModal open editId={null} onClose={() => setInvoiceOpen(false)} /> : null}
     </div>
   )
 }

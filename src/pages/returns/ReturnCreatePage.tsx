@@ -47,7 +47,7 @@ function getProvince(id: number) {
 
 type FormErrors = Partial<
   Record<
-    'orderNo' | 'companyId' | 'customerName' | 'shipFrom' | 'provinceId' | 'district' | 'addressLine' | 'phone' | 'desi' | 'pickupDate' | 'pickupSlot',
+    'orderNo' | 'companyId' | 'customerName' | 'provinceId' | 'district' | 'addressLine' | 'phone' | 'desi' | 'pickupDate' | 'pickupSlot',
     string
   >
 >
@@ -60,7 +60,6 @@ function buildInitial() {
     desi: '',
     orderAmount: '',
     customerName: '',
-    shipFrom: '',
     provinceId: '',
     district: '',
     addressLine: '',
@@ -85,7 +84,6 @@ export function ReturnCreatePage() {
   const shipments = useDataStore((s) => s.shipments)
   const carrierInvoices = useDataStore((s) => s.carrierInvoices)
   const carrierPricing = useDataStore((s) => s.carrierPricing)
-  const nodes = useDataStore((s) => s.nodes)
   const routingWeights = useUiStore((s) => s.routingWeights)
   const addReturn = useDataStore((s) => s.addReturn)
 
@@ -138,10 +136,10 @@ export function ReturnCreatePage() {
   }
 
   function setDeliveryMethod(pickup: boolean) {
-    setForm((f) => ({ ...f, pickup, shipFrom: '', pickupDate: '', pickupSlot: '' }))
+    setForm((f) => ({ ...f, pickup, companyId: '', pickupDate: '', pickupSlot: '' }))
     setErrors((e) => {
       const next = { ...e }
-      delete next.shipFrom
+      delete next.companyId
       delete next.pickupDate
       delete next.pickupSlot
       return next
@@ -182,7 +180,7 @@ export function ReturnCreatePage() {
       if (!form.pickupDate) errs.pickupDate = t('returnCreate.err_pickup_date')
       if (form.pickupDate && !form.pickupSlot) errs.pickupSlot = t('returnCreate.err_pickup_slot')
     } else {
-      if (!form.shipFrom) errs.shipFrom = t('returnCreate.err_dropoff_node')
+      if (!form.companyId) errs.companyId = t('shipmentCreate.err_company')
     }
     if (!form.provinceId) errs.provinceId = t('shipmentCreate.err_province')
     if (!form.district) errs.district = t('shipmentCreate.err_district')
@@ -200,7 +198,7 @@ export function ReturnCreatePage() {
 
     let companyId: number
     let routingDecision: ShipmentRoutingDecision
-    if (form.pickup && form.routingMode === 'manual') {
+    if (!form.pickup || form.routingMode === 'manual') {
       companyId = +form.companyId
       routingDecision = {
         mode: 'manual',
@@ -228,11 +226,7 @@ export function ReturnCreatePage() {
         cargoType: 'return',
       })
       if (!decision) {
-        if (form.pickup) {
-          setErrors({ companyId: t('shipmentCreate.err_no_eligible_carrier') })
-        } else {
-          toast(t('shipmentCreate.err_no_eligible_carrier'), 'error')
-        }
+        setErrors({ companyId: t('shipmentCreate.err_no_eligible_carrier') })
         return
       }
       companyId = decision.chosenCompanyId
@@ -247,7 +241,7 @@ export function ReturnCreatePage() {
       desi: +form.desi,
       orderAmount: form.orderAmount === '' ? undefined : +form.orderAmount,
       routingDecision,
-      shipFrom: form.pickup ? 'Adresten Teslim Alma' : form.shipFrom,
+      shipFrom: form.pickup ? 'Adresten Teslim Alma' : 'Şubeden Teslim',
       shipTo: {
         district: form.district,
         province: prov.name,
@@ -476,16 +470,16 @@ export function ReturnCreatePage() {
             {!form.pickup ? (
               <div style={{ maxWidth: 420 }}>
                 <label className="form-label">
-                  {t('shipmentCreate.ship_from')} <span className="text-[#fb3748]">*</span>
+                  {t('shipmentCreate.company')} <span className="text-[#fb3748]">*</span>
                 </label>
                 <Dropdown
-                  error={!!errors.shipFrom}
-                  value={form.shipFrom}
-                  onChange={(v) => setField('shipFrom', v)}
-                  placeholder={t('shipmentCreate.ship_from_placeholder')}
-                  options={nodes.map((n) => ({ value: n.name, label: n.name }))}
+                  error={!!errors.companyId}
+                  value={form.companyId}
+                  onChange={(v) => setField('companyId', v)}
+                  placeholder={t('shipmentCreate.company_placeholder')}
+                  options={companyOptions.map((c) => ({ value: String(c.id), label: c.name }))}
                 />
-                {errors.shipFrom ? <p className="form-error">{errors.shipFrom}</p> : null}
+                {errors.companyId ? <p className="form-error">{errors.companyId}</p> : null}
               </div>
             ) : (
               <>

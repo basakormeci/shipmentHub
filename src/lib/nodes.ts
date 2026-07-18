@@ -5,8 +5,6 @@ export const NODE_TYPES: { value: NodeType; labelKey: string }[] = [
   { value: 'warehouse', labelKey: 'nodeWizard.type_warehouse' },
 ]
 
-export const NODE_GROUPS = ['A', 'B', 'C', 'D', 'E'] as const
-
 export const WEEKDAYS = [
   { day: 0, labelKey: 'weekday.monday' },
   { day: 1, labelKey: 'weekday.tuesday' },
@@ -35,6 +33,10 @@ export interface NodeForm {
   dailyAssignmentLimit: string
   workingHours: NodeWorkingHours[]
   fulfillment: NodeFulfillment
+  contactName: string
+  contactEmail: string
+  contactPhone: string
+  contactNationalId: string
 }
 
 function defaultWorkingHours(): NodeWorkingHours[] {
@@ -60,6 +62,10 @@ export function emptyNodeForm(): NodeForm {
     dailyAssignmentLimit: '0',
     workingHours: defaultWorkingHours(),
     fulfillment: { pickupFromStore: false, pickupPoint: false, shipFromStore: false },
+    contactName: '',
+    contactEmail: '',
+    contactPhone: '',
+    contactNationalId: '',
   }
 }
 
@@ -78,6 +84,10 @@ export function nodeFormFromNode(node: StockNode): NodeForm {
     fulfillment: node.fulfillment
       ? { ...node.fulfillment }
       : { pickupFromStore: false, pickupPoint: false, shipFromStore: false },
+    contactName: node.contactName ?? '',
+    contactEmail: node.contactEmail ?? '',
+    contactPhone: node.contactPhone ?? '',
+    contactNationalId: node.contactNationalId ?? '',
   }
 }
 
@@ -89,9 +99,6 @@ export function validateNodeStep(step: number, f: NodeForm, t: (key: string) => 
     if (!f.provinceId) errs.provinceId = t('validation.node_city_required')
     if (!f.district) errs.district = t('validation.node_district_required')
     if (!f.address.trim()) errs.address = t('validation.node_address_required')
-  }
-  if (step === 3) {
-    if (!f.group) errs.group = t('validation.node_group_required')
   }
   return errs
 }
@@ -109,5 +116,9 @@ export function nodePayloadFromForm(f: NodeForm): Omit<StockNode, 'id'> {
     dailyAssignmentLimit: f.dailyAssignmentLimit === '' ? 0 : +f.dailyAssignmentLimit,
     workingHours: f.workingHours,
     fulfillment: f.fulfillment,
+    contactName: f.contactName.trim(),
+    contactEmail: f.contactEmail.trim(),
+    contactPhone: f.contactPhone.trim(),
+    contactNationalId: f.contactNationalId.trim(),
   }
 }

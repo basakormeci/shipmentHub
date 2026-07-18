@@ -7,14 +7,10 @@ import { emptyNodeForm, nodeFormFromNode, nodePayloadFromForm, validateNodeStep 
 import { toast } from '../../lib/toast'
 import { NodeStep1 } from './NodeStep1'
 import { NodeStep2 } from './NodeStep2'
-import { NodeStep3 } from './NodeStep3'
-import { NodeStep4 } from './NodeStep4'
 
 const STEPS = [
   { labelKey: 'nodeWizard.step1_label', descKey: 'nodeWizard.step1_desc' },
   { labelKey: 'nodeWizard.step2_label', descKey: 'nodeWizard.step2_desc' },
-  { labelKey: 'nodeWizard.step3_label', descKey: 'nodeWizard.step3_desc' },
-  { labelKey: 'nodeWizard.step4_label', descKey: 'nodeWizard.step4_desc' },
 ] as const
 
 export function NodeWizardPage() {
@@ -137,8 +133,6 @@ export function NodeWizardPage() {
           <div className="flex-1 px-8 py-8 overflow-y-auto">
             {step === 1 ? <NodeStep1 f={f} errors={errors} onChange={updateForm} /> : null}
             {step === 2 ? <NodeStep2 f={f} onChange={updateForm} /> : null}
-            {step === 3 ? <NodeStep3 f={f} errors={errors} onChange={updateForm} /> : null}
-            {step === 4 ? <NodeStep4 f={f} /> : null}
           </div>
 
           <div className="flex items-center justify-between px-8 py-4 border-t border-neutral-100 bg-neutral-50/60">
