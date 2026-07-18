@@ -182,6 +182,7 @@ export interface Shipment {
   deliveryNote?: string
   desi?: number
   orderAmount?: number
+  productType?: string
   routingDecision?: ShipmentRoutingDecision
   statusHistory: { status: ShipmentStatus; at: string }[]
 }
@@ -16623,6 +16624,7 @@ export interface ReturnItem {
   note: string
   desi?: number
   orderAmount?: number
+  productType?: string
   pickupDate?: string
   pickupTimeSlot?: string
   routingDecision?: ShipmentRoutingDecision
@@ -20358,9 +20360,10 @@ export interface TransferItem {
   referenceId: string
   packageNo: string
   status: ShipmentStatus
-  desi: number
+  desi?: number
   note: string
   createdAt: string
+  productType?: string
   routingDecision?: ShipmentRoutingDecision
   statusHistory: { status: ShipmentStatus; at: string }[]
 }

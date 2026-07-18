@@ -10,6 +10,7 @@ import { getEligibleCompanyIds } from '../../lib/contracts'
 import { decideCarrier } from '../../lib/carrierRouting'
 import { Dropdown } from '../../components/ui/Dropdown'
 import { SegmentedToggle } from '../../components/ui/SegmentedToggle'
+import { ProductTypePicker } from '../../components/ui/ProductTypePicker'
 
 const AUTO_ICON = (
   <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
@@ -52,6 +53,7 @@ function buildInitial() {
     referenceId: '',
     packageNo: '',
     channel: 'Kendi Web Sitesi',
+    productType: '',
   }
 }
 
@@ -196,6 +198,7 @@ export function ShipmentCreatePage() {
       packageNo: form.packageNo,
       customerName: form.customerName.trim(),
       channel: form.channel,
+      productType: form.productType || undefined,
     })
     toast(t('shipmentCreate.toast_created', { no: created.shipmentNo }), 'success')
     reset()
@@ -315,6 +318,13 @@ export function ShipmentCreatePage() {
                   <span className="font-normal normal-case text-neutral-400">{t('shipmentCreate.package_auto')}</span>
                 </label>
                 <input type="text" className="form-input" value={form.packageNo} onChange={(e) => setField('packageNo', e.target.value)} />
+              </div>
+              <div className="col-span-2">
+                <label className="form-label">
+                  {t('shipmentCreate.product_type_section')}{' '}
+                  <span className="font-normal normal-case text-neutral-400">{t('shipmentCreate.reference_optional')}</span>
+                </label>
+                <ProductTypePicker value={form.productType} onChange={(v) => setField('productType', v)} />
               </div>
             </div>
           </div>

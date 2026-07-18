@@ -1,25 +1,7 @@
-import type { ReactNode } from 'react'
 import { COMPANIES, PRODUCT_TYPES, type ContractForm } from '../../data/catalog'
 import { useT } from '../../hooks/useT'
 import { Dropdown } from '../../components/ui/Dropdown'
-
-const PRODUCT_TYPE_ICONS: Record<string, ReactNode> = {
-  gida: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v4.5m3.75-4.5v4.5m-7.5 0h11.25M6 7.5v13.5a1 1 0 001 1h10a1 1 0 001-1V7.5M9.75 12v6m4.5-6v6" />
-    </svg>
-  ),
-  elektronik: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13 2L3 14h7l-1 8 11-14h-7l1-6z" />
-    </svg>
-  ),
-  tekstil: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8 2l4 2 4-2 3 4-3 2v14H5V8L2 6l3-4h3zm4 2v18" />
-    </svg>
-  ),
-}
+import { PRODUCT_TYPE_ICONS } from '../../components/ui/ProductTypePicker'
 
 function Toggle({
   val,

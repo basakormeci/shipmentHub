@@ -11,6 +11,7 @@ import { decideCarrier } from '../../lib/carrierRouting'
 import { RETURN_REASONS, getPickupAvailability } from '../../lib/returns'
 import { Dropdown } from '../../components/ui/Dropdown'
 import { SegmentedToggle } from '../../components/ui/SegmentedToggle'
+import { ProductTypePicker } from '../../components/ui/ProductTypePicker'
 
 const AUTO_ICON = (
   <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
@@ -47,7 +48,7 @@ function getProvince(id: number) {
 
 type FormErrors = Partial<
   Record<
-    'orderNo' | 'companyId' | 'customerName' | 'provinceId' | 'district' | 'addressLine' | 'phone' | 'desi' | 'pickupDate' | 'pickupSlot',
+    'orderNo' | 'companyId' | 'customerName' | 'provinceId' | 'district' | 'addressLine' | 'phone' | 'pickupDate' | 'pickupSlot',
     string
   >
 >
@@ -68,6 +69,7 @@ function buildInitial() {
     referenceId: '',
     packageNo: '',
     channel: 'Kendi Web Sitesi',
+    productType: '',
     reason: 'begenmedim',
     pickup: true,
     pickupDate: '',
@@ -94,13 +96,13 @@ export function ReturnCreatePage() {
 
   const province = form.provinceId ? getProvince(+form.provinceId) : undefined
 
-  const canPreviewRouting = form.routingMode === 'auto' && !!form.provinceId && form.desi.trim() !== '' && +form.desi > 0
+  const canPreviewRouting = form.routingMode === 'auto' && !!form.provinceId
 
   const routingPreview = useMemo(() => {
     if (!canPreviewRouting) return null
     return decideCarrier({
       provinceId: +form.provinceId,
-      desi: +form.desi,
+      desi: form.desi === '' ? 0 : +form.desi,
       amount: form.orderAmount === '' ? 0 : +form.orderAmount,
       contracts,
       routingRules,
@@ -173,7 +175,6 @@ export function ReturnCreatePage() {
   function validate() {
     const errs: FormErrors = {}
     if (!form.orderNo.trim()) errs.orderNo = t('shipmentCreate.err_order_no')
-    if (!form.desi.trim() || +form.desi <= 0) errs.desi = t('shipmentCreate.err_desi')
     if (!form.customerName.trim()) errs.customerName = t('shipmentCreate.err_customer')
     if (form.pickup) {
       if (form.routingMode === 'manual' && !form.companyId) errs.companyId = t('shipmentCreate.err_company')
@@ -214,7 +215,7 @@ export function ReturnCreatePage() {
     } else {
       const decision = decideCarrier({
         provinceId: +form.provinceId,
-        desi: +form.desi,
+        desi: form.desi === '' ? 0 : +form.desi,
         amount: form.orderAmount === '' ? 0 : +form.orderAmount,
         contracts,
         routingRules,
@@ -238,7 +239,7 @@ export function ReturnCreatePage() {
     const created = addReturn({
       orderNo: orderNoVal as number,
       companyId,
-      desi: +form.desi,
+      desi: form.desi === '' ? undefined : +form.desi,
       orderAmount: form.orderAmount === '' ? undefined : +form.orderAmount,
       routingDecision,
       shipFrom: form.pickup ? 'Adresten Teslim Alma' : 'Şubeden Teslim',
@@ -253,6 +254,7 @@ export function ReturnCreatePage() {
       packageNo: form.packageNo,
       customerName: form.customerName.trim(),
       channel: form.channel,
+      productType: form.productType || undefined,
       reason: form.reason,
       pickup: form.pickup,
       pickupDate: form.pickup ? form.pickupDate : undefined,
@@ -345,16 +347,16 @@ export function ReturnCreatePage() {
             <div className="grid grid-cols-2 gap-5">
               <div>
                 <label className="form-label">
-                  {t('shipmentCreate.desi')} <span className="text-[#fb3748]">*</span>
+                  {t('shipmentCreate.desi')}{' '}
+                  <span className="font-normal normal-case text-neutral-400">{t('shipmentCreate.reference_optional')}</span>
                 </label>
                 <input
                   type="text"
                   inputMode="numeric"
-                  className={`form-input ${errors.desi ? 'error' : ''}`}
+                  className="form-input"
                   value={form.desi}
                   onChange={(e) => setField('desi', e.target.value)}
                 />
-                {errors.desi ? <p className="form-error">{errors.desi}</p> : null}
               </div>
               <div>
                 <label className="form-label">
@@ -378,6 +380,13 @@ export function ReturnCreatePage() {
                   <span className="font-normal normal-case text-neutral-400">{t('shipmentCreate.package_auto')}</span>
                 </label>
                 <input type="text" className="form-input" value={form.packageNo} onChange={(e) => setField('packageNo', e.target.value)} />
+              </div>
+              <div className="col-span-2">
+                <label className="form-label">
+                  {t('shipmentCreate.product_type_section')}{' '}
+                  <span className="font-normal normal-case text-neutral-400">{t('shipmentCreate.reference_optional')}</span>
+                </label>
+                <ProductTypePicker value={form.productType} onChange={(v) => setField('productType', v)} />
               </div>
             </div>
           </div>
