@@ -184,7 +184,7 @@ export function ContractStep1({
       <div className="col-span-2">
         <div className="h-px bg-neutral-100 my-1" />
         <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-4 mb-1">
-          {t('step1.product_type_section')} <span className="font-normal normal-case text-neutral-400">{t('step1.extra_rules_hint')}</span>
+          {t('step1.product_type_section')} <span className="font-normal normal-case text-neutral-400">{t('step1.product_type_hint')}</span>
         </p>
         <div className="grid grid-cols-3 gap-3 mt-3" style={{ maxWidth: 480 }}>
           {Object.entries(PRODUCT_TYPES).map(([key, label]) => {
@@ -195,24 +195,32 @@ export function ContractStep1({
                 type="button"
                 onClick={() => toggleMulti('productTypes', key)}
                 className={`relative flex flex-col items-center gap-2 py-4 px-3 rounded-lg border text-center transition-colors ${
-                  active ? 'border-primary bg-primary-lighter/30' : 'border-neutral-200 hover:bg-neutral-50'
+                  active ? 'border-primary bg-primary-lighter/30' : 'border-neutral-200 bg-neutral-50/60 opacity-60 hover:opacity-100'
                 }`}
               >
-                {active ? (
-                  <span className="absolute top-2 right-2 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                <span
+                  className={`absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center ${
+                    active ? 'bg-primary' : 'bg-[#ad1f2b]'
+                  }`}
+                >
+                  {active ? (
                     <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                  </span>
-                ) : null}
+                  ) : (
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  )}
+                </span>
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                    active ? 'bg-primary text-white' : 'bg-neutral-100 text-neutral-500'
+                    active ? 'bg-primary text-white' : 'bg-neutral-200 text-neutral-500'
                   }`}
                 >
                   {PRODUCT_TYPE_ICONS[key]}
                 </div>
-                <p className={`text-xs font-semibold ${active ? 'text-primary-darker' : 'text-neutral-700'}`}>{label}</p>
+                <p className={`text-xs font-semibold ${active ? 'text-primary-darker' : 'text-neutral-500'}`}>{label}</p>
               </button>
             )
           })}

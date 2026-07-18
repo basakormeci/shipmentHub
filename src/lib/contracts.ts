@@ -1,6 +1,7 @@
 import {
   COMPANIES,
   PROVINCES,
+  PRODUCT_TYPES,
   SEED_CONTRACTS,
   getCompany,
   type Contract,
@@ -10,6 +11,11 @@ import {
 import { fmtDate } from './format'
 
 export type ContractFilterStatus = ContractStatus | 'all'
+
+/** Product-type restriction is opt-out: every type carries by default, so a
+ * brand-new contract (or one saved before this field existed) starts with
+ * all types active rather than none. */
+const ALL_PRODUCT_TYPES = Object.keys(PRODUCT_TYPES)
 
 export interface NodeUsage {
   companyId: number
@@ -31,7 +37,7 @@ export function emptyContractForm(): ContractForm {
     orderShipping: true,
     returnShipping: true,
     transferShipping: false,
-    productTypes: [],
+    productTypes: [...ALL_PRODUCT_TYPES],
     coveredRegions: [],
     search2: '',
     activeProvinceId2: '',
@@ -50,7 +56,7 @@ export function contractFormFromContract(c: Contract): ContractForm {
     orderShipping: c.orderShipping,
     returnShipping: c.returnShipping,
     transferShipping: !!c.transferShipping,
-    productTypes: [...(c.productTypes ?? [])],
+    productTypes: c.productTypes ? [...c.productTypes] : [...ALL_PRODUCT_TYPES],
     coveredRegions: JSON.parse(JSON.stringify(c.coveredRegions)),
     search2: '',
     activeProvinceId2: '',

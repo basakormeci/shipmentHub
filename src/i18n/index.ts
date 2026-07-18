@@ -411,7 +411,7 @@ const tr: Dict = {
   'step1.transfer_shipping_label': 'Transfer Gönderisi',
   'step1.transfer_shipping_desc': 'Bu sözleşme depolar/mağazalar arası transfer gönderimlerinde kullanılsın',
   'step1.product_type_section': 'Ürün Tipi Kısıtı',
-  'step1.extra_rules_hint': '(isteğe bağlı — boş bırakılırsa kısıt uygulanmaz)',
+  'step1.product_type_hint': '(varsayılan olarak tüm ürün tipleri taşınır — bu kargo firması ile gönderim yapılmasını istemediğiniz ürün tiplerini kapatın)',
 
   'validation.company_required': 'Kargo firması seçilmelidir.',
   'validation.min_desi_required': 'Min desi zorunludur.',
@@ -1467,7 +1467,7 @@ const en: Dict = {
   'step1.transfer_shipping_label': 'Transfer Shipment',
   'step1.transfer_shipping_desc': 'Use this contract for inter-warehouse transfers',
   'step1.product_type_section': 'Product Type Restriction',
-  'step1.extra_rules_hint': '(optional — no restriction if left empty)',
+  'step1.product_type_hint': '(all product types carry by default — turn off the ones you don’t want to ship with this carrier)',
 
   'validation.company_required': 'Cargo company is required.',
   'validation.min_desi_required': 'Min desi is required.',
