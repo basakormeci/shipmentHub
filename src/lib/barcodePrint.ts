@@ -1,4 +1,4 @@
-import { PROVINCES, getCompany, type ReturnItem, type Shipment, type TransferItem } from '../data/catalog'
+import { PROVINCES, BARCODE_FORMATS, getCompany, type ReturnItem, type Shipment, type TransferItem } from '../data/catalog'
 import { packageItemsFor } from './shipments'
 import { getNode } from './transfers'
 import type { StockNode } from '../data/seed'
@@ -303,14 +303,27 @@ function renderLabel(parcel: PrintableParcel): string {
   return renderGenericLabel(parcelBarcodeLabel(parcel))
 }
 
-function buildLabelHtml(parcels: PrintableParcel[]): string {
+export interface PrintOptions {
+  printerType?: string
+  resolution?: string
+}
+
+function buildLabelHtml(parcels: PrintableParcel[], options: PrintOptions = {}): string {
   const labels = parcels.map(renderLabel).join('')
+  const printerLabel = options.printerType ? BARCODE_FORMATS.find((f) => f.key === options.printerType)?.label ?? options.printerType : null
+  const printerInfo =
+    printerLabel || options.resolution
+      ? `<div class="printer-info">${escapeHtml(printerLabel ?? '')}${printerLabel && options.resolution ? ' · ' : ''}${
+          options.resolution ? escapeHtml(`${options.resolution} dpi`) : ''
+        }</div>`
+      : ''
 
   return `<!doctype html>
 <html lang="tr"><head><meta charset="utf-8"><title>Kargo Etiketi</title>
 <style>
   body{font-family:Arial,Helvetica,sans-serif;background:#f2f2f3;margin:0;padding:24px;}
-  .toolbar{max-width:420px;margin:0 auto 16px;text-align:right;}
+  .toolbar{max-width:420px;margin:0 auto 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .printer-info{font-size:12px;color:#666;}
   .toolbar button{padding:9px 16px;border-radius:10px;border:none;background:#1fc16b;color:#fff;font-weight:600;font-size:13px;cursor:pointer;}
   .label{max-width:420px;margin:0 auto 24px;background:#fff;border:2px solid #111;border-radius:10px;padding:22px;}
 
@@ -383,14 +396,14 @@ function buildLabelHtml(parcels: PrintableParcel[]): string {
   }
 </style></head>
 <body>
-  <div class="toolbar"><button type="button" onclick="window.print()">Yazdır</button></div>
+  <div class="toolbar">${printerInfo}<button type="button" onclick="window.print()">Yazdır</button></div>
   ${labels}
 </body></html>`
 }
 
-function openParcelBarcodePrint(parcels: PrintableParcel[]): void {
+function openParcelBarcodePrint(parcels: PrintableParcel[], options?: PrintOptions): void {
   if (parcels.length === 0) return
-  const html = buildLabelHtml(parcels)
+  const html = buildLabelHtml(parcels, options)
   const blob = new Blob([html], { type: 'text/html' })
   const url = URL.createObjectURL(blob)
   window.open(url, '_blank', 'noopener,noreferrer')
@@ -399,17 +412,18 @@ function openParcelBarcodePrint(parcels: PrintableParcel[]): void {
 
 /** Opens a printable label window for one or more shipments. Each label uses the carrier's
  * own layout when one is known (Yurtiçi Kargo, DHL eCommerce, Horoz Lojistik, Hepsijet);
- * any other carrier falls back to the generic label design. */
-export function openShipmentBarcodePrint(shipments: Shipment[]): void {
-  openParcelBarcodePrint(shipments.map(parcelFromShipment))
+ * any other carrier falls back to the generic label design. `options` records the chosen
+ * printer type/resolution in the print window's toolbar. */
+export function openShipmentBarcodePrint(shipments: Shipment[], options?: PrintOptions): void {
+  openParcelBarcodePrint(shipments.map(parcelFromShipment), options)
 }
 
 /** Same as `openShipmentBarcodePrint`, for return shipments — uses the same carrier templates. */
-export function openReturnBarcodePrint(returns: ReturnItem[]): void {
-  openParcelBarcodePrint(returns.map(parcelFromReturn))
+export function openReturnBarcodePrint(returns: ReturnItem[], options?: PrintOptions): void {
+  openParcelBarcodePrint(returns.map(parcelFromReturn), options)
 }
 
 /** Same as `openShipmentBarcodePrint`, for transfer shipments — uses the same carrier templates. */
-export function openTransferBarcodePrint(transfers: TransferItem[], nodes: StockNode[]): void {
-  openParcelBarcodePrint(transfers.map((tr) => parcelFromTransfer(tr, nodes)))
+export function openTransferBarcodePrint(transfers: TransferItem[], nodes: StockNode[], options?: PrintOptions): void {
+  openParcelBarcodePrint(transfers.map((tr) => parcelFromTransfer(tr, nodes)), options)
 }

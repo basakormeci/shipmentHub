@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { SHIPMENT_STATUS, type Shipment, type ShipmentStatus } from '../../data/catalog'
+import { SHIPMENT_STATUS, PRINT_RESOLUTIONS, type Shipment, type ShipmentStatus } from '../../data/catalog'
 import { useT } from '../../hooks/useT'
 import { openShipmentBarcodePrint } from '../../lib/barcodePrint'
 import { toast } from '../../lib/toast'
 import { recipientAddressLine, recipientEmail, recipientPhone } from '../../lib/shipments'
 import { Dropdown } from '../../components/ui/Dropdown'
+import { PrinterTypePicker } from '../../components/ui/PrinterTypePicker'
 
 export function CancelShipmentModal({
   shipment,
@@ -269,6 +270,8 @@ export function BarcodePrintModal({
   onClose: () => void
 }) {
   const t = useT()
+  const [printerType, setPrinterType] = useState('zpl')
+  const [resolution, setResolution] = useState('203')
   if (shipments.length === 0) return null
 
   const subtitle =
@@ -277,7 +280,7 @@ export function BarcodePrintModal({
       : t('barcodeModal.bulk', { n: shipments.length })
 
   function handlePrint() {
-    openShipmentBarcodePrint(shipments)
+    openShipmentBarcodePrint(shipments, { printerType, resolution })
     toast(t('barcodeModal.opened', { n: shipments.length }), 'success')
     onClose()
   }
@@ -293,6 +296,14 @@ export function BarcodePrintModal({
         <h3 className="font-semibold text-neutral-950 mb-1">{t('barcodeModal.title')}</h3>
         <p className="text-sm text-neutral-500 mb-2">{subtitle}</p>
         <p className="text-xs text-neutral-400 mb-4 font-mono">{shipments.map((s) => s.trackingNo).join(', ')}</p>
+        <div className="mb-4">
+          <label className="form-label">{t('barcodeModal.printer_type_label')}</label>
+          <PrinterTypePicker value={printerType} onChange={setPrinterType} />
+        </div>
+        <div>
+          <label className="form-label">{t('barcodeModal.resolution_label')}</label>
+          <Dropdown value={resolution} onChange={setResolution} options={PRINT_RESOLUTIONS.map((r) => ({ value: r.key, label: r.label }))} />
+        </div>
         <div className="flex justify-end gap-3 mt-6">
           <button className="secondary-btn" type="button" onClick={onClose}>
             {t('common.cancel')}

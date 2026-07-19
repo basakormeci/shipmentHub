@@ -1,14 +1,9 @@
 import { useState } from 'react'
 import { useDataStore } from '../../stores/dataStore'
-import {
-  COMPANIES,
-  getCompany,
-  BARCODE_TEMPLATE_FIELDS,
-  BARCODE_FORMATS,
-  type BarcodeTemplate,
-} from '../../data/catalog'
+import { COMPANIES, getCompany, BARCODE_TEMPLATE_FIELDS, PRINT_RESOLUTIONS, type BarcodeTemplate } from '../../data/catalog'
 import { toast } from '../../lib/toast'
 import { Dropdown } from '../../components/ui/Dropdown'
+import { PrinterTypePicker, BARCODE_FORMAT_ICONS } from '../../components/ui/PrinterTypePicker'
 
 function BarcodeTemplateModal({
   open,
@@ -26,6 +21,7 @@ function BarcodeTemplateModal({
   const [name, setName] = useState(existing?.name ?? '')
   const [companyId, setCompanyId] = useState<number | ''>(existing?.companyId ?? '')
   const [format, setFormat] = useState(existing?.format ?? 'pdf')
+  const [resolution, setResolution] = useState(existing?.resolution ?? '203')
   const [requiredFields, setRequiredFields] = useState<string[]>(existing?.requiredFields ?? [])
   const [active, setActive] = useState(existing?.active ?? true)
 
@@ -44,6 +40,7 @@ function BarcodeTemplateModal({
       name: name.trim(),
       companyId: companyId === '' ? null : companyId,
       format,
+      resolution,
       requiredFields,
       active,
     })
@@ -72,24 +69,22 @@ function BarcodeTemplateModal({
             </label>
             <input type="text" className="form-input" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="form-label">Kargo Firması</label>
-              <Dropdown
-                value={companyId === '' ? '' : String(companyId)}
-                onChange={(v) => setCompanyId(v === '' ? '' : +v)}
-                placeholder="Tüm Firmalar"
-                options={[{ value: '', label: 'Tüm Firmalar' }, ...COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))]}
-              />
-            </div>
-            <div>
-              <label className="form-label">Format</label>
-              <Dropdown
-                value={format}
-                onChange={(v) => setFormat(v)}
-                options={BARCODE_FORMATS.map((bf) => ({ value: bf.key, label: bf.label }))}
-              />
-            </div>
+          <div>
+            <label className="form-label">Kargo Firması</label>
+            <Dropdown
+              value={companyId === '' ? '' : String(companyId)}
+              onChange={(v) => setCompanyId(v === '' ? '' : +v)}
+              placeholder="Tüm Firmalar"
+              options={[{ value: '', label: 'Tüm Firmalar' }, ...COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))]}
+            />
+          </div>
+          <div>
+            <label className="form-label">Yazıcı Türü</label>
+            <PrinterTypePicker value={format} onChange={setFormat} />
+          </div>
+          <div>
+            <label className="form-label">Çözünürlük</label>
+            <Dropdown value={resolution} onChange={setResolution} options={PRINT_RESOLUTIONS.map((r) => ({ value: r.key, label: r.label }))} />
           </div>
           <div>
             <label className="form-label">
@@ -155,10 +150,17 @@ function BarcodeTemplateRow({ tpl, index }: { tpl: BarcodeTemplate; index: numbe
   return (
     <>
       <tr className={`${even ? 'bg-white' : 'bg-neutral-50/50'} hover:bg-primary-lighter/20 transition-colors`}>
-        <td className="px-5 py-3.5 font-medium text-neutral-700">{tpl.name}</td>
+        <td className="px-5 py-3.5 font-medium text-neutral-700">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-neutral-100 text-neutral-500 flex items-center justify-center flex-shrink-0">
+              {BARCODE_FORMAT_ICONS[tpl.format]}
+            </div>
+            {tpl.name}
+          </div>
+        </td>
         <td className="px-5 py-3.5 text-neutral-500">{co ? co.name : 'Tüm Firmalar'}</td>
-        <td className="px-5 py-3.5">
-          <span className="badge badge-info">{tpl.format.toUpperCase()}</span>
+        <td className="px-5 py-3.5 text-neutral-500 text-xs">
+          {tpl.format.toUpperCase()} · {tpl.resolution} dpi
         </td>
         <td className="px-5 py-3.5 text-neutral-500 text-xs">
           {tpl.requiredFields.map((f) => BARCODE_TEMPLATE_FIELDS[f]).join(', ')}
@@ -170,15 +172,46 @@ function BarcodeTemplateRow({ tpl, index }: { tpl: BarcodeTemplate; index: numbe
           </span>
         </td>
         <td className="px-5 py-3.5">
-          <div className="flex items-center gap-1.5 justify-end">
-            <button className="action-btn btn-edit" type="button" onClick={() => setEditOpen(true)}>
-              Düzenle
+          <div className="flex items-center gap-1 justify-end">
+            <button
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0"
+              type="button"
+              title="Düzenle"
+              onClick={() => setEditOpen(true)}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z"
+                />
+              </svg>
             </button>
-            <button className={`action-btn ${tpl.active ? 'btn-passive' : 'btn-toggle'}`} type="button" onClick={toggle}>
-              {tpl.active ? 'Pasife Al' : 'Aktife Al'}
+            <button
+              className={`w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 transition-colors flex-shrink-0 ${
+                tpl.active ? 'hover:text-[#e16614] hover:bg-[#fff3eb]' : 'hover:text-[#178c4e] hover:bg-[#e3f7ec]'
+              }`}
+              type="button"
+              title={tpl.active ? 'Pasife Al' : 'Aktife Al'}
+              onClick={toggle}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
+              </svg>
             </button>
-            <button className="action-btn btn-delete" type="button" onClick={remove}>
-              Sil
+            <button
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[#ad1f2b] hover:bg-[#ffebec] transition-colors flex-shrink-0"
+              type="button"
+              title="Sil"
+              onClick={remove}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M14.74 9l-.346 9m-4.788 0L9.26 9M19.228 5.79a48.437 48.437 0 00-7.227-.437 48.55 48.55 0 00-7.228.437m14.456 0a48.61 48.61 0 013.334.416m-3.334-.416L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.058.68-.113 1.02-.166m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                />
+              </svg>
             </button>
           </div>
         </td>
@@ -209,7 +242,7 @@ export function BarcodeTemplatesPage() {
             <tr className="text-left border-b border-neutral-100">
               <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Şablon Adı</th>
               <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kargo Firması</th>
-              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Format</th>
+              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Yazıcı</th>
               <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Zorunlu Alanlar</th>
               <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Durum</th>
               <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right">İşlemler</th>

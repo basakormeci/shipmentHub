@@ -518,6 +518,8 @@ const tr: Dict = {
   'barcodeModal.title': 'Kargo Etiketi',
   'barcodeModal.single': 'Gönderi #{no}',
   'barcodeModal.bulk': '{n} gönderi seçildi',
+  'barcodeModal.printer_type_label': 'Yazıcı Türü',
+  'barcodeModal.resolution_label': 'Çözünürlük',
   'barcodeModal.print_btn': 'Etiketi Aç',
   'barcodeModal.opened': '{n} etiket yeni sekmede açıldı.',
 
@@ -1154,6 +1156,8 @@ const en: Dict = {
   'barcodeModal.title': 'Shipping Label',
   'barcodeModal.single': 'Shipment #{no}',
   'barcodeModal.bulk': '{n} shipments selected',
+  'barcodeModal.printer_type_label': 'Printer Type',
+  'barcodeModal.resolution_label': 'Resolution',
   'barcodeModal.print_btn': 'Open Label',
   'barcodeModal.opened': 'Opened {n} label(s) in a new tab.',
 

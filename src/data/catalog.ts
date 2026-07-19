@@ -30623,6 +30623,7 @@ export interface BarcodeTemplate {
   name: string
   companyId: number | null
   format: string
+  resolution: string
   requiredFields: string[]
   active: boolean
 }
@@ -30633,6 +30634,7 @@ export const SEED_BARCODE_TEMPLATES: BarcodeTemplate[] = [
     "name": "Standart Kargo Etiketi",
     "companyId": 1,
     "format": "pdf",
+    "resolution": "300",
     "requiredFields": [
       "trackingNo",
       "companyName",
@@ -30645,6 +30647,7 @@ export const SEED_BARCODE_TEMPLATES: BarcodeTemplate[] = [
     "name": "Termal Yazıcı Etiketi (ZPL)",
     "companyId": 2,
     "format": "zpl",
+    "resolution": "203",
     "requiredFields": [
       "trackingNo",
       "to",
@@ -30657,6 +30660,7 @@ export const SEED_BARCODE_TEMPLATES: BarcodeTemplate[] = [
     "name": "İade Etiketi",
     "companyId": null,
     "format": "pdf",
+    "resolution": "300",
     "requiredFields": [
       "trackingNo",
       "docNo"
@@ -30678,6 +30682,12 @@ export const BARCODE_FORMATS = [
   { key: 'pdf', label: 'PDF' },
   { key: 'zpl', label: 'ZPL' },
   { key: 'png', label: 'PNG' },
+] as const
+
+export const PRINT_RESOLUTIONS = [
+  { key: '203', label: '203 dpi' },
+  { key: '300', label: '300 dpi' },
+  { key: '600', label: '600 dpi' },
 ] as const
 
 export const PROVINCES = [
