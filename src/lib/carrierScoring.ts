@@ -8,10 +8,17 @@ import {
   plannedDeliveryDate,
   actualDeliveryDate,
   type CarrierMetricKey,
+  type CarrierPricingRule,
   type RoutingCargoType,
   type RoutingRule,
   type Shipment,
 } from '../data/catalog'
+
+function representativePrice(rule: CarrierPricingRule): number | null {
+  if (rule.model === 'perDesi') return rule.unitPrice
+  if (!rule.tiers.length) return null
+  return rule.tiers.reduce((sum, t) => sum + t.price, 0) / rule.tiers.length
+}
 
 function getProvince(id: number) {
   return PROVINCES.find((p) => p.id === id)
@@ -105,7 +112,7 @@ export function computeNormalizedCarrierScores(
   weights: Record<CarrierMetricKey, number>,
   shipments: Parameters<typeof computeCarrierPerformance>[0],
   carrierInvoices: Parameters<typeof computeCarrierPerformance>[1],
-  carrierPricing: { companyId: number; price: number }[],
+  carrierPricing: CarrierPricingRule[],
 ) {
   const totalWeight = CARRIER_METRIC_KEYS.reduce((sum, k) => sum + (weights[k] ?? 0), 0) || 1
   const normWeights = Object.fromEntries(
@@ -119,9 +126,11 @@ export function computeNormalizedCarrierScores(
   })
 
   const pricingByCompany: Record<number, number[]> = {}
-  carrierPricing.forEach((p) => {
-    if (!pricingByCompany[p.companyId]) pricingByCompany[p.companyId] = []
-    pricingByCompany[p.companyId].push(p.price)
+  carrierPricing.forEach((rule) => {
+    const price = representativePrice(rule)
+    if (price == null) return
+    if (!pricingByCompany[rule.companyId]) pricingByCompany[rule.companyId] = []
+    pricingByCompany[rule.companyId].push(price)
   })
   const avgPriceFor = (companyId: number) => {
     const prices = pricingByCompany[companyId]

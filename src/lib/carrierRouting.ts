@@ -1,6 +1,7 @@
 import {
   CARRIER_METRIC_KEYS,
   type CarrierMetricKey,
+  type CarrierPricingRule,
   type Contract,
   type RoutingCargoType,
   type RoutingRule,
@@ -19,7 +20,7 @@ export interface DecideCarrierInput {
   routingWeights: Record<CarrierMetricKey, number>
   shipments: Shipment[]
   carrierInvoices: { companyId: number; realCost: number; expectedCost: number }[]
-  carrierPricing: { companyId: number; price: number }[]
+  carrierPricing: CarrierPricingRule[]
   shippingType?: ShippingType
   cargoType?: RoutingCargoType
 }

@@ -81,7 +81,7 @@ export const router = createBrowserRouter([
           </TabGuard>
         ),
       },
-      { path: 'finance', element: <Navigate to="/finance/pricing" replace /> },
+      { path: 'finance', element: <Navigate to="/finance/setup" replace /> },
       {
         path: 'finance/:tab',
         element: (

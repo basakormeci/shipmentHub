@@ -21,7 +21,7 @@ import {
   type TransferItem,
   type RoutingRule,
   type RoutingHistoryItem,
-  type CarrierPricing,
+  type CarrierPricingRule,
   type CarrierInvoice,
   type CarrierQuota,
   type CarrierHealth,
@@ -41,7 +41,7 @@ export interface UserDataBlob {
   transfers: TransferItem[]
   routingRules: RoutingRule[]
   routingHistory: RoutingHistoryItem[]
-  carrierPricing: CarrierPricing[]
+  carrierPricing: CarrierPricingRule[]
   carrierInvoices: CarrierInvoice[]
   carrierQuotas: CarrierQuota[]
   carrierHealth: CarrierHealth[]

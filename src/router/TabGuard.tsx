@@ -4,7 +4,7 @@ import { Navigate, useParams } from 'react-router-dom'
 const TAB_DEFAULTS = {
   routing: ['rules', 'weights', 'scoring', 'history'] as const,
   monitoring: ['health', 'errors', 'webhooks'] as const,
-  finance: ['pricing', 'invoices', 'quotas'] as const,
+  finance: ['setup', 'invoices', 'quotas'] as const,
 }
 
 type TabGroup = keyof typeof TAB_DEFAULTS

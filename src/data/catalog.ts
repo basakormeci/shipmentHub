@@ -27782,63 +27782,75 @@ export const SEED_ROUTING_HISTORY: RoutingHistoryItem[] = [
   }
 ]
 
-export interface CarrierPricing {
-  id: number
-  companyId: number
+// "Aralık Bazlı Sabit Fiyat": her desi aralığı için doğrudan bir fiyat tanımlanır (tiers).
+// "Desi Başı Birim Fiyat": desi × unitPrice ile hesaplanır. Her iki modelde de sonuç
+// minimumAmount ile karşılaştırılır — hangisi büyükse o ödenir. originNodeId (null =
+// tüm depolar) ile aynı kargo firması için çıkış deposuna özel kurallar tanımlanabilir.
+export type PricingModel = 'tiered' | 'perDesi'
+
+export interface PricingTier {
   minDesi: number
   maxDesi: number
   price: number
 }
 
-export const SEED_CARRIER_PRICING: CarrierPricing[] = [
+export interface CarrierPricingRule {
+  id: number
+  companyId: number
+  originNodeId: number | null
+  model: PricingModel
+  minimumAmount: number
+  unitPrice: number | null
+  tiers: PricingTier[]
+}
+
+export const SEED_CARRIER_PRICING: CarrierPricingRule[] = [
   {
     "id": 1,
     "companyId": 1,
-    "minDesi": 0,
-    "maxDesi": 10,
-    "price": 45
+    "originNodeId": null,
+    "model": "tiered",
+    "minimumAmount": 0,
+    "unitPrice": null,
+    "tiers": [
+      { "minDesi": 0, "maxDesi": 10, "price": 45 },
+      { "minDesi": 11, "maxDesi": 30, "price": 75 },
+      { "minDesi": 31, "maxDesi": 999, "price": 120 }
+    ]
   },
   {
     "id": 2,
-    "companyId": 1,
-    "minDesi": 11,
-    "maxDesi": 30,
-    "price": 75
+    "companyId": 2,
+    "originNodeId": null,
+    "model": "tiered",
+    "minimumAmount": 0,
+    "unitPrice": null,
+    "tiers": [
+      { "minDesi": 0, "maxDesi": 10, "price": 42 },
+      { "minDesi": 11, "maxDesi": 30, "price": 70 }
+    ]
   },
   {
     "id": 3,
-    "companyId": 1,
-    "minDesi": 31,
-    "maxDesi": 999,
-    "price": 120
+    "companyId": 6,
+    "originNodeId": null,
+    "model": "tiered",
+    "minimumAmount": 0,
+    "unitPrice": null,
+    "tiers": [
+      { "minDesi": 0, "maxDesi": 10, "price": 68 }
+    ]
   },
   {
     "id": 4,
-    "companyId": 2,
-    "minDesi": 0,
-    "maxDesi": 10,
-    "price": 42
-  },
-  {
-    "id": 5,
-    "companyId": 2,
-    "minDesi": 11,
-    "maxDesi": 30,
-    "price": 70
-  },
-  {
-    "id": 6,
-    "companyId": 6,
-    "minDesi": 0,
-    "maxDesi": 10,
-    "price": 68
-  },
-  {
-    "id": 7,
     "companyId": 8,
-    "minDesi": 0,
-    "maxDesi": 10,
-    "price": 39
+    "originNodeId": null,
+    "model": "tiered",
+    "minimumAmount": 0,
+    "unitPrice": null,
+    "tiers": [
+      { "minDesi": 0, "maxDesi": 10, "price": 39 }
+    ]
   }
 ]
 

@@ -2,6 +2,7 @@ import {
   CARRIER_METRIC_KEYS,
   PROVINCES,
   type CarrierMetricKey,
+  type CarrierPricingRule,
   type Contract,
   type RoutingCargoType,
   type RoutingRule,
@@ -47,7 +48,7 @@ export function synthesizeRoutingDecision(params: {
   routingRules: RoutingRule[]
   shipments: Shipment[]
   carrierInvoices: { companyId: number; realCost: number; expectedCost: number }[]
-  carrierPricing: { companyId: number; price: number }[]
+  carrierPricing: CarrierPricingRule[]
 }): ShipmentRoutingDecision | null {
   if (params.provinceId == null) return null
   const desi = params.desi ?? desiKgFor(params.id).desi

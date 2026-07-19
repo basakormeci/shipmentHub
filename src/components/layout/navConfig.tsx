@@ -76,7 +76,7 @@ export const NAV_SECTIONS: NavSection[] = [
     labelKey: 'sidebar.section_finance',
     items: [
       {
-        to: '/finance/pricing',
+        to: '/finance/setup',
         labelKey: 'sidebar.nav_finance',
         icon: icon(
           <>

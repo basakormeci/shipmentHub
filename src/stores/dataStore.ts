@@ -19,7 +19,7 @@ import type {
   TransferItem,
   RoutingRule,
   RoutingHistoryItem,
-  CarrierPricing,
+  CarrierPricingRule,
   CarrierInvoice,
   CarrierQuota,
   CarrierHealth,
@@ -41,7 +41,7 @@ interface DataState {
   transfers: TransferItem[]
   routingRules: RoutingRule[]
   routingHistory: RoutingHistoryItem[]
-  carrierPricing: CarrierPricing[]
+  carrierPricing: CarrierPricingRule[]
   carrierInvoices: CarrierInvoice[]
   carrierQuotas: CarrierQuota[]
   carrierHealth: CarrierHealth[]
@@ -71,7 +71,7 @@ interface DataState {
   moveRoutingPriority: (id: number, direction: -1 | 1) => void
   logRoutingHistory: (action: string, ruleName: string, detail: string) => void
 
-  upsertPricing: (input: Omit<CarrierPricing, 'id'> & { id?: number | null }) => CarrierPricing
+  upsertPricing: (input: Omit<CarrierPricingRule, 'id'> & { id?: number | null }) => CarrierPricingRule
   removePricing: (id: number) => void
   upsertInvoice: (input: Omit<CarrierInvoice, 'id'> & { id?: number | null }) => CarrierInvoice
   removeInvoice: (id: number) => void
@@ -241,13 +241,13 @@ export const useDataStore = create<DataState>()(
 
       upsertPricing: (input) => {
         if (input.id == null) {
-          const row: CarrierPricing = { ...input, id: nextId(get().carrierPricing) }
+          const row: CarrierPricingRule = { ...input, id: nextId(get().carrierPricing) }
           set({ carrierPricing: [...get().carrierPricing, row] })
           return row
         }
         set({
           carrierPricing: get().carrierPricing.map((p) =>
-            p.id === input.id ? ({ ...p, ...input, id: p.id } as CarrierPricing) : p,
+            p.id === input.id ? ({ ...p, ...input, id: p.id } as CarrierPricingRule) : p,
           ),
         })
         return get().carrierPricing.find((p) => p.id === input.id)!
