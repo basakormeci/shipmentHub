@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useDataStore } from '../../stores/dataStore'
 import { useUsersStore } from '../../stores/usersStore'
 import { USER_ROLES } from '../../data/seed'
@@ -138,12 +138,49 @@ function UserDeleteModal({ user, onClose }: { user: User | null; onClose: () => 
   )
 }
 
+const ROLE_ICONS: Record<UserRole, { icon: ReactNode; color: string }> = {
+  admin: {
+    color: '#ad1f2b',
+    icon: (
+      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 4.556-3.04 8.408-7.2 9.632a1.9 1.9 0 01-1.6 0C7.04 20.408 4 16.556 4 12V7.236a2 2 0 011.106-1.789l6-3a2 2 0 011.789 0l6 3A2 2 0 0121 7.236V12z" />
+      </svg>
+    ),
+  },
+  operation: {
+    color: '#2547d0',
+    icon: (
+      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25M21 7.5v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+      </svg>
+    ),
+  },
+  reporting: {
+    color: '#6b7280',
+    icon: (
+      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.5l4.5-4.5 3.75 3.75L20.25 4.5M20.25 4.5h-5.25M20.25 4.5v5.25M3 19.5h18" />
+      </svg>
+    ),
+  },
+}
+
+function RoleChip({ role }: { role: UserRole }) {
+  const meta = ROLE_ICONS[role]
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium whitespace-nowrap" style={{ color: meta.color }}>
+      {meta.icon}
+      {USER_ROLES[role].label}
+    </span>
+  )
+}
+
 function UserRow({ user, index }: { user: User; index: number }) {
   const toggleUserStatus = useUsersStore((s) => s.toggleUserStatus)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const role = USER_ROLES[user.role]
   const even = index % 2 === 0
+  const hasLoggedIn = !!user.lastLogin && user.lastLogin !== '-'
 
   function toggleStatus() {
     const updated = toggleUserStatus(user.id)
@@ -165,7 +202,7 @@ function UserRow({ user, index }: { user: User; index: number }) {
         </td>
         <td className="px-5 py-3.5 text-neutral-500">{user.email}</td>
         <td className="px-5 py-3.5">
-          <span className={`badge ${role.badge}`}>{role.label}</span>
+          <RoleChip role={user.role} />
         </td>
         <td className="px-5 py-3.5">
           <span className={`badge ${user.status === 'active' ? 'badge-active' : 'badge-passive'}`}>
@@ -173,21 +210,50 @@ function UserRow({ user, index }: { user: User; index: number }) {
             {user.status === 'active' ? 'Aktif' : 'Pasif'}
           </span>
         </td>
-        <td className="px-5 py-3.5 text-neutral-500 text-[13px]">{fmtDateTimeStr(user.lastLogin)}</td>
+        <td className="px-5 py-3.5 text-neutral-500 text-[13px]">
+          {hasLoggedIn ? fmtDateTimeStr(user.lastLogin) : <span className="text-neutral-400">Henüz giriş yapmadı</span>}
+        </td>
         <td className="px-5 py-3.5">
-          <div className="flex items-center gap-1.5 justify-end">
-            <button className="action-btn btn-edit" type="button" onClick={() => setEditOpen(true)}>
-              Düzenle
+          <div className="flex items-center gap-1 justify-end">
+            <button
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0"
+              type="button"
+              title="Düzenle"
+              onClick={() => setEditOpen(true)}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z"
+                />
+              </svg>
             </button>
             <button
-              className={`action-btn ${user.status === 'active' ? 'btn-passive' : 'btn-toggle'}`}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 transition-colors flex-shrink-0 ${
+                user.status === 'active' ? 'hover:text-[#e16614] hover:bg-[#fff3eb]' : 'hover:text-[#178c4e] hover:bg-[#e3f7ec]'
+              }`}
               type="button"
+              title={user.status === 'active' ? 'Pasife Al' : 'Aktife Al'}
               onClick={toggleStatus}
             >
-              {user.status === 'active' ? 'Pasife Al' : 'Aktife Al'}
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
+              </svg>
             </button>
-            <button className="action-btn btn-delete" type="button" onClick={() => setDeleteOpen(true)}>
-              Sil
+            <button
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[#ad1f2b] hover:bg-[#ffebec] transition-colors flex-shrink-0"
+              type="button"
+              title="Sil"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M14.74 9l-.346 9m-4.788 0L9.26 9M19.228 5.79a48.437 48.437 0 00-7.227-.437 48.55 48.55 0 00-7.228.437m14.456 0a48.61 48.61 0 013.334.416m-3.334-.416L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.058.68-.113 1.02-.166m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                />
+              </svg>
             </button>
           </div>
         </td>

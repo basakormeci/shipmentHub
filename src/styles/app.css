@@ -201,42 +201,6 @@ input[type="radio"] {
   border-radius: 3px;
 }
 
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 9px;
-  border-radius: 5px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  border: 1px solid;
-}
-.action-btn:hover {
-  opacity: 0.85;
-}
-.btn-edit {
-  background: #ebf1ff;
-  color: #2547d0;
-  border-color: #c0d5ff;
-}
-.btn-toggle {
-  background: #e3f7ec;
-  color: #178c4e;
-  border-color: #84ebb4;
-}
-.btn-passive {
-  background: #fff3eb;
-  color: #e16614;
-  border-color: #ffd9c0;
-}
-.btn-delete {
-  background: #ffebec;
-  color: #ad1f2b;
-  border-color: #ffc0c5;
-}
-
 .form-input {
   width: 100%;
   border: 1px solid #d9dce2;
