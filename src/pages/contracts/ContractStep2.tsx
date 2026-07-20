@@ -105,7 +105,7 @@ export function ContractStep2({ f, onChange }: { f: ContractForm; onChange: (pat
     const prov = getProvince(provId)
     if (!prov) return
     const idx = f.coveredRegions.findIndex((r) => r.provinceId === provId)
-    const next = [...f.coveredRegions]
+    let next = [...f.coveredRegions]
 
     if (idx < 0) {
       next.push({ provinceId: provId, provinceName: prov.name, districts: [districtName] })
@@ -114,8 +114,8 @@ export function ContractStep2({ f, onChange }: { f: ContractForm; onChange: (pat
       if (entry.districts.length === 0) {
         entry.districts = prov.districts.filter((d) => d !== districtName)
         if (entry.districts.length === 0) {
-          setRegions(next.filter((r) => r.provinceId !== provId))
-          onChange({ activeProvinceId2: provId })
+          next = next.filter((r) => r.provinceId !== provId)
+          onChange({ coveredRegions: next, activeProvinceId2: provId })
           return
         }
       } else {
@@ -123,8 +123,8 @@ export function ContractStep2({ f, onChange }: { f: ContractForm; onChange: (pat
         if (dIdx >= 0) {
           entry.districts.splice(dIdx, 1)
           if (entry.districts.length === 0) {
-            setRegions(next.filter((r) => r.provinceId !== provId))
-            onChange({ activeProvinceId2: provId })
+            next = next.filter((r) => r.provinceId !== provId)
+            onChange({ coveredRegions: next, activeProvinceId2: provId })
             return
           }
         } else {
@@ -134,8 +134,10 @@ export function ContractStep2({ f, onChange }: { f: ContractForm; onChange: (pat
       }
       next[idx] = entry
     }
-    setRegions(next)
-    onChange({ activeProvinceId2: provId })
+    // Single combined patch — calling onChange twice here would spread the same stale `f`
+    // closure both times, so the second call would silently overwrite the first (the bug
+    // that made individual district checkboxes appear to do nothing).
+    onChange({ coveredRegions: next, activeProvinceId2: provId })
   }
 
   function toggleAllProvinces() {
