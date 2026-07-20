@@ -346,20 +346,20 @@ export function DashboardPage() {
       {/* ---------- KPI strip ---------- */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 mb-7">
         <KpiTile
-          label="Toplam Gönderi"
+          label="Toplam Sipariş Gönderisi"
           value={shipmentsGlobal.length.toLocaleString('tr-TR')}
           delta={shipDelta != null ? { text: `%${fmtDelta(shipDelta).replace('+', '')} · önceki dönem`, tone: shipDelta >= 0 ? 'good' : 'bad', direction: shipDelta >= 0 ? 'up' : 'down' } : undefined}
           note={shipDelta == null ? periodLabel : undefined}
         />
         <KpiTile
-          label="Toplam İade"
+          label="Toplam İade Gönderisi"
           value={returnsGlobal.length.toLocaleString('tr-TR')}
           unit={`· %${returnRate.toFixed(1).replace('.', ',')} oran`}
           delta={returnDelta != null ? { text: `%${Math.abs(returnDelta).toFixed(1).replace('.', ',')} · önceki dönem`, tone: returnDelta <= 0 ? 'good' : 'bad', direction: returnDelta >= 0 ? 'up' : 'down' } : undefined}
           note={returnDelta == null ? periodLabel : undefined}
         />
         <KpiTile
-          label="Toplam Transfer"
+          label="Toplam Transfer Gönderisi"
           value={transfersGlobal.length.toLocaleString('tr-TR')}
           delta={transferDelta != null ? { text: `%${Math.abs(transferDelta).toFixed(1).replace('.', ',')} · önceki dönem`, tone: transferDelta >= 0 ? 'good' : 'bad', direction: transferDelta >= 0 ? 'up' : 'down' } : undefined}
           note={transferDelta == null ? periodLabel : undefined}
@@ -398,14 +398,14 @@ export function DashboardPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />
             </svg>
           </div>
-          <h2 className="text-[13px] font-bold uppercase tracking-wider text-neutral-700">Gönderiler</h2>
+          <h2 className="text-[13px] font-bold uppercase tracking-wider text-neutral-700">Sipariş Gönderileri</h2>
           <span className="text-[11.5px] text-neutral-400">Oluşturulma tarihine göre</span>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
           <div className="bg-white rounded-xl border border-neutral-200 p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-[13.5px] font-bold text-neutral-950">Gönderi Durum Dağılımı</p>
+                <p className="text-[13.5px] font-bold text-neutral-950">Sipariş Gönderisi Durum Dağılımı</p>
                 <p className="text-[11.5px] text-neutral-400">Seçili dönemde, statü bazında</p>
               </div>
               <DateRangeChip
@@ -415,12 +415,12 @@ export function DashboardPage() {
                 inheritedLabel={isAll ? 'Tümü' : is30 ? '30G' : is7 ? '7G' : is90 ? '90G' : 'Genel'}
               />
             </div>
-            <Donut segments={shipStatusSegments} centerLabel={shipStatusData.length.toLocaleString('tr-TR')} centerSub="TOPLAM GÖNDERİ" />
+            <Donut segments={shipStatusSegments} centerLabel={shipStatusData.length.toLocaleString('tr-TR')} centerSub="TOPLAM SİPARİŞ" />
           </div>
           <div className="bg-white rounded-xl border border-neutral-200 p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-[13.5px] font-bold text-neutral-950">Kargo Firması Bazlı Dağılım</p>
+                <p className="text-[13.5px] font-bold text-neutral-950">Kargo Firması Bazlı Sipariş Dağılımı</p>
                 <p className="text-[11.5px] text-neutral-400">Hacim sıralı, statü kırılımlı</p>
               </div>
               <DateRangeChip
@@ -443,14 +443,14 @@ export function DashboardPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
             </svg>
           </div>
-          <h2 className="text-[13px] font-bold uppercase tracking-wider text-neutral-700">İadeler</h2>
+          <h2 className="text-[13px] font-bold uppercase tracking-wider text-neutral-700">İade Gönderileri</h2>
           <span className="text-[11.5px] text-neutral-400">Talep oluşturulma tarihine göre</span>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
           <div className="bg-white rounded-xl border border-neutral-200 p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-[13.5px] font-bold text-neutral-950">İade Durum Dağılımı</p>
+                <p className="text-[13.5px] font-bold text-neutral-950">İade Gönderisi Durum Dağılımı</p>
                 <p className="text-[11.5px] text-neutral-400">Seçili dönemde, statü bazında</p>
               </div>
               <DateRangeChip
@@ -488,14 +488,14 @@ export function DashboardPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h13M8 7l4-4M8 7l4 4M16 17H3m13 0l-4 4m4-4l-4-4" />
             </svg>
           </div>
-          <h2 className="text-[13px] font-bold uppercase tracking-wider text-neutral-700">Transferler</h2>
+          <h2 className="text-[13px] font-bold uppercase tracking-wider text-neutral-700">Transfer Gönderileri</h2>
           <span className="text-[11.5px] text-neutral-400">Depolar arası stok transferi, oluşturulma tarihine göre</span>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
           <div className="bg-white rounded-xl border border-neutral-200 p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-[13.5px] font-bold text-neutral-950">Transfer Durum Dağılımı</p>
+                <p className="text-[13.5px] font-bold text-neutral-950">Transfer Gönderisi Durum Dağılımı</p>
                 <p className="text-[11.5px] text-neutral-400">Seçili dönemde, statü bazında</p>
               </div>
               <DateRangeChip

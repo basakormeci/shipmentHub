@@ -57,15 +57,21 @@ export function Donut({
         </text>
       </svg>
       <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-        {segments.map((s) => (
-          <div key={s.key} className="flex items-center gap-2 text-xs">
-            <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: s.color }} />
-            <span className="text-neutral-600 flex-1 min-w-0 truncate">{s.label}</span>
-            <span className="font-semibold text-neutral-800" style={{ fontVariantNumeric: 'tabular-nums' }}>
-              {total > 0 ? Math.round((s.value / total) * 100) : 0}%
-            </span>
-          </div>
-        ))}
+        {segments.filter((s) => s.value > 0).length === 0 ? (
+          <span className="text-xs text-neutral-400">Veri yok</span>
+        ) : (
+          segments
+            .filter((s) => s.value > 0)
+            .map((s) => (
+              <div key={s.key} className="flex items-center gap-2 text-xs">
+                <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: s.color }} />
+                <span className="text-neutral-600 flex-1 min-w-0 truncate">{s.label}</span>
+                <span className="font-semibold text-neutral-800" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  {Math.round((s.value / total) * 100)}%
+                </span>
+              </div>
+            ))
+        )}
       </div>
     </div>
   )
