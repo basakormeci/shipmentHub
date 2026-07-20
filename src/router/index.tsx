@@ -16,6 +16,7 @@ import { ReportsPage } from '../pages/ReportsPage'
 import { MonitoringPage } from '../pages/monitoring/MonitoringPage'
 import { FinancePage } from '../pages/finance/FinancePage'
 import { RoutingPage } from '../pages/routing/RoutingPage'
+import { RoutingRuleFormPage } from '../pages/routing/RoutingRuleFormPage'
 import { ShipmentsPage } from '../pages/shipments/ShipmentsPage'
 import { ShipmentCreatePage } from '../pages/shipments/ShipmentCreatePage'
 import { ShipmentDetailPage } from '../pages/shipments/ShipmentDetailPage'
@@ -64,6 +65,8 @@ export const router = createBrowserRouter([
       { path: 'transfers/new', element: <TransferCreatePage /> },
       { path: 'transfers/:transferId', element: <TransferDetailPage /> },
       { path: 'routing', element: <Navigate to="/routing/rules" replace /> },
+      { path: 'routing/rules/new', element: <RoutingRuleFormPage /> },
+      { path: 'routing/rules/:ruleId/edit', element: <RoutingRuleFormPage /> },
       {
         path: 'routing/:tab',
         element: (

@@ -7,7 +7,7 @@ import {
   INVOICE_STATUS,
   type CarrierInvoice,
   type CarrierPricingRule,
-  type PricingModel,
+  type PricingTierType,
 } from '../../data/catalog'
 import { fmtDateTimeStr } from '../../lib/format'
 import { exportInvoicesCsv, calculateCarrierPrice } from '../../lib/finance'
@@ -249,10 +249,13 @@ function QuotaPanel() {
   )
 }
 
-type TierRow = { minDesi: string; maxDesi: string; price: string }
+// Each band picks its own type independently: `value` is a flat price for 'fixed', or a
+// unit price (₺/desi) for 'perDesi' — so one rule can mix both across its desi range. There
+// is no rule-wide minimum; each band carries its own `minimumAmount`.
+type TierRow = { minDesi: string; maxDesi: string; type: PricingTierType; value: string; minimumAmount: string }
 
 function emptyTier(): TierRow {
-  return { minDesi: '', maxDesi: '', price: '' }
+  return { minDesi: '', maxDesi: '', type: 'fixed', value: '', minimumAmount: '0' }
 }
 
 function quotaForCompany(companyId: number): string {
@@ -265,14 +268,14 @@ function depotLabel(nodes: { id: number; name: string }[], originNodeId: number 
   return nodes.find((n) => n.id === originNodeId)?.name ?? 'Bilinmeyen Depo'
 }
 
-const MODEL_LABELS: Record<PricingModel, string> = {
-  tiered: 'Aralık Bazlı Sabit Fiyat',
-  perDesi: 'Desi Başı Birim Fiyat',
-}
-
 function ruleSummary(rule: CarrierPricingRule): string {
-  if (rule.model === 'perDesi') return rule.unitPrice != null ? `₺${rule.unitPrice} / desi` : '-'
-  return rule.tiers?.length ? `${rule.tiers.length} aralık` : 'Aralık tanımlı değil'
+  if (!rule.tiers?.length) return 'Aralık tanımlı değil'
+  const fixedCount = rule.tiers.filter((t) => t.type === 'fixed').length
+  const perDesiCount = rule.tiers.filter((t) => t.type === 'perDesi').length
+  const parts: string[] = []
+  if (fixedCount) parts.push(`${fixedCount} sabit`)
+  if (perDesiCount) parts.push(`${perDesiCount} desi başı`)
+  return `${rule.tiers.length} aralık (${parts.join(', ')})`
 }
 
 const WIZARD_STEPS = [
@@ -281,12 +284,12 @@ const WIZARD_STEPS = [
   { label: 'Örnek Hesaplama', desc: 'Bir kural seçip desi değeriyle sonucu test edin' },
 ] as const
 
-const MODEL_TIERED_ICON = (
+const TIER_FIXED_ICON = (
   <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
   </svg>
 )
-const MODEL_PERDESI_ICON = (
+const TIER_PERDESI_ICON = (
   <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
@@ -308,9 +311,6 @@ function PricingQuotaWizardPanel() {
 
   const [editingRuleId, setEditingRuleId] = useState<number | 'new' | null>(null)
   const [formOriginNodeId, setFormOriginNodeId] = useState<number | null>(null)
-  const [formModel, setFormModel] = useState<PricingModel>('tiered')
-  const [formMinimumAmount, setFormMinimumAmount] = useState('0')
-  const [formUnitPrice, setFormUnitPrice] = useState('')
   const [formTiers, setFormTiers] = useState<TierRow[]>([emptyTier()])
   const [formError, setFormError] = useState('')
 
@@ -333,9 +333,6 @@ function PricingQuotaWizardPanel() {
   function openNewRuleForm() {
     setEditingRuleId('new')
     setFormOriginNodeId(null)
-    setFormModel('tiered')
-    setFormMinimumAmount('0')
-    setFormUnitPrice('')
     setFormTiers([emptyTier()])
     setFormError('')
   }
@@ -343,10 +340,14 @@ function PricingQuotaWizardPanel() {
   function openEditRuleForm(rule: CarrierPricingRule) {
     setEditingRuleId(rule.id)
     setFormOriginNodeId(rule.originNodeId)
-    setFormModel(rule.model)
-    setFormMinimumAmount(String(rule.minimumAmount))
-    setFormUnitPrice(rule.unitPrice != null ? String(rule.unitPrice) : '')
-    setFormTiers(rule.tiers.length ? rule.tiers.map((t) => ({ minDesi: String(t.minDesi), maxDesi: String(t.maxDesi), price: String(t.price) })) : [emptyTier()])
+    const rows = rule.tiers.map((t) => ({
+      minDesi: String(t.minDesi),
+      maxDesi: String(t.maxDesi),
+      type: t.type,
+      value: String(t.price),
+      minimumAmount: String(t.minimumAmount),
+    }))
+    setFormTiers(rows.length ? rows : [emptyTier()])
     setFormError('')
   }
 
@@ -368,31 +369,27 @@ function PricingQuotaWizardPanel() {
   }
 
   function saveRule() {
-    if (formModel === 'perDesi') {
-      if (formUnitPrice.trim() === '' || +formUnitPrice <= 0) {
-        setFormError('Geçerli bir desi başı birim fiyat girin.')
-        return
-      }
-    } else {
-      const incomplete = formTiers.some((r) => r.minDesi === '' || r.maxDesi === '' || r.price === '')
-      if (incomplete) {
-        setFormError('Tüm desi aralıkları için değerleri doldurun veya boş satırı silin.')
-        return
-      }
+    const incomplete = formTiers.some((r) => r.minDesi === '' || r.maxDesi === '' || r.value === '')
+    if (incomplete) {
+      setFormError('Tüm desi aralıkları için değerleri doldurun veya boş satırı silin.')
+      return
     }
     const duplicate = rules.find((r) => r.originNodeId === formOriginNodeId && r.id !== editingRuleId)
     if (duplicate) {
-      setFormError(`${depotLabel(nodes, formOriginNodeId)} için zaten bir kural tanımlı (${MODEL_LABELS[duplicate.model]}). Önce onu düzenleyin veya silin.`)
+      setFormError(`${depotLabel(nodes, formOriginNodeId)} için zaten bir kural tanımlı. Önce onu düzenleyin veya silin.`)
       return
     }
     upsertPricing({
       id: editingRuleId === 'new' ? null : editingRuleId,
       companyId,
       originNodeId: formOriginNodeId,
-      model: formModel,
-      minimumAmount: formMinimumAmount === '' ? 0 : +formMinimumAmount,
-      unitPrice: formModel === 'perDesi' ? +formUnitPrice : null,
-      tiers: formModel === 'tiered' ? formTiers.map((t) => ({ minDesi: +t.minDesi, maxDesi: +t.maxDesi, price: +t.price })) : [],
+      tiers: formTiers.map((t) => ({
+        minDesi: +t.minDesi,
+        maxDesi: +t.maxDesi,
+        type: t.type,
+        price: +t.value,
+        minimumAmount: t.minimumAmount === '' ? 0 : +t.minimumAmount,
+      })),
     })
     toast('Fiyatlandırma kuralı kaydedildi.', 'success')
     closeRuleForm()
@@ -430,6 +427,11 @@ function PricingQuotaWizardPanel() {
   function backToList() {
     closeRuleForm()
     setView('list')
+  }
+
+  function finishWizard() {
+    toast(`${getCompany(companyId)?.name} için fiyatlandırma/kota ayarları kaydedildi.`, 'success')
+    backToList()
   }
 
   function openCreateNew() {
@@ -619,9 +621,7 @@ function PricingQuotaWizardPanel() {
                         <div key={rule.id} className="flex items-center justify-between border border-neutral-200 rounded-lg px-4 py-3">
                           <div>
                             <p className="text-sm font-semibold text-neutral-800">{depotLabel(nodes, rule.originNodeId)}</p>
-                            <p className="text-xs text-neutral-400 mt-0.5">
-                              {MODEL_LABELS[rule.model]} · {ruleSummary(rule)} · Min. ₺{rule.minimumAmount}
-                            </p>
+                            <p className="text-xs text-neutral-400 mt-0.5">{ruleSummary(rule)}</p>
                           </div>
                           <div className="flex items-center gap-1">
                             <button
@@ -677,63 +677,41 @@ function PricingQuotaWizardPanel() {
                   </div>
 
                   <div className="mb-5">
-                    <label className="form-label">Fiyatlandırma Modeli</label>
-                    <SegmentedToggle
-                      value={formModel}
-                      onChange={(v) => {
-                        setFormModel(v)
-                        setFormError('')
-                      }}
-                      options={[
-                        { value: 'tiered', label: 'Aralık Bazlı Sabit Fiyat', icon: MODEL_TIERED_ICON },
-                        { value: 'perDesi', label: 'Desi Başı Birim Fiyat', icon: MODEL_PERDESI_ICON },
-                      ]}
-                    />
-                    <p className="text-xs text-neutral-400 mt-1.5">
-                      Aynı kargo firması için farklı depo kuralları farklı modeller kullanabilir — biri aralık bazlı, diğeri desi başı olabilir.
-                    </p>
-                  </div>
-
-                  <div className="mb-5 max-w-xs">
-                    <label className="form-label">Minimum Tutar (₺)</label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      className="form-input"
-                      value={formMinimumAmount}
-                      onChange={(e) => {
-                        setFormMinimumAmount(e.target.value)
-                        setFormError('')
-                      }}
-                    />
-                    <p className="text-xs text-neutral-400 mt-1.5">Hesaplanan tutar bu değerin altında kalırsa minimum tutar ödenir.</p>
-                  </div>
-
-                  {formModel === 'perDesi' ? (
-                    <div className="max-w-xs mb-5">
-                      <label className="form-label">Desi Başı Birim Fiyat (₺)</label>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        className="form-input"
-                        value={formUnitPrice}
-                        onChange={(e) => {
-                          setFormUnitPrice(e.target.value)
-                          setFormError('')
-                        }}
-                      />
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-semibold text-neutral-800">Desi Aralıkları</p>
+                      <button type="button" className="secondary-btn py-1.5 px-3 text-xs" onClick={addFormTier}>
+                        + Aralık Ekle
+                      </button>
                     </div>
-                  ) : (
-                    <div className="mb-5">
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm font-semibold text-neutral-800">Desi Aralıkları</p>
-                        <button type="button" className="secondary-btn py-1.5 px-3 text-xs" onClick={addFormTier}>
-                          + Aralık Ekle
-                        </button>
-                      </div>
-                      <div className="flex flex-col gap-3">
-                        {formTiers.map((row, i) => (
-                          <div key={i} className="grid gap-3 items-end" style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}>
+                    <p className="text-xs text-neutral-400 mb-3">
+                      Her aralık için sabit bir fiyat ya da desi başına birim fiyat tanımlayabilirsiniz — aynı kural içinde farklı aralıklar farklı
+                      fiyatlandırma türü kullanabilir (ör. 0-14 desi ₺100 sabit, 14.1-40 desi ₺120 sabit, 40.1-100 desi ₺11/desi). Genel bir minimum
+                      tutar yoktur — her aralığın kendi minimum tutarı vardır: hesaplanan tutar o aralığın minimumunun altında kalırsa minimum ödenir.
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      {formTiers.map((row, i) => (
+                        <div key={i} className="border border-neutral-200 rounded-lg p-3 bg-neutral-50/40">
+                          <div className="flex items-center justify-between mb-3">
+                            <SegmentedToggle
+                              value={row.type}
+                              onChange={(v) => updateFormTier(i, { type: v })}
+                              options={[
+                                { value: 'fixed', label: 'Sabit Fiyat', icon: TIER_FIXED_ICON },
+                                { value: 'perDesi', label: 'Desi Başı', icon: TIER_PERDESI_ICON },
+                              ]}
+                            />
+                            <button
+                              type="button"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[#ad1f2b] hover:bg-[#ffebec] transition-colors flex-shrink-0"
+                              title="Aralığı Kaldır"
+                              onClick={() => removeFormTier(i)}
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                          <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
                             <div>
                               <label className="form-label">Min. Desi</label>
                               <input
@@ -755,43 +733,32 @@ function PricingQuotaWizardPanel() {
                               />
                             </div>
                             <div>
-                              <label className="form-label">Sabit Fiyat (₺)</label>
+                              <label className="form-label">{row.type === 'perDesi' ? 'Birim Fiyat (₺/desi)' : 'Sabit Fiyat (₺)'}</label>
                               <input
                                 type="text"
                                 inputMode="numeric"
                                 className="form-input"
-                                value={row.price}
-                                onChange={(e) => updateFormTier(i, { price: e.target.value })}
+                                value={row.value}
+                                onChange={(e) => updateFormTier(i, { value: e.target.value })}
                               />
                             </div>
-                            <button
-                              type="button"
-                              className="w-9 h-9 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[#ad1f2b] hover:bg-[#ffebec] transition-colors flex-shrink-0"
-                              title="Aralığı Kaldır"
-                              onClick={() => removeFormTier(i)}
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
+                            <div>
+                              <label className="form-label">Minimum Tutar (₺)</label>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                className="form-input"
+                                value={row.minimumAmount}
+                                onChange={(e) => updateFormTier(i, { minimumAmount: e.target.value })}
+                              />
+                            </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
 
                   {formError ? <p className="form-error mb-3">{formError}</p> : null}
-                  <div className="flex gap-3">
-                    <button className="secondary-btn" type="button" onClick={closeRuleForm}>
-                      Vazgeç
-                    </button>
-                    <button className="primary-btn" type="button" onClick={saveRule}>
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                      Kaydet
-                    </button>
-                  </div>
                 </div>
               )}
             </div>
@@ -809,7 +776,7 @@ function PricingQuotaWizardPanel() {
                     <Dropdown
                       value={testRuleId != null ? String(testRuleId) : ''}
                       onChange={(v) => setTestRuleId(+v)}
-                      options={rules.map((r) => ({ value: String(r.id), label: `${depotLabel(nodes, r.originNodeId)} — ${MODEL_LABELS[r.model]}` }))}
+                      options={rules.map((r) => ({ value: String(r.id), label: `${depotLabel(nodes, r.originNodeId)} — ${ruleSummary(r)}` }))}
                     />
                   </div>
                   <div className="max-w-xs mb-5">
@@ -857,7 +824,11 @@ function PricingQuotaWizardPanel() {
 
         <div className="flex items-center justify-between pt-5 mt-5 border-t border-neutral-100">
           <div>
-            {step > 1 ? (
+            {step === 2 && editingRuleId !== null ? (
+              <button className="secondary-btn" type="button" onClick={closeRuleForm}>
+                Vazgeç
+              </button>
+            ) : step > 1 ? (
               <button className="secondary-btn" type="button" onClick={prevStep}>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -867,8 +838,15 @@ function PricingQuotaWizardPanel() {
             ) : null}
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-neutral-400">Adım {step}/3</span>
-            {step === 1 ? (
+            {step === 2 && editingRuleId !== null ? null : <span className="text-sm text-neutral-400">Adım {step}/3</span>}
+            {step === 2 && editingRuleId !== null ? (
+              <button className="primary-btn" type="button" onClick={saveRule}>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                Kaydet
+              </button>
+            ) : step === 1 ? (
               <button className="primary-btn" type="button" onClick={goStep1to2}>
                 İleri
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
@@ -883,11 +861,11 @@ function PricingQuotaWizardPanel() {
                 </svg>
               </button>
             ) : (
-              <button className="primary-btn" type="button" onClick={backToList}>
+              <button className="primary-btn" type="button" onClick={finishWizard}>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                Listeye Dön
+                Kaydet
               </button>
             )}
           </div>

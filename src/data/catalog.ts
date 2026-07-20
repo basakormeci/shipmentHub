@@ -156,6 +156,9 @@ export interface ShipmentRoutingDecision {
   matchedRuleSummary: string | null
   /** Companies left after the matched rule narrowed the pool; null if no rule narrowed it. */
   ruleNarrowedCompanyIds: number[] | null
+  /** Companies removed by any matching "Kullanma" (exclude) rules, and those rules' names. */
+  excludedCompanyIds: number[]
+  excludedByRuleNames: string[]
   /** Step 3: normalized weights (fractions summing to 1) used to compute `combined`, snapshotted at decision time. */
   weights: Record<CarrierMetricKey, number>
   /** Per-carrier, per-metric normalized scores (0-1) for every company in the final eligible pool, sorted by `combined` desc. */
@@ -255,6 +258,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -361,6 +366,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -454,6 +461,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -547,6 +556,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -653,6 +664,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -759,6 +772,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -865,6 +880,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -958,6 +975,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -1051,6 +1070,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -1157,6 +1178,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -1263,6 +1286,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -1356,6 +1381,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -1462,6 +1489,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -1556,6 +1585,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -1662,6 +1693,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -1768,6 +1801,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -1874,6 +1909,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -1980,6 +2017,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -2086,6 +2125,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -2192,6 +2233,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -2285,6 +2328,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -2378,6 +2423,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -2484,6 +2531,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -2590,6 +2639,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -2696,6 +2747,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -2789,6 +2842,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -2882,6 +2937,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -2975,6 +3032,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -3081,6 +3140,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -3174,6 +3235,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -3280,6 +3343,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -3386,6 +3451,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -3492,6 +3559,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -3574,6 +3643,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -3680,6 +3751,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -3786,6 +3859,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -3892,6 +3967,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -3998,6 +4075,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -4091,6 +4170,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -4197,6 +4278,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -4290,6 +4373,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -4396,6 +4481,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -4489,6 +4576,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -4582,6 +4671,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -4675,6 +4766,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -4781,6 +4874,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -4874,6 +4969,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -4956,6 +5053,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -5062,6 +5161,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -5155,6 +5256,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -5237,6 +5340,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -5343,6 +5448,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -5436,6 +5543,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -5542,6 +5651,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -5635,6 +5746,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -5728,6 +5841,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -5834,6 +5949,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -5940,6 +6057,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -6046,6 +6165,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -6152,6 +6273,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -6258,6 +6381,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -6364,6 +6489,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -6470,6 +6597,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -6576,6 +6705,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -6658,6 +6789,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -6751,6 +6884,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -6857,6 +6992,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -6963,6 +7100,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -7056,6 +7195,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -7162,6 +7303,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -7268,6 +7411,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -7361,6 +7506,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -7467,6 +7614,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -7560,6 +7709,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -7666,6 +7817,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -7759,6 +7912,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -7865,6 +8020,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -7958,6 +8115,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -8064,6 +8223,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -8157,6 +8318,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -8250,6 +8413,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -8356,6 +8521,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -8449,6 +8616,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -8531,6 +8700,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -8624,6 +8795,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -8730,6 +8903,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -8836,6 +9011,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -8942,6 +9119,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -9035,6 +9214,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -9128,6 +9309,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -9234,6 +9417,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -9340,6 +9525,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -9433,6 +9620,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -9539,6 +9728,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -9645,6 +9836,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -9751,6 +9944,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -9857,6 +10052,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -9963,6 +10160,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -10056,6 +10255,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -10162,6 +10363,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -10268,6 +10471,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -10374,6 +10579,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -10480,6 +10687,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -10573,6 +10782,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -10679,6 +10890,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -10785,6 +10998,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -10878,6 +11093,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -10984,6 +11201,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -11090,6 +11309,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -11183,6 +11404,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -11276,6 +11499,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -11369,6 +11594,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -11475,6 +11702,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -11581,6 +11810,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -11688,6 +11919,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
         8,
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -11807,6 +12040,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -11901,6 +12136,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -11994,6 +12231,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -12100,6 +12339,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -12193,6 +12434,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -12286,6 +12529,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -12392,6 +12637,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -12498,6 +12745,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -12580,6 +12829,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -12673,6 +12924,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -12779,6 +13032,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -12885,6 +13140,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -12978,6 +13235,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -13084,6 +13343,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -13178,6 +13439,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -13256,6 +13519,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -13334,6 +13599,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -13428,6 +13695,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -13493,6 +13762,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -13587,6 +13858,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -13652,6 +13925,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -13730,6 +14005,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -13808,6 +14085,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -13902,6 +14181,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -13980,6 +14261,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -14074,6 +14357,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -14139,6 +14424,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -14233,6 +14520,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -14314,6 +14603,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -14395,6 +14686,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -14476,6 +14769,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -14554,6 +14849,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -14648,6 +14945,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -14742,6 +15041,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -14807,6 +15108,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -14888,6 +15191,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -14953,6 +15258,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -15034,6 +15341,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -15128,6 +15437,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -15209,6 +15520,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -15303,6 +15616,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -15397,6 +15712,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -15462,6 +15779,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -15556,6 +15875,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -15650,6 +15971,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -15744,6 +16067,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -15838,6 +16163,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -15919,6 +16246,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -15984,6 +16313,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -16079,6 +16410,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
         8,
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -16186,6 +16519,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -16251,6 +16586,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -16345,6 +16682,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -16439,6 +16778,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -16533,6 +16874,8 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -16667,6 +17010,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -16750,6 +17095,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -16846,6 +17193,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -16942,6 +17291,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -17025,6 +17376,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -17121,6 +17474,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -17217,6 +17572,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -17313,6 +17670,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -17409,6 +17768,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -17505,6 +17866,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -17601,6 +17964,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -17697,6 +18062,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -17793,6 +18160,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -17874,6 +18243,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "matchedRuleName": "Ege Bölgesi Standart",
       "matchedRuleSummary": "0–30 desi · İzmir",
       "ruleNarrowedCompanyIds": null,
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -18009,6 +18380,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -18080,6 +18453,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -18164,6 +18539,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -18248,6 +18625,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -18332,6 +18711,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -18424,6 +18805,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -18503,6 +18886,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -18582,6 +18967,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -18674,6 +19061,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -18753,6 +19142,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -18845,6 +19236,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -18924,6 +19317,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -19016,6 +19411,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -19100,6 +19497,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -19184,6 +19583,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -19268,6 +19669,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -19352,6 +19755,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -19422,6 +19827,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "matchedRuleName": "Ege Bölgesi Standart",
       "matchedRuleSummary": "0–30 desi · İzmir",
       "ruleNarrowedCompanyIds": null,
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -19558,6 +19965,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -19638,6 +20047,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -19718,6 +20129,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -19798,6 +20211,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -19878,6 +20293,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -19945,6 +20362,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -20025,6 +20444,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -20105,6 +20526,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -20185,6 +20608,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -20263,6 +20688,8 @@ export const SEED_RETURNS: ReturnItem[] = [
       "matchedRuleName": "Ege Bölgesi Standart",
       "matchedRuleSummary": "0–30 desi · İzmir",
       "ruleNarrowedCompanyIds": null,
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -20432,6 +20859,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -20521,6 +20950,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -20623,6 +21054,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -20712,6 +21145,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -20814,6 +21249,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -20916,6 +21353,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -21018,6 +21457,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -21120,6 +21561,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -21222,6 +21665,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -21324,6 +21769,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -21413,6 +21860,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -21502,6 +21951,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -21604,6 +22055,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -21706,6 +22159,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -21808,6 +22263,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -21885,6 +22342,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -21987,6 +22446,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -22076,6 +22537,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -22178,6 +22641,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -22256,6 +22721,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -22358,6 +22825,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -22460,6 +22929,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -22562,6 +23033,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -22664,6 +23137,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -22766,6 +23241,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -22868,6 +23345,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -22970,6 +23449,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -23072,6 +23553,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -23174,6 +23657,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -23276,6 +23761,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -23341,6 +23828,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -23443,6 +23932,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -23545,6 +24036,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -23622,6 +24115,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -23711,6 +24206,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -23800,6 +24297,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -23902,6 +24401,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -23967,6 +24468,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -24045,6 +24548,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -24147,6 +24652,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -24236,6 +24743,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -24338,6 +24847,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -24440,6 +24951,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -24542,6 +25055,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -24644,6 +25159,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -24733,6 +25250,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -24835,6 +25354,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -24938,6 +25459,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
         8,
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -25053,6 +25576,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -25142,6 +25667,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -25244,6 +25771,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -25333,6 +25862,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -25394,6 +25925,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -25471,6 +26004,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -25545,6 +26080,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -25635,6 +26172,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -25712,6 +26251,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -25786,6 +26327,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -25860,6 +26403,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -25921,6 +26466,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -26011,6 +26558,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -26088,6 +26637,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -26162,6 +26713,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -26252,6 +26805,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -26329,6 +26884,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -26419,6 +26976,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -26509,6 +27068,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -26599,6 +27160,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -26689,6 +27252,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -26779,6 +27344,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -26869,6 +27436,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -26943,6 +27512,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -27017,6 +27588,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -27091,6 +27664,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         2
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -27181,6 +27756,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -27242,6 +27819,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -27319,6 +27898,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -27409,6 +27990,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -27499,6 +28082,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         7
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -27589,6 +28174,8 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "ruleNarrowedCompanyIds": [
         1
       ],
+      "excludedCompanyIds": [],
+      "excludedByRuleNames": [],
       "weights": {
         "cost": 0.25,
         "deliveryTime": 0.2,
@@ -27652,14 +28239,34 @@ export const CARRIER_METRIC_LABELS: Record<CarrierMetricKey, string> = {
   costDiffPct: 'Maliyet Sapması',
 }
 
+export const CARRIER_METRIC_DESCRIPTIONS: Record<CarrierMetricKey, string> = {
+  cost: 'Taşıyıcının tanımlı fiyatlandırma kurallarındaki ortalama birim ücreti. Diğer firmalara göre ne kadar ucuzsa puanı o kadar yüksek olur.',
+  deliveryTime: 'Teslim edilen gönderilerin yüzde kaçının zamanında ya da tahmini teslimat tarihinden önce ulaştığı. Puan, bu yüzdenin birebir kendisidir (örn. 100 gönderiden 90\'ı zamanında teslim edildiyse puan 90\'dır).',
+  successRate: 'Taşıyıcıya verilen gönderilerin yüzde kaçının başarıyla teslim edildiği (iptal/kayıp hariç). Puan bu yüzdenin birebir kendisidir.',
+  damagedRate: 'Teslim edilen gönderilerin yüzde kaçının hasarlı ulaştığı. Puan bu yüzdenin birebir kendisidir (örn. 100 teslimattan 10\'u hasarlıysa puan 10\'dur — düşük olması iyidir).',
+  avgPickupHours: 'Kargonun şubeden/depodan ortalama teslim alınma süresi (saat). 0 saat 100 puan, 12 saat ve üzeri 0 puandır.',
+  costDiffPct: 'Gerçekleşen faturaların beklenen tutardan ortalama sapma yüzdesi. Bütçe içinde veya altında kalmak 100 puan, aşım arttıkça puan düşer.',
+}
+
+export type RoutingRuleType = 'include' | 'exclude'
+
 export interface RoutingRule {
   id: number
   name: string
   priority: number
   active: boolean
-  conditions: { minDesi: number; maxDesi: number; provinceIds: number[]; minAmount: number | ''; maxAmount: number | '' }
-  primaryCompanyId: number
+  ruleType: RoutingRuleType
+  conditions: {
+    minDesi: number
+    maxDesi: number
+    provinceIds: number[]
+    minAmount: number | ''
+    maxAmount: number | ''
+    productTypes: string[]
+  }
+  primaryCompanyId: number | null
   failoverCompanyId: number | null
+  excludedCompanyIds: number[]
   cargoTypes: RoutingCargoType[]
 }
 
@@ -27669,6 +28276,7 @@ export const SEED_ROUTING_RULES: RoutingRule[] = [
     "name": "İstanbul İçi Ekonomik",
     "priority": 1,
     "active": true,
+    "ruleType": "include",
     "conditions": {
       "minDesi": 0,
       "maxDesi": 10,
@@ -27676,10 +28284,12 @@ export const SEED_ROUTING_RULES: RoutingRule[] = [
         1
       ],
       "minAmount": "",
-      "maxAmount": ""
+      "maxAmount": "",
+      "productTypes": []
     },
     "primaryCompanyId": 8,
     "failoverCompanyId": 1,
+    "excludedCompanyIds": [],
     "cargoTypes": ["shipment", "transfer", "return"]
   },
   {
@@ -27687,15 +28297,18 @@ export const SEED_ROUTING_RULES: RoutingRule[] = [
     "name": "Yüksek Desi - Ağır Kargo",
     "priority": 2,
     "active": true,
+    "ruleType": "include",
     "conditions": {
       "minDesi": 30,
       "maxDesi": 999,
       "provinceIds": [],
       "minAmount": "",
-      "maxAmount": ""
+      "maxAmount": "",
+      "productTypes": []
     },
     "primaryCompanyId": 7,
     "failoverCompanyId": 10,
+    "excludedCompanyIds": [],
     "cargoTypes": ["shipment", "transfer", "return"]
   },
   {
@@ -27703,15 +28316,18 @@ export const SEED_ROUTING_RULES: RoutingRule[] = [
     "name": "Yüksek Tutarlı Siparişler",
     "priority": 3,
     "active": true,
+    "ruleType": "include",
     "conditions": {
       "minDesi": 0,
       "maxDesi": 999,
       "provinceIds": [],
       "minAmount": 2000,
-      "maxAmount": ""
+      "maxAmount": "",
+      "productTypes": []
     },
     "primaryCompanyId": 6,
     "failoverCompanyId": 2,
+    "excludedCompanyIds": [],
     "cargoTypes": ["shipment", "transfer", "return"]
   },
   {
@@ -27719,6 +28335,7 @@ export const SEED_ROUTING_RULES: RoutingRule[] = [
     "name": "Ege Bölgesi Standart",
     "priority": 4,
     "active": true,
+    "ruleType": "include",
     "conditions": {
       "minDesi": 0,
       "maxDesi": 30,
@@ -27726,10 +28343,12 @@ export const SEED_ROUTING_RULES: RoutingRule[] = [
         3
       ],
       "minAmount": "",
-      "maxAmount": ""
+      "maxAmount": "",
+      "productTypes": []
     },
     "primaryCompanyId": 2,
     "failoverCompanyId": 5,
+    "excludedCompanyIds": [],
     "cargoTypes": ["shipment", "transfer", "return"]
   },
   {
@@ -27737,15 +28356,18 @@ export const SEED_ROUTING_RULES: RoutingRule[] = [
     "name": "Genel Varsayılan",
     "priority": 5,
     "active": true,
+    "ruleType": "include",
     "conditions": {
       "minDesi": 0,
       "maxDesi": 999,
       "provinceIds": [],
       "minAmount": "",
-      "maxAmount": ""
+      "maxAmount": "",
+      "productTypes": []
     },
     "primaryCompanyId": 1,
     "failoverCompanyId": 3,
+    "excludedCompanyIds": [],
     "cargoTypes": ["shipment", "transfer", "return"]
   }
 ]
@@ -27782,25 +28404,27 @@ export const SEED_ROUTING_HISTORY: RoutingHistoryItem[] = [
   }
 ]
 
-// "Aralık Bazlı Sabit Fiyat": her desi aralığı için doğrudan bir fiyat tanımlanır (tiers).
-// "Desi Başı Birim Fiyat": desi × unitPrice ile hesaplanır. Her iki modelde de sonuç
-// minimumAmount ile karşılaştırılır — hangisi büyükse o ödenir. originNodeId (null =
-// tüm depolar) ile aynı kargo firması için çıkış deposuna özel kurallar tanımlanabilir.
-export type PricingModel = 'tiered' | 'perDesi'
+// A rule is one ordered list of desi bands (tiers) for a (company, origin depot) pair.
+// Each band independently picks its own pricing type — 'fixed' charges `price` flat for
+// that band, 'perDesi' charges desi × `price` — and its own minimumAmount (there is no
+// rule-wide minimum; each band's own result is compared against its own minimumAmount,
+// whichever is higher is paid). This lets one rule mix strategies across its range (e.g.
+// 0-14 desi ₺100 sabit, 14.1-40 desi ₺120 sabit, 40.1-100 desi ₺11/desi, each with its own
+// minimum). originNodeId (null = tüm depolar) lets the same carrier have depot-specific rules.
+export type PricingTierType = 'fixed' | 'perDesi'
 
 export interface PricingTier {
   minDesi: number
   maxDesi: number
+  type: PricingTierType
   price: number
+  minimumAmount: number
 }
 
 export interface CarrierPricingRule {
   id: number
   companyId: number
   originNodeId: number | null
-  model: PricingModel
-  minimumAmount: number
-  unitPrice: number | null
   tiers: PricingTier[]
 }
 
@@ -27809,47 +28433,35 @@ export const SEED_CARRIER_PRICING: CarrierPricingRule[] = [
     "id": 1,
     "companyId": 1,
     "originNodeId": null,
-    "model": "tiered",
-    "minimumAmount": 0,
-    "unitPrice": null,
     "tiers": [
-      { "minDesi": 0, "maxDesi": 10, "price": 45 },
-      { "minDesi": 11, "maxDesi": 30, "price": 75 },
-      { "minDesi": 31, "maxDesi": 999, "price": 120 }
+      { "minDesi": 0, "maxDesi": 10, "type": "fixed", "price": 45, "minimumAmount": 0 },
+      { "minDesi": 11, "maxDesi": 30, "type": "fixed", "price": 75, "minimumAmount": 0 },
+      { "minDesi": 31, "maxDesi": 999, "type": "fixed", "price": 120, "minimumAmount": 0 }
     ]
   },
   {
     "id": 2,
     "companyId": 2,
     "originNodeId": null,
-    "model": "tiered",
-    "minimumAmount": 0,
-    "unitPrice": null,
     "tiers": [
-      { "minDesi": 0, "maxDesi": 10, "price": 42 },
-      { "minDesi": 11, "maxDesi": 30, "price": 70 }
+      { "minDesi": 0, "maxDesi": 10, "type": "fixed", "price": 42, "minimumAmount": 0 },
+      { "minDesi": 11, "maxDesi": 30, "type": "fixed", "price": 70, "minimumAmount": 0 }
     ]
   },
   {
     "id": 3,
     "companyId": 6,
     "originNodeId": null,
-    "model": "tiered",
-    "minimumAmount": 0,
-    "unitPrice": null,
     "tiers": [
-      { "minDesi": 0, "maxDesi": 10, "price": 68 }
+      { "minDesi": 0, "maxDesi": 10, "type": "fixed", "price": 68, "minimumAmount": 0 }
     ]
   },
   {
     "id": 4,
     "companyId": 8,
     "originNodeId": null,
-    "model": "tiered",
-    "minimumAmount": 0,
-    "unitPrice": null,
     "tiers": [
-      { "minDesi": 0, "maxDesi": 10, "price": 39 }
+      { "minDesi": 0, "maxDesi": 10, "type": "fixed", "price": 39, "minimumAmount": 0 }
     ]
   }
 ]

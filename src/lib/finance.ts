@@ -1,6 +1,50 @@
 import { INVOICE_STATUS, getCompany, type CarrierInvoice, type CarrierPricingRule } from '../data/catalog'
 import { fmtDate } from './format'
 
+/** Picks the pricing rule to bill a shipment against: an exact origin-depot match for
+ * that carrier if one exists, otherwise that carrier's "Tüm Depolar" (null-origin) rule,
+ * otherwise any rule it has at all. Returns null only if the carrier has no rules at all. */
+export function pickPricingRule(rules: CarrierPricingRule[], companyId: number, originNodeId: number | null): CarrierPricingRule | null {
+  const companyRules = rules.filter((r) => r.companyId === companyId)
+  if (companyRules.length === 0) return null
+  if (originNodeId != null) {
+    const forNode = companyRules.find((r) => r.originNodeId === originNodeId)
+    if (forNode) return forNode
+  }
+  return companyRules.find((r) => r.originNodeId === null) ?? companyRules[0]
+}
+
+export function nextDraftInvoiceNo(existing: CarrierInvoice[]): string {
+  const year = new Date().getFullYear()
+  return `FTR-${year}-${String(existing.length + 1).padStart(5, '0')}`
+}
+
+/** Auto-billing for a freshly created shipment/return/transfer: matches the carrier's
+ * pricing rule for the origin depot and computes the expected cost the same way the
+ * manual "Örnek Hesaplama" preview does. realCost mirrors expectedCost until someone
+ * reconciles the invoice against what the carrier actually billed. */
+export function draftInvoiceFor(params: {
+  companyId: number
+  desi?: number
+  originNodeId: number | null
+  rules: CarrierPricingRule[]
+  existingInvoices: CarrierInvoice[]
+  ref: { shipmentNo?: number; returnNo?: number; transferNo?: number }
+}): Omit<CarrierInvoice, 'id'> {
+  const rule = pickPricingRule(params.rules, params.companyId, params.originNodeId)
+  const calc = rule ? calculateCarrierPrice(rule, params.desi ?? 0) : null
+  const expectedCost = calc?.finalAmount ?? 0
+  return {
+    companyId: params.companyId,
+    ...params.ref,
+    invoiceNo: nextDraftInvoiceNo(params.existingInvoices),
+    expectedCost,
+    realCost: expectedCost,
+    invoiceDate: new Date().toISOString(),
+    status: 'pending',
+  }
+}
+
 export interface PriceCalculation {
   desi: number
   formula: string
@@ -11,35 +55,28 @@ export interface PriceCalculation {
 }
 
 /** Applies a carrier's pricing rule to a given desi, exactly matching how real invoices
- * are reconciled: tiered rules look up the matching desi band's flat price; per-desi
- * rules multiply desi by the unit price. Either way, the result is floored at the rule's
- * minimum charge — whichever is higher actually gets paid. */
+ * are reconciled: the matching desi band is looked up, then priced according to that
+ * band's own type — 'fixed' bands charge their flat price, 'perDesi' bands multiply desi
+ * by their unit price. A single rule can mix both across its range. There is no rule-wide
+ * minimum — each band carries its own minimumAmount, and the result is floored at that
+ * band's minimum charge, whichever is higher actually gets paid. */
 export function calculateCarrierPrice(rule: CarrierPricingRule, desi: number): PriceCalculation {
-  let calculatedAmount: number | null = null
-  let formula = '—'
-
-  if (rule.model === 'perDesi') {
-    if (rule.unitPrice != null) {
-      calculatedAmount = desi * rule.unitPrice
-      formula = `${desi} × ${rule.unitPrice}`
-    }
-  } else {
-    const tier = rule.tiers.find((t) => desi >= t.minDesi && desi <= t.maxDesi)
-    if (tier) calculatedAmount = tier.price
+  const tier = (rule.tiers ?? []).find((t) => desi >= t.minDesi && desi <= t.maxDesi)
+  if (!tier) {
+    return { desi, formula: '—', calculatedAmount: null, minimumAmount: 0, usedMinimum: false, finalAmount: null }
   }
 
-  if (calculatedAmount == null) {
-    return { desi, formula, calculatedAmount: null, minimumAmount: rule.minimumAmount, usedMinimum: false, finalAmount: null }
-  }
+  const calculatedAmount = tier.type === 'perDesi' ? desi * tier.price : tier.price
+  const formula = tier.type === 'perDesi' ? `${desi} × ${tier.price}` : `${tier.price}`
+  const usedMinimum = calculatedAmount < tier.minimumAmount
 
-  const usedMinimum = calculatedAmount < rule.minimumAmount
   return {
     desi,
     formula,
     calculatedAmount,
-    minimumAmount: rule.minimumAmount,
+    minimumAmount: tier.minimumAmount,
     usedMinimum,
-    finalAmount: usedMinimum ? rule.minimumAmount : calculatedAmount,
+    finalAmount: usedMinimum ? tier.minimumAmount : calculatedAmount,
   }
 }
 

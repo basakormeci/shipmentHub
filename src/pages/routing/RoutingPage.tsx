@@ -1,24 +1,26 @@
 import { useLayoutEffect, useMemo, useState } from 'react'
-import { NavLink, useParams } from 'react-router-dom'
+import { NavLink, useNavigate, useParams } from 'react-router-dom'
 import { useDataStore } from '../../stores/dataStore'
 import { useUiStore } from '../../stores/uiStore'
 import {
   CARRIER_METRIC_KEYS,
-  COMPANIES,
+  CARRIER_METRIC_DESCRIPTIONS,
   PROVINCES,
+  PRODUCT_TYPES,
   getCompany,
   type CarrierMetricKey,
   type RoutingCargoType,
 } from '../../data/catalog'
-import { computeNormalizedCarrierScores, matchRoutingRule, ruleConditionsSummary } from '../../lib/carrierScoring'
+import { computeCarrierScores, matchExcludeRules, matchIncludeRule, ruleConditionsSummary } from '../../lib/carrierScoring'
 import { fmtDateTimeStr } from '../../lib/format'
 import { toast } from '../../lib/toast'
 import { useHeaderSlotStore } from '../../stores/headerSlotStore'
 import { Dropdown } from '../../components/ui/Dropdown'
+import { InfoTooltip } from '../../components/ui/InfoTooltip'
 
 const TABS = [
   { key: 'rules', label: 'Kurallar', to: '/routing/rules' },
-  { key: 'weights', label: 'Ağırlık Verme', to: '/routing/weights' },
+  { key: 'weights', label: 'Ağırlıklandırma', to: '/routing/weights' },
   { key: 'scoring', label: 'Normalize Puanlama', to: '/routing/scoring' },
   { key: 'history', label: 'Kural Geçmişi', to: '/routing/history' },
 ] as const
@@ -39,185 +41,8 @@ const RULE_HISTORY_ACTION_META: Record<string, { label: string; badge: string }>
   reordered: { label: 'Öncelik Değişti', badge: 'badge-passive' },
 }
 
-function RoutingRuleModal({
-  open,
-  editId,
-  onClose,
-}: {
-  open: boolean
-  editId: number | null
-  onClose: () => void
-}) {
-  const routingRules = useDataStore((s) => s.routingRules)
-  const upsertRoutingRule = useDataStore((s) => s.upsertRoutingRule)
-  const logRoutingHistory = useDataStore((s) => s.logRoutingHistory)
-  const existing = editId != null ? routingRules.find((r) => r.id === editId) : null
-
-  const [name, setName] = useState(existing?.name ?? '')
-  const [minDesi, setMinDesi] = useState(existing ? String(existing.conditions.minDesi) : '0')
-  const [maxDesi, setMaxDesi] = useState(existing ? String(existing.conditions.maxDesi) : '999')
-  const [minAmount, setMinAmount] = useState(existing ? String(existing.conditions.minAmount) : '')
-  const [maxAmount, setMaxAmount] = useState(existing ? String(existing.conditions.maxAmount) : '')
-  const [provinceIds, setProvinceIds] = useState<number[]>(existing?.conditions.provinceIds ?? [])
-  const [primaryCompanyId, setPrimaryCompanyId] = useState(existing?.primaryCompanyId ?? COMPANIES[0].id)
-  const [failoverCompanyId, setFailoverCompanyId] = useState<number | ''>(existing?.failoverCompanyId ?? '')
-  const [active, setActive] = useState(existing?.active ?? true)
-  const [cargoTypes, setCargoTypes] = useState<RoutingCargoType[]>(existing?.cargoTypes ?? [...CARGO_TYPE_OPTIONS])
-
-  if (!open) return null
-
-  const canSave = name.trim() && primaryCompanyId && cargoTypes.length > 0
-
-  function toggleProvince(id: number) {
-    setProvinceIds((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]))
-  }
-
-  function toggleCargoType(type: RoutingCargoType) {
-    setCargoTypes((prev) => (prev.includes(type) ? prev.filter((c) => c !== type) : [...prev, type]))
-  }
-
-  function save() {
-    if (!canSave) return
-    const conditions = {
-      minDesi: +minDesi,
-      maxDesi: +maxDesi,
-      provinceIds,
-      minAmount: minAmount === '' ? ('' as const) : +minAmount,
-      maxAmount: maxAmount === '' ? ('' as const) : +maxAmount,
-    }
-    const rule = upsertRoutingRule({
-      id: editId,
-      name: name.trim(),
-      priority: existing?.priority ?? routingRules.length + 1,
-      active,
-      conditions,
-      primaryCompanyId,
-      failoverCompanyId: failoverCompanyId === '' ? null : failoverCompanyId,
-      cargoTypes,
-    })
-    logRoutingHistory(editId ? 'updated' : 'created', rule.name, editId ? 'Kural güncellendi.' : 'Kural oluşturuldu.')
-    toast(editId ? 'Kural güncellendi.' : 'Yeni kural oluşturuldu.', 'success')
-    onClose()
-  }
-
-  return (
-    <div
-      className="overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div className="modal-box w-full max-w-xl flex flex-col" style={{ maxHeight: '85vh' }}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 flex-shrink-0">
-          <h3 className="font-semibold text-neutral-950">{editId ? 'Kuralı Düzenle' : 'Yeni Kural Ekle'}</h3>
-          <button type="button" className="text-neutral-400 hover:text-neutral-600 p-1 rounded-lg" onClick={onClose}>
-            ✕
-          </button>
-        </div>
-        <div className="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-5">
-          <div>
-            <label className="form-label">
-              Kural Adı <span className="text-[#fb3748]">*</span>
-            </label>
-            <input type="text" className="form-input" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div>
-            <label className="form-label">
-              Bu Kural Hangi Modüller İçin Geçerli? <span className="text-[#fb3748]">*</span>
-              <span className="font-normal normal-case text-neutral-400"> (en az bir tanesi seçilmeli)</span>
-            </label>
-            <div className="flex items-center gap-4 flex-wrap">
-              {CARGO_TYPE_OPTIONS.map((type) => (
-                <label key={type} className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={cargoTypes.includes(type)} onChange={() => toggleCargoType(type)} />
-                  <span className="text-sm text-neutral-700">{CARGO_TYPE_META[type].label}</span>
-                </label>
-              ))}
-            </div>
-            {cargoTypes.length === 0 ? (
-              <p className="form-error">En az bir modül seçmelisiniz.</p>
-            ) : null}
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Koşullar</p>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="form-label">Min Desi</label>
-                <input type="text" inputMode="numeric" className="form-input" value={minDesi} onChange={(e) => setMinDesi(e.target.value)} />
-              </div>
-              <div>
-                <label className="form-label">Max Desi</label>
-                <input type="text" inputMode="numeric" className="form-input" value={maxDesi} onChange={(e) => setMaxDesi(e.target.value)} />
-              </div>
-              <div>
-                <label className="form-label">Min Sipariş Tutarı</label>
-                <input type="text" inputMode="numeric" className="form-input" placeholder="Kısıt yok" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} />
-              </div>
-              <div>
-                <label className="form-label">Max Sipariş Tutarı</label>
-                <input type="text" inputMode="numeric" className="form-input" placeholder="Kısıt yok" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} />
-              </div>
-            </div>
-            <label className="form-label">
-              Bölgeler <span className="font-normal normal-case text-neutral-400">(boş bırakılırsa tüm iller)</span>
-            </label>
-            <div className="district-grid border border-neutral-200 rounded-lg p-3 max-h-40 overflow-y-auto">
-              {PROVINCES.map((p) => (
-                <label key={p.id} className="flex items-center gap-2 py-1 cursor-pointer">
-                  <input type="checkbox" checked={provinceIds.includes(p.id)} onChange={() => toggleProvince(p.id)} />
-                  <span className="text-sm text-neutral-700">{p.name}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Taşıyıcı Atama</p>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="form-label">
-                  Birincil Kargo Firması <span className="text-[#fb3748]">*</span>
-                </label>
-                <Dropdown
-                  value={String(primaryCompanyId)}
-                  onChange={(v) => setPrimaryCompanyId(+v)}
-                  options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
-                />
-              </div>
-              <div>
-                <label className="form-label">Yedek Kargo Firması (Failover)</label>
-                <Dropdown
-                  value={failoverCompanyId === '' ? '' : String(failoverCompanyId)}
-                  onChange={(v) => setFailoverCompanyId(v === '' ? '' : +v)}
-                  placeholder="Yok"
-                  options={[{ value: '', label: 'Yok' }, ...COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))]}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center justify-between p-4 rounded-lg border border-neutral-100 bg-neutral-50/50">
-            <div>
-              <p className="text-sm font-medium text-neutral-950">Kural Aktif</p>
-              <p className="text-xs text-neutral-400 mt-0.5">Pasif kurallar yönlendirmede dikkate alınmaz</p>
-            </div>
-            <button type="button" className={`toggle-track ${active ? 'on' : 'off'}`} onClick={() => setActive(!active)}>
-              <div className="toggle-thumb" />
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-100 bg-neutral-50/50 flex-shrink-0">
-          <button className="secondary-btn" type="button" onClick={onClose}>
-            Vazgeç
-          </button>
-          <button className="primary-btn" type="button" onClick={save} disabled={!canSave}>
-            Kaydet
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function RulesTab() {
+  const navigate = useNavigate()
   const routingRules = useDataStore((s) => s.routingRules)
   const toggleRoutingRule = useDataStore((s) => s.toggleRoutingRule)
   const removeRoutingRule = useDataStore((s) => s.removeRoutingRule)
@@ -225,23 +50,27 @@ function RulesTab() {
   const logRoutingHistory = useDataStore((s) => s.logRoutingHistory)
   const simulator = useUiStore((s) => s.routingSimulator)
   const setRoutingSimulator = useUiStore((s) => s.setRoutingSimulator)
-
-  const [createOpen, setCreateOpen] = useState(false)
-  const [editId, setEditId] = useState<number | null>(null)
+  const [simProductType, setSimProductType] = useState('')
 
   const sorted = useMemo(() => [...routingRules].sort((a, b) => a.priority - b.priority), [routingRules])
+
+  const [simExcluded, setSimExcluded] = useState<{ companyId: number; ruleNames: string[] } | null>(null)
 
   function runSimulation() {
     if (simulator.desi === '' || !simulator.provinceId || !simulator.cargoType) {
       toast('Simülasyon için modül, desi ve il bilgisi gereklidir.', 'info')
       return
     }
-    const result = matchRoutingRule(
-      routingRules,
-      +simulator.desi,
-      +simulator.provinceId,
-      simulator.amount === '' ? 0 : +simulator.amount,
-      simulator.cargoType,
+    const desi = +simulator.desi
+    const provinceId = +simulator.provinceId
+    const amount = simulator.amount === '' ? 0 : +simulator.amount
+    const productType = simProductType || undefined
+    const result = matchIncludeRule(routingRules, desi, provinceId, amount, simulator.cargoType, productType)
+    const excludeRules = matchExcludeRules(routingRules, desi, provinceId, amount, simulator.cargoType, productType)
+    setSimExcluded(
+      excludeRules.length
+        ? { companyId: 0, ruleNames: excludeRules.map((r) => r.name) }
+        : null,
     )
     setRoutingSimulator({ resultId: result ? result.id : false })
   }
@@ -260,7 +89,7 @@ function RulesTab() {
     setHeaderSlot({
       subtitle: `${routingRules.length} kural tanımlı`,
       actions: (
-        <button className="secondary-btn" type="button" onClick={() => setCreateOpen(true)}>
+        <button className="secondary-btn" type="button" onClick={() => navigate('/routing/rules/new')}>
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
@@ -273,13 +102,12 @@ function RulesTab() {
 
   return (
     <>
-
       <div className="bg-white rounded-lg border border-neutral-200 p-5 mb-6">
         <p className="text-sm font-semibold text-neutral-950 mb-1">Yönlendirme Simülatörü</p>
         <p className="text-xs text-neutral-400 mb-4">
           Örnek bir gönderi girin, hangi kuralın eşleşip hangi taşıyıcının seçileceğini görün.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
           <div>
             <label className="form-label">Modül</label>
             <Dropdown
@@ -323,6 +151,18 @@ function RulesTab() {
               />
             </div>
           </div>
+          <div>
+            <label className="form-label">Ürün Tipi</label>
+            <Dropdown
+              value={simProductType}
+              onChange={(v) => {
+                setSimProductType(v)
+                setRoutingSimulator({ resultId: null })
+              }}
+              placeholder="Farketmez"
+              options={[{ value: '', label: 'Farketmez' }, ...Object.entries(PRODUCT_TYPES).map(([k, l]) => ({ value: k, label: l }))]}
+            />
+          </div>
           <button className="primary-btn" type="button" onClick={runSimulation}>
             Simüle Et
           </button>
@@ -337,7 +177,7 @@ function RulesTab() {
                   Eşleşen kural: &quot;{simResult.name}&quot; (Öncelik {simResult.priority})
                 </p>
                 <p className="text-xs mt-1" style={{ color: '#0b4627' }}>
-                  Birincil taşıyıcı: <strong>{getCompany(simResult.primaryCompanyId)?.name}</strong>
+                  Birincil taşıyıcı: <strong>{getCompany(simResult.primaryCompanyId ?? -1)?.name}</strong>
                   {simResult.failoverCompanyId ? (
                     <>
                       {' '}
@@ -348,41 +188,46 @@ function RulesTab() {
               </>
             ) : (
               <p className="text-sm font-semibold" style={{ color: '#681219' }}>
-                Bu koşullarla eşleşen aktif bir kural bulunamadı.
+                Bu koşullarla eşleşen aktif bir kullanım kuralı bulunamadı.
               </p>
             )}
+            {simExcluded ? (
+              <p className="text-xs mt-2 pt-2 border-t border-black/10" style={{ color: simResult ? '#0b4627' : '#681219' }}>
+                Ayrıca hariç tutulan kural(lar): <strong>{simExcluded.ruleNames.join(', ')}</strong>
+              </p>
+            ) : null}
           </div>
         ) : null}
       </div>
 
       <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left border-b border-neutral-100">
-              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Öncelik</th>
-              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kural Adı</th>
-              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kapsam</th>
-              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Koşullar</th>
-              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Birincil Taşıyıcı</th>
-              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Yedek Taşıyıcı</th>
-              <th className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Durum</th>
-              <th
-                className="px-5 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right sticky right-0 bg-white"
-                style={{ boxShadow: '-4px 0 6px -2px rgba(0,0,0,0.06)' }}
-              >
-                İşlemler
-              </th>
+              <th className="px-4 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Öncelik</th>
+              <th className="px-4 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kural Adı</th>
+              <th className="px-4 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Tip</th>
+              <th className="px-4 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Modüller</th>
+              <th className="px-4 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Koşullar</th>
+              <th className="px-4 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Taşıyıcı</th>
+              <th className="px-4 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Durum</th>
+              <th className="px-4 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right">İşlemler</th>
             </tr>
           </thead>
           <tbody>
             {sorted.map((rule, i) => {
-              const primary = getCompany(rule.primaryCompanyId)
+              const primary = rule.primaryCompanyId != null ? getCompany(rule.primaryCompanyId) : null
               const failover = rule.failoverCompanyId ? getCompany(rule.failoverCompanyId) : null
+              const excludedNames = rule.excludedCompanyIds.map((id) => getCompany(id)?.name).filter(Boolean)
+              const modulesText =
+                rule.cargoTypes.length === CARGO_TYPE_OPTIONS.length
+                  ? 'Tümü'
+                  : rule.cargoTypes.map((t) => CARGO_TYPE_META[t].label).join(', ')
               const even = i % 2 === 0
-              const stickyBg = even ? '#ffffff' : '#fafbfc'
               return (
                 <tr key={rule.id} className={`${even ? 'bg-white' : 'bg-neutral-50/50'} hover:bg-primary-lighter/20 transition-colors`}>
-                  <td className="px-5 py-3.5">
+                  <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5">
                       <span className="w-6 h-6 rounded-full bg-neutral-100 text-neutral-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
                         {rule.priority}
@@ -413,31 +258,54 @@ function RulesTab() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-5 py-3.5 font-medium text-neutral-700">{rule.name}</td>
-                  <td className="px-5 py-3.5">
-                    <div className="flex flex-wrap gap-1">
-                      {rule.cargoTypes.map((type) => (
-                        <span key={type} className={`badge ${CARGO_TYPE_META[type].badge}`}>
-                          {CARGO_TYPE_META[type].label}
-                        </span>
-                      ))}
-                    </div>
+                  <td className="px-4 py-3 font-medium text-neutral-700 whitespace-nowrap">{rule.name}</td>
+                  <td className="px-4 py-3">
+                    {rule.ruleType === 'exclude' ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium whitespace-nowrap" style={{ color: '#ad1f2b' }}>
+                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                        </svg>
+                        Kullanma
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary whitespace-nowrap">
+                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Kullan
+                      </span>
+                    )}
                   </td>
-                  <td className="px-5 py-3.5 text-neutral-500 text-xs">{ruleConditionsSummary(rule.conditions)}</td>
-                  <td className="px-5 py-3.5 text-neutral-600">{primary ? primary.name : 'Bilinmiyor'}</td>
-                  <td className="px-5 py-3.5 text-neutral-500">{failover ? failover.name : '-'}</td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-4 py-3 text-neutral-500 whitespace-nowrap">{modulesText}</td>
+                  <td className="px-4 py-3 text-neutral-500 text-xs whitespace-nowrap">{ruleConditionsSummary(rule.conditions)}</td>
+                  <td className="px-4 py-3 text-neutral-600 text-xs">
+                    {rule.ruleType === 'exclude' ? (
+                      excludedNames.length ? (
+                        excludedNames.join(', ')
+                      ) : (
+                        '-'
+                      )
+                    ) : (
+                      <>
+                        {primary ? primary.name : 'Bilinmiyor'}
+                        {failover ? <span className="text-neutral-400"> · yedek {failover.name}</span> : null}
+                      </>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
                     <span className={`badge ${rule.active ? 'badge-active' : 'badge-passive'}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${rule.active ? 'bg-[#1fc16b]' : 'bg-neutral-400'}`} />
                       {rule.active ? 'Aktif' : 'Pasif'}
                     </span>
                   </td>
-                  <td
-                    className="px-5 py-3.5 sticky right-0"
-                    style={{ background: stickyBg, boxShadow: '-4px 0 6px -2px rgba(0,0,0,0.06)' }}
-                  >
+                  <td className="px-4 py-3">
                     <div className="flex justify-end gap-1">
-                      <button className="action-btn" type="button" title="Düzenle" onClick={() => setEditId(rule.id)}>
+                      <button
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0"
+                        type="button"
+                        title="Düzenle"
+                        onClick={() => navigate(`/routing/rules/${rule.id}/edit`)}
+                      >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                           <path
                             strokeLinecap="round"
@@ -447,7 +315,7 @@ function RulesTab() {
                         </svg>
                       </button>
                       <button
-                        className="action-btn"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0"
                         type="button"
                         title={rule.active ? 'Pasife Al' : 'Aktife Al'}
                         onClick={() => {
@@ -461,7 +329,7 @@ function RulesTab() {
                         </svg>
                       </button>
                       <button
-                        className="action-btn hover:text-[#ad1f2b] hover:bg-[#ffebec]"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[#ad1f2b] hover:bg-[#ffebec] transition-colors flex-shrink-0"
                         type="button"
                         title="Sil"
                         onClick={() => {
@@ -485,14 +353,11 @@ function RulesTab() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
-
-      {createOpen ? <RoutingRuleModal open editId={null} onClose={() => setCreateOpen(false)} /> : null}
-      {editId != null ? <RoutingRuleModal open editId={editId} onClose={() => setEditId(null)} /> : null}
     </>
   )
 }
-
 
 const WEIGHT_FIELDS: { key: CarrierMetricKey; label: string; lowerIsBetter?: boolean }[] = [
   { key: 'cost', label: 'Maliyet' },
@@ -502,6 +367,8 @@ const WEIGHT_FIELDS: { key: CarrierMetricKey; label: string; lowerIsBetter?: boo
   { key: 'avgPickupHours', label: 'Ort. Teslim Alma Süresi', lowerIsBetter: true },
   { key: 'costDiffPct', label: 'Maliyet Sapması', lowerIsBetter: true },
 ]
+
+const WEIGHT_LEVELS = [1, 2, 3, 4, 5]
 
 function WeightsTab() {
   const weights = useUiStore((s) => s.routingWeights)
@@ -516,33 +383,40 @@ function WeightsTab() {
     <div className="bg-white rounded-lg border border-neutral-200 p-5">
       <p className="text-sm font-semibold text-neutral-950 mb-1">Kriter Ağırlıkları</p>
       <p className="text-xs text-neutral-400 mb-5">
-        Taşıyıcı seçim motorunun her kriteri ne kadar önemseyeceğini ayarlayın. Ağırlıklar otomatik olarak %100&apos;e
-        normalize edilir.
+        Taşıyıcı seçim motorunun her kriteri ne kadar önemseyeceğini 1 (az önemli) ile 5 (çok önemli) arasında bir
+        katsayı ile ayarlayın. Katsayılar otomatik olarak %100&apos;e normalize edilir.
       </p>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col divide-y divide-neutral-100">
         {WEIGHT_FIELDS.map((wf) => (
-          <div key={wf.key}>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-sm font-medium text-neutral-700">
-                {wf.label}
-                {wf.lowerIsBetter ? <span className="text-xs text-neutral-400 font-normal"> (düşük iyi)</span> : null}
+          <div key={wf.key} className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0">
+            <span className="text-sm font-medium text-neutral-700 flex items-center">
+              {wf.label}
+              {wf.lowerIsBetter ? <span className="text-xs text-neutral-400 font-normal"> (düşük iyi)</span> : null}
+              <InfoTooltip text={CARRIER_METRIC_DESCRIPTIONS[wf.key]} />
+            </span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                {WEIGHT_LEVELS.map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    title={`${level}`}
+                    onClick={() => setRoutingWeights({ [wf.key]: level })}
+                    className={`w-3 h-3 rounded-full transition-colors ${
+                      level <= (weights[wf.key] ?? 0) ? 'bg-primary' : 'bg-neutral-200 hover:bg-neutral-300'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-neutral-400 w-16 text-right">
+                {weights[wf.key] ?? 0}/5 · %{norm[wf.key]}
               </span>
-              <span className="text-sm font-semibold text-primary">%{norm[wf.key]}</span>
             </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={weights[wf.key] ?? 0}
-              className="w-full"
-              onChange={(e) => setRoutingWeights({ [wf.key]: +e.target.value })}
-            />
           </div>
         ))}
       </div>
       <p className="text-xs text-neutral-400 mt-5">
-        Normalize edilmiş ağırlıklar, &quot;Normalize Puanlama&quot; sekmesindeki taşıyıcı skor tablosunu doğrudan
-        etkiler.
+        Katsayılar, &quot;Normalize Puanlama&quot; sekmesindeki taşıyıcı skor tablosunu doğrudan etkiler.
       </p>
     </div>
   )
@@ -555,17 +429,18 @@ function ScoringTab() {
   const carrierPricing = useDataStore((s) => s.carrierPricing)
 
   const scores = useMemo(
-    () => computeNormalizedCarrierScores(weights, shipments, carrierInvoices, carrierPricing),
+    () => computeCarrierScores(weights, shipments, carrierInvoices, carrierPricing),
     [weights, shipments, carrierInvoices, carrierPricing],
   )
 
   return (
     <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
       <div className="px-5 py-3.5 border-b border-neutral-100">
-        <p className="text-sm font-semibold text-neutral-950">Standardize Taşıyıcı Puan Tablosu</p>
+        <p className="text-sm font-semibold text-neutral-950">Taşıyıcı Puan Tablosu</p>
         <p className="text-xs text-neutral-400 mt-0.5">
-          Her metrik, tüm kargo firmaları arasında 0-100 arasına normalize edilir; Toplam sütunu, &quot;Ağırlık
-          Verme&quot; sekmesindeki katsayılarla hesaplanan bileşik skordur.
+          Zamanında Teslimat, Başarı ve Hasar Oranı gerçek yüzdelerin kendisidir (örn. 100 gönderiden 90&apos;ı zamanında
+          teslim edildiyse puan 90&apos;dır). Maliyet, firmalar arası kıyaslamayla belirlenir (veri yoksa 50). Toplam
+          sütunu, &quot;Ağırlıklandırma&quot; sekmesindeki katsayılarla hesaplanan bileşik skordur.
         </p>
       </div>
       <div className="overflow-x-auto">
@@ -610,7 +485,6 @@ function ScoringTab() {
     </div>
   )
 }
-
 
 function HistoryTab() {
   const routingHistory = useDataStore((s) => s.routingHistory)

@@ -144,7 +144,7 @@ export const useUiStore = create<UiState>()(
       reportsCompanyId: '',
       reportsProvinceId: '',
       routingSimulator: { desi: '', provinceId: '', amount: '', cargoType: '', resultId: null },
-      routingWeights: { cost: 25, deliveryTime: 20, successRate: 25, damagedRate: 10, avgPickupHours: 10, costDiffPct: 10 },
+      routingWeights: { cost: 4, deliveryTime: 3, successRate: 4, damagedRate: 2, avgPickupHours: 2, costDiffPct: 2 },
       shipmentsSearch: '',
       shipmentsSearchField: 'shipmentNo',
       shipmentsFilterStatus: 'all',
@@ -271,7 +271,14 @@ export const useUiStore = create<UiState>()(
         contractWizard: s.contractWizard,
         nodeWizard: s.nodeWizard,
       }),
-      version: 6,
+      version: 7,
+      migrate: (persisted, version) => {
+        const state = persisted as UiState
+        if (version < 7) {
+          return { ...state, routingWeights: { cost: 4, deliveryTime: 3, successRate: 4, damagedRate: 2, avgPickupHours: 2, costDiffPct: 2 } }
+        }
+        return state
+      },
     },
   ),
 )

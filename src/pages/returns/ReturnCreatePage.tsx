@@ -112,9 +112,22 @@ export function ReturnCreatePage() {
       carrierPricing,
       shippingType: 'returnShipping',
       cargoType: 'return',
+      productType: form.productType || undefined,
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- canPreviewRouting already encodes the relevant form fields
-  }, [canPreviewRouting, form.provinceId, form.desi, form.orderAmount, contracts, routingRules, routingWeights, shipments, carrierInvoices, carrierPricing])
+  }, [
+    canPreviewRouting,
+    form.provinceId,
+    form.desi,
+    form.orderAmount,
+    form.productType,
+    contracts,
+    routingRules,
+    routingWeights,
+    shipments,
+    carrierInvoices,
+    carrierPricing,
+  ])
 
   const effectiveCompanyId = form.routingMode === 'manual' ? (form.companyId ? +form.companyId : null) : routingPreview?.chosenCompanyId ?? null
 
@@ -208,6 +221,8 @@ export function ReturnCreatePage() {
         matchedRuleName: null,
         matchedRuleSummary: null,
         ruleNarrowedCompanyIds: null,
+        excludedCompanyIds: [],
+        excludedByRuleNames: [],
         weights: { cost: 0, deliveryTime: 0, successRate: 0, damagedRate: 0, avgPickupHours: 0, costDiffPct: 0 },
         scores: [],
         chosenCompanyId: companyId,
@@ -225,9 +240,11 @@ export function ReturnCreatePage() {
         carrierPricing,
         shippingType: 'returnShipping',
         cargoType: 'return',
+        productType: form.productType || undefined,
       })
       if (!decision) {
         setErrors({ companyId: t('shipmentCreate.err_no_eligible_carrier') })
+        toast(t('shipmentCreate.err_no_eligible_carrier'), 'error')
         return
       }
       companyId = decision.chosenCompanyId

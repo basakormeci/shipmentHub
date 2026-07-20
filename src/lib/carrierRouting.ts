@@ -8,8 +8,8 @@ import {
   type Shipment,
   type ShipmentRoutingDecision,
 } from '../data/catalog'
-import { getEligibleCompanyIds, type ShippingType } from './contracts'
-import { computeNormalizedCarrierScores, matchRoutingRule, ruleConditionsSummary } from './carrierScoring'
+import { getEligibleCompanyIdsForShipment, type ShippingType } from './contracts'
+import { computeCarrierScores, resolveRuleNarrowedPool, ruleConditionsSummary } from './carrierScoring'
 
 export interface DecideCarrierInput {
   provinceId: number
@@ -23,17 +23,24 @@ export interface DecideCarrierInput {
   carrierPricing: CarrierPricingRule[]
   shippingType?: ShippingType
   cargoType?: RoutingCargoType
+  productType?: string
 }
 
 /**
  * Decides which carrier a new shipment should be routed to, step by step:
- * 1) eligibility from active order-shipping contracts, 2) an active routing rule
- * matching desi/province/amount narrows that pool, 3) the remaining pool is
- * ranked by the normalized carrier score table (Ağırlık Verme weights,
- * per-metric breakdown kept for display) and the top-scoring carrier is chosen.
- * Returns null when no carrier is eligible at all. Every step's outcome is kept
- * on the returned decision so the shipment detail page can show exactly what
- * was checked.
+ * 1) scan every contract and find every company whose active contract for this shipping
+ *    type actually covers the package (desi range, order-amount range, recipient province,
+ *    product type) — not just a shipping-type flag,
+ * 2) among those, every matching "Kullanma" (exclude) rule removes carriers from the pool,
+ *    then the first matching "Kullan" (include) rule narrows what's left to its
+ *    primary/failover companies,
+ * 3) the remaining pool is scored per criterion (normalized 0-1), each criterion's score is
+ *    multiplied by its weight and the products are summed into one combined score per
+ *    carrier — scored and compared only against each other, not the whole company roster,
+ * 4) the carrier with the highest combined score is chosen.
+ * Returns null when no carrier is eligible at all. Every step's outcome is kept on the
+ * returned decision so the shipment/return/transfer detail page can show exactly what was
+ * checked at each step.
  */
 export function decideCarrier(input: DecideCarrierInput): ShipmentRoutingDecision | null {
   const {
@@ -48,29 +55,26 @@ export function decideCarrier(input: DecideCarrierInput): ShipmentRoutingDecisio
     carrierPricing,
     shippingType = 'orderShipping',
     cargoType = 'shipment',
+    productType,
   } = input
 
-  const eligible = new Set(getEligibleCompanyIds(contracts, shippingType))
+  const eligible = new Set(getEligibleCompanyIdsForShipment(contracts, shippingType, { provinceId, desi, amount, productType }))
   if (eligible.size === 0) return null
 
-  const matchedRule = matchRoutingRule(routingRules, desi, provinceId, amount, cargoType)
-  let narrowed = eligible
-  let ruleNarrowedCompanyIds: number[] | null = null
-  if (matchedRule) {
-    const ruleCompanies = [matchedRule.primaryCompanyId, matchedRule.failoverCompanyId].filter(
-      (id): id is number => id != null && eligible.has(id),
-    )
-    if (ruleCompanies.length > 0) {
-      narrowed = new Set(ruleCompanies)
-      ruleNarrowedCompanyIds = [...narrowed]
-    }
-  }
+  const { narrowed, ruleNarrowedCompanyIds, matchedRule, excludedCompanyIds, excludedByRuleNames } = resolveRuleNarrowedPool(
+    routingRules,
+    eligible,
+    desi,
+    provinceId,
+    amount,
+    cargoType,
+    productType,
+  )
 
-  const allScores = computeNormalizedCarrierScores(routingWeights, shipments, carrierInvoices, carrierPricing)
-  const eligibleScores = allScores.filter((s) => narrowed.has(s.companyId))
-  if (eligibleScores.length === 0) return null
+  const scores = computeCarrierScores(routingWeights, shipments, carrierInvoices, carrierPricing, [...narrowed])
+  if (scores.length === 0) return null
 
-  const chosen = eligibleScores[0]
+  const chosen = scores[0]
 
   const totalWeight = CARRIER_METRIC_KEYS.reduce((sum, k) => sum + (routingWeights[k] ?? 0), 0) || 1
   const normalizedWeights = Object.fromEntries(
@@ -84,8 +88,10 @@ export function decideCarrier(input: DecideCarrierInput): ShipmentRoutingDecisio
     matchedRuleName: matchedRule ? matchedRule.name : null,
     matchedRuleSummary: matchedRule ? ruleConditionsSummary(matchedRule.conditions) : null,
     ruleNarrowedCompanyIds,
+    excludedCompanyIds,
+    excludedByRuleNames,
     weights: normalizedWeights,
-    scores: eligibleScores.map((s) => ({ companyId: s.companyId, companyName: s.companyName, metrics: s.metrics, combined: s.combined })),
+    scores: scores.map((s) => ({ companyId: s.companyId, companyName: s.companyName, metrics: s.metrics, combined: s.combined })),
     chosenCompanyId: chosen.companyId,
   }
 }

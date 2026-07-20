@@ -65,11 +65,48 @@ export function contractFormFromContract(c: Contract): ContractForm {
 
 export type ShippingType = 'orderShipping' | 'returnShipping' | 'transferShipping'
 
-/** Companies that have at least one active contract enabled for the given shipping type. */
+/** Companies that have at least one active contract enabled for the given shipping type.
+ * Used for manual-mode carrier dropdowns, where the full package details may not be filled
+ * in yet — see getEligibleCompanyIdsForShipment for the criteria-aware version smart routing uses. */
 export function getEligibleCompanyIds(contracts: Contract[], type: ShippingType): number[] {
   const ids = new Set<number>()
   contracts.forEach((c) => {
     if (c.status === 'active' && c[type]) ids.add(c.companyId)
+  })
+  return [...ids]
+}
+
+export interface ShipmentEligibilityCriteria {
+  provinceId: number
+  desi: number
+  amount: number
+  productType?: string
+}
+
+/** The first step of the smart-routing pipeline: scans every contract and returns the
+ * companies whose active contract for this shipping type actually covers the given package —
+ * desi within [minDesi, maxDesi], amount within [minOrderAmount, maxOrderAmount], the
+ * recipient's province within coveredRegions, and the product type within productTypes. An
+ * empty coveredRegions/productTypes list on the contract means "no restriction", the same
+ * convention RoutingRule conditions use for their own empty lists. */
+export function getEligibleCompanyIdsForShipment(
+  contracts: Contract[],
+  type: ShippingType,
+  criteria: ShipmentEligibilityCriteria,
+): number[] {
+  const ids = new Set<number>()
+  contracts.forEach((c) => {
+    if (c.status !== 'active' || !c[type]) return
+    const minDesi = c.minDesi ?? 0
+    const maxDesi = c.maxDesi ?? Infinity
+    if (criteria.desi < minDesi || criteria.desi > maxDesi) return
+    if (c.minOrderAmount !== '' && c.minOrderAmount != null && criteria.amount < c.minOrderAmount) return
+    if (c.maxOrderAmount !== '' && c.maxOrderAmount != null && criteria.amount > c.maxOrderAmount) return
+    const regions = c.coveredRegions ?? []
+    if (regions.length > 0 && !regions.some((r) => r.provinceId === criteria.provinceId)) return
+    const types = c.productTypes ?? []
+    if (types.length > 0 && criteria.productType && !types.includes(criteria.productType)) return
+    ids.add(c.companyId)
   })
   return [...ids]
 }

@@ -1,8 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
-  CARRIER_METRIC_KEYS,
-  CARRIER_METRIC_LABELS,
   INVOICE_STATUS,
   SHIPMENT_STATUS,
   actualDeliveryDate,
@@ -17,6 +15,7 @@ import { copyToClipboard } from '../../lib/clipboard'
 import { fmtDate, fmtDateTimeStr, relativeTimeTr } from '../../lib/format'
 import { toast } from '../../lib/toast'
 import { desiKgFor, packageItemsFor, recipientAddressLine, recipientEmail, recipientPhone } from '../../lib/shipments'
+import { routingSummaryFields, RoutingDecisionSteps } from '../../components/routing/RoutingDecisionSection'
 import {
   CancelShipmentModal,
   EditShipmentModal,
@@ -354,94 +353,8 @@ export function ShipmentDetailPage() {
   )
 
   const routing = shipment.routingDecision
-  const routingFields =
-    !routing
-      ? [{ label: '', value: <span className="text-neutral-400">{t('shipmentDetail.routing_legacy')}</span> }]
-      : routing.mode === 'manual'
-        ? [{ label: t('shipmentDetail.field_routing_mode'), value: <span className="font-semibold">{t('shipmentDetail.routing_mode_manual')}</span> }]
-        : [
-            { label: t('shipmentDetail.field_routing_mode'), value: <span className="font-semibold">{t('shipmentDetail.routing_mode_auto')}</span> },
-            { label: '', value: t('shipmentDetail.routing_default_scoring') },
-          ]
-
-  const routingExpanded =
-    routing && routing.mode === 'auto' ? (
-      <div className="flex flex-col gap-4">
-        <div>
-          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">
-            1. {t('shipmentDetail.routing_step_eligibility')}
-          </p>
-          <p className="text-xs text-neutral-600">
-            {t('shipmentDetail.routing_step_eligibility_desc', { n: routing.contractEligibleCompanyIds.length })}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">
-            2. {t('shipmentDetail.routing_step_rule')}
-          </p>
-          {routing.matchedRuleName ? (
-            <p className="text-xs text-neutral-600">
-              {t('shipmentDetail.routing_step_rule_matched', { name: routing.matchedRuleName, summary: routing.matchedRuleSummary ?? '' })}
-              {routing.ruleNarrowedCompanyIds
-                ? ' ' + t('shipmentDetail.routing_step_rule_narrowed', { n: routing.ruleNarrowedCompanyIds.length })
-                : ''}
-            </p>
-          ) : (
-            <p className="text-xs text-neutral-400">{t('shipmentDetail.routing_step_rule_none')}</p>
-          )}
-        </div>
-
-        <div>
-          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5">
-            3. {t('shipmentDetail.routing_step_scoring')}
-          </p>
-          <div className="bg-white border border-neutral-200 rounded-lg overflow-x-auto">
-            <table className="w-full text-xs" style={{ minWidth: 640 }}>
-              <thead>
-                <tr className="border-b border-neutral-100 text-left">
-                  <th className="px-3 py-2 text-neutral-400 font-semibold uppercase tracking-wider">{t('shipmentDetail.routing_th_carrier')}</th>
-                  {CARRIER_METRIC_KEYS.map((k) => (
-                    <th key={k} className="px-2 py-2 text-neutral-400 font-semibold uppercase tracking-wider text-right whitespace-nowrap">
-                      {CARRIER_METRIC_LABELS[k]}
-                      <span className="block font-normal normal-case text-neutral-300">%{Math.round(routing.weights[k] * 100)}</span>
-                    </th>
-                  ))}
-                  <th className="px-3 py-2 text-neutral-400 font-semibold uppercase tracking-wider text-right">{t('shipmentDetail.routing_th_score')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {routing.scores.map((s) => (
-                  <tr key={s.companyId} className={s.companyId === routing.chosenCompanyId ? 'bg-primary-lighter/30' : ''}>
-                    <td className="px-3 py-2 font-medium text-neutral-700 whitespace-nowrap">
-                      {s.companyName}
-                      {s.companyId === routing.chosenCompanyId ? (
-                        <span className="ml-1.5 text-primary text-[10px] font-semibold">{t('shipmentDetail.routing_chosen')}</span>
-                      ) : null}
-                    </td>
-                    {CARRIER_METRIC_KEYS.map((k) => (
-                      <td key={k} className="px-2 py-2 text-right text-neutral-500">
-                        {(s.metrics[k] * 100).toFixed(0)}
-                      </td>
-                    ))}
-                    <td className="px-3 py-2 text-right font-semibold text-neutral-800">{(s.combined * 100).toFixed(1)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div>
-          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">
-            4. {t('shipmentDetail.routing_step_result')}
-          </p>
-          <p className="text-xs text-neutral-600">
-            {t('shipmentDetail.routing_step_result_desc', { name: getCompany(routing.chosenCompanyId)?.name ?? '' })}
-          </p>
-        </div>
-      </div>
-    ) : null
+  const routingFields = routingSummaryFields(routing, t)
+  const routingExpanded = routing && routing.mode === 'auto' ? <RoutingDecisionSteps routing={routing} t={t} /> : null
 
   const invoice = carrierInvoices.find((inv) => inv.shipmentNo === shipment.shipmentNo) ?? null
   const costDiff = invoice ? invoice.realCost - invoice.expectedCost : 0

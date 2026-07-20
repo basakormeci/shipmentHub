@@ -9,8 +9,8 @@ import {
   type Shipment,
   type ShipmentRoutingDecision,
 } from '../data/catalog'
-import { getEligibleCompanyIds, type ShippingType } from './contracts'
-import { computeNormalizedCarrierScores, matchRoutingRule, ruleConditionsSummary } from './carrierScoring'
+import { getEligibleCompanyIdsForShipment, type ShippingType } from './contracts'
+import { computeCarrierScores, resolveRuleNarrowedPool, ruleConditionsSummary } from './carrierScoring'
 import { desiKgFor, packageItemsFor } from './shipments'
 
 const DEFAULT_WEIGHTS: Record<CarrierMetricKey, number> = {
@@ -42,6 +42,7 @@ export function synthesizeRoutingDecision(params: {
   provinceId: number | null
   desi?: number
   amount?: number
+  productType?: string
   cargoType: RoutingCargoType
   shippingType: ShippingType
   contracts: Contract[]
@@ -54,25 +55,30 @@ export function synthesizeRoutingDecision(params: {
   const desi = params.desi ?? desiKgFor(params.id).desi
   const amount = params.amount ?? syntheticOrderAmount(params.id)
 
-  const eligible = new Set(getEligibleCompanyIds(params.contracts, params.shippingType))
-  if (eligible.size === 0) return null
+  const eligible = new Set(
+    getEligibleCompanyIdsForShipment(params.contracts, params.shippingType, {
+      provinceId: params.provinceId,
+      desi,
+      amount,
+      productType: params.productType,
+    }),
+  )
+  // Never contradict the record's actual carrier — this is reconstructing a plausible
+  // history around a known outcome, not re-deciding it.
+  eligible.add(params.companyId)
 
-  const matchedRule = matchRoutingRule(params.routingRules, desi, params.provinceId, amount, params.cargoType)
-  let narrowed = eligible
-  let ruleNarrowedCompanyIds: number[] | null = null
-  if (matchedRule) {
-    const ruleCompanies = [matchedRule.primaryCompanyId, matchedRule.failoverCompanyId].filter(
-      (cid): cid is number => cid != null && eligible.has(cid),
-    )
-    if (ruleCompanies.length > 0) {
-      narrowed = new Set(ruleCompanies)
-      ruleNarrowedCompanyIds = [...narrowed]
-    }
-  }
-
-  const allScores = computeNormalizedCarrierScores(DEFAULT_WEIGHTS, params.shipments, params.carrierInvoices, params.carrierPricing)
+  const { narrowed, ruleNarrowedCompanyIds, matchedRule, excludedCompanyIds, excludedByRuleNames } = resolveRuleNarrowedPool(
+    params.routingRules,
+    eligible,
+    desi,
+    params.provinceId,
+    amount,
+    params.cargoType,
+    params.productType,
+  )
   narrowed.add(params.companyId)
-  const eligibleScores = allScores.filter((s) => narrowed.has(s.companyId))
+
+  const eligibleScores = computeCarrierScores(DEFAULT_WEIGHTS, params.shipments, params.carrierInvoices, params.carrierPricing, [...narrowed])
   if (eligibleScores.length === 0) return null
 
   const totalWeight = CARRIER_METRIC_KEYS.reduce((sum, k) => sum + (DEFAULT_WEIGHTS[k] ?? 0), 0) || 1
@@ -87,6 +93,8 @@ export function synthesizeRoutingDecision(params: {
     matchedRuleName: matchedRule ? matchedRule.name : null,
     matchedRuleSummary: matchedRule ? ruleConditionsSummary(matchedRule.conditions) : null,
     ruleNarrowedCompanyIds,
+    excludedCompanyIds,
+    excludedByRuleNames,
     weights: normalizedWeights,
     scores: eligibleScores.map((s) => ({ companyId: s.companyId, companyName: s.companyName, metrics: s.metrics, combined: s.combined })),
     chosenCompanyId: params.companyId,

@@ -13,7 +13,7 @@ const KEY_PREFIX = 'shipment-hub:data:'
 // Bumped alongside dataStore.ts's own `persist` `version` option — both must agree so a
 // synthesized envelope returned by getItem below is never mistaken for a stale version
 // and routed through zustand's migrate branch.
-export const CURRENT_DATA_VERSION = 9
+export const CURRENT_DATA_VERSION = 13
 
 export function keyFor(email: string): string {
   return `${KEY_PREFIX}${email.toLowerCase()}`

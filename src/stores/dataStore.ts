@@ -3,6 +3,7 @@ import { generateTrackingNo } from '../lib/shipments'
 import { generateTransferTrackingNo } from '../lib/transfers'
 import { synthesizeShipmentHistory, synthesizeReturnHistory } from '../lib/statusHistory'
 import { synthesizeRoutingDecision, provinceIdForName } from '../lib/routingBackfill'
+import { draftInvoiceFor } from '../lib/finance'
 import { PROVINCES } from '../data/catalog'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { StockNode, UserRole } from '../data/seed'
@@ -19,6 +20,7 @@ import type {
   TransferItem,
   RoutingRule,
   RoutingHistoryItem,
+  ShipmentRoutingDecision,
   CarrierPricingRule,
   CarrierInvoice,
   CarrierQuota,
@@ -122,6 +124,23 @@ interface DataState {
 
 function nextId<T extends { id: number }>(rows: T[]) {
   return Math.max(0, ...rows.map((r) => r.id)) + 1
+}
+
+// Persisted routingDecision snapshots from before the exclude-rule feature existed are
+// missing excludedCompanyIds/excludedByRuleNames/ruleNarrowedCompanyIds entirely (not just
+// empty) — any UI reading them unconditionally (e.g. the Rotalama section) would crash on
+// that stale shape. Runs inside `merge` (every load) rather than a version-gated migration
+// so it self-heals regardless of what version the record was last saved under.
+function normalizeRoutingDecision(rd: ShipmentRoutingDecision): ShipmentRoutingDecision {
+  if (rd.mode !== 'auto') return rd
+  return {
+    ...rd,
+    contractEligibleCompanyIds: rd.contractEligibleCompanyIds ?? [],
+    excludedCompanyIds: rd.excludedCompanyIds ?? [],
+    excludedByRuleNames: rd.excludedByRuleNames ?? [],
+    ruleNarrowedCompanyIds: rd.ruleNarrowedCompanyIds ?? null,
+    scores: rd.scores ?? [],
+  }
 }
 
 export const useDataStore = create<DataState>()(
@@ -315,6 +334,19 @@ export const useDataStore = create<DataState>()(
           statusHistory: [{ status, at: shipTime }],
         }
         set({ shipments: [...get().shipments, shipment] })
+        const originNode = get().nodes.find((n) => n.name === shipment.shipFrom)
+        const invoice: CarrierInvoice = {
+          id: nextId(get().carrierInvoices),
+          ...draftInvoiceFor({
+            companyId: shipment.companyId,
+            desi: shipment.desi,
+            originNodeId: originNode?.id ?? null,
+            rules: get().carrierPricing,
+            existingInvoices: get().carrierInvoices,
+            ref: { shipmentNo: shipment.shipmentNo },
+          }),
+        }
+        set({ carrierInvoices: [...get().carrierInvoices, invoice] })
         return shipment
       },
 
@@ -349,6 +381,18 @@ export const useDataStore = create<DataState>()(
           statusHistory: [{ status, at: requestDate }],
         }
         set({ returns: [item, ...get().returns] })
+        const invoice: CarrierInvoice = {
+          id: nextId(get().carrierInvoices),
+          ...draftInvoiceFor({
+            companyId: item.companyId,
+            desi: item.desi,
+            originNodeId: null,
+            rules: get().carrierPricing,
+            existingInvoices: get().carrierInvoices,
+            ref: { returnNo: item.returnNo },
+          }),
+        }
+        set({ carrierInvoices: [...get().carrierInvoices, invoice] })
         return item
       },
 
@@ -387,6 +431,18 @@ export const useDataStore = create<DataState>()(
           statusHistory: [{ status, at: createdAt }],
         }
         set({ transfers: [item, ...get().transfers] })
+        const invoice: CarrierInvoice = {
+          id: nextId(get().carrierInvoices),
+          ...draftInvoiceFor({
+            companyId: item.companyId,
+            desi: item.desi,
+            originNodeId: item.fromNodeId,
+            rules: get().carrierPricing,
+            existingInvoices: get().carrierInvoices,
+            ref: { transferNo: item.transferNo },
+          }),
+        }
+        set({ carrierInvoices: [...get().carrierInvoices, invoice] })
         return item
       },
 
@@ -450,13 +506,14 @@ export const useDataStore = create<DataState>()(
             ...s,
             statusHistory: s.statusHistory?.length ? s.statusHistory : synthesizeShipmentHistory(s.status, s.shipTime, s.id),
             routingDecision:
-              s.routingDecision ??
+              (s.routingDecision && normalizeRoutingDecision(s.routingDecision)) ??
               synthesizeRoutingDecision({
                 id: s.id,
                 companyId: s.companyId,
                 provinceId: provinceIdForName(s.shipTo.province),
                 desi: s.desi,
                 amount: s.orderAmount,
+                productType: s.productType,
                 cargoType: 'shipment',
                 shippingType: 'orderShipping',
                 ...scoringArgs,
@@ -467,13 +524,14 @@ export const useDataStore = create<DataState>()(
             ...r,
             statusHistory: r.statusHistory?.length ? r.statusHistory : synthesizeReturnHistory(r.status, r.requestDate, r.id),
             routingDecision:
-              r.routingDecision ??
+              (r.routingDecision && normalizeRoutingDecision(r.routingDecision)) ??
               synthesizeRoutingDecision({
                 id: r.id,
                 companyId: r.companyId,
                 provinceId: provinceIdForName(r.shipTo.province),
                 desi: r.desi,
                 amount: r.orderAmount,
+                productType: r.productType,
                 cargoType: 'return',
                 shippingType: 'returnShipping',
                 ...scoringArgs,
@@ -484,12 +542,13 @@ export const useDataStore = create<DataState>()(
             ...tr,
             statusHistory: tr.statusHistory?.length ? tr.statusHistory : synthesizeShipmentHistory(tr.status, tr.createdAt, tr.id),
             routingDecision:
-              tr.routingDecision ??
+              (tr.routingDecision && normalizeRoutingDecision(tr.routingDecision)) ??
               synthesizeRoutingDecision({
                 id: tr.id,
                 companyId: tr.companyId,
                 provinceId: PROVINCES[tr.id % PROVINCES.length]?.id ?? null,
                 desi: tr.desi,
+                productType: tr.productType,
                 cargoType: 'transfer',
                 shippingType: 'transferShipping',
                 ...scoringArgs,
