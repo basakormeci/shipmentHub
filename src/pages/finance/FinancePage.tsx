@@ -189,9 +189,11 @@ function PricingQuotaWizardPanel() {
 
   const [view, setView] = useState<'list' | 'wizard'>('list')
   const [step, setStep] = useState<1 | 2 | 3>(1)
+  // companyId 0 means "not selected yet" (only reachable via openCreateNew) — no real company uses id 0.
   const [companyId, setCompanyId] = useState<number>(COMPANIES[0].id)
   const [monthlyLimit, setMonthlyLimit] = useState(() => quotaForCompany(COMPANIES[0].id))
   const [quotaError, setQuotaError] = useState('')
+  const [companyError, setCompanyError] = useState('')
 
   const [editingRuleId, setEditingRuleId] = useState<number | 'new' | null>(null)
   const [formOriginNodeId, setFormOriginNodeId] = useState<number | null>(null)
@@ -209,6 +211,7 @@ function PricingQuotaWizardPanel() {
     setCompanyId(id)
     setMonthlyLimit(quotaForCompany(id))
     setQuotaError('')
+    setCompanyError('')
     setEditingRuleId(null)
     setTestRuleId(null)
     setSampleDesi('')
@@ -286,6 +289,10 @@ function PricingQuotaWizardPanel() {
   }
 
   function goStep1to2() {
+    if (companyId === 0) {
+      setCompanyError('Lütfen bir kargo firması seçin.')
+      return
+    }
     if (monthlyLimit.trim() !== '') {
       if (+monthlyLimit <= 0) {
         setQuotaError('Geçerli bir aylık gönderi limiti girin.')
@@ -319,14 +326,20 @@ function PricingQuotaWizardPanel() {
   }
 
   function openCreateNew() {
-    selectCompany(COMPANIES[0].id)
+    setCompanyId(0)
+    setMonthlyLimit('')
+    setQuotaError('')
+    setCompanyError('')
+    setEditingRuleId(null)
+    setTestRuleId(null)
+    setSampleDesi('')
     setStep(1)
     setView('wizard')
   }
 
   function openEditCompany(id: number) {
     selectCompany(id)
-    setStep(2)
+    setStep(1)
     setView('wizard')
   }
 
@@ -464,10 +477,13 @@ function PricingQuotaWizardPanel() {
               <div className="mb-5">
                 <label className="form-label">Kargo Firması</label>
                 <Dropdown
-                  value={String(companyId)}
+                  value={companyId === 0 ? '' : String(companyId)}
                   onChange={(v) => selectCompany(+v)}
+                  placeholder="Kargo firması seçin"
+                  error={!!companyError}
                   options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
                 />
+                {companyError ? <p className="form-error">{companyError}</p> : null}
               </div>
               <div>
                 <label className="form-label">

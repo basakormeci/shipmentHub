@@ -99,7 +99,19 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         to: '/reports',
         labelKey: 'sidebar.nav_reports',
+        end: true,
         icon: icon(<path strokeLinecap="round" strokeLinejoin="round" d="M3 3v18h18M8 17V10m5 7V6m5 11v-4" />),
+      },
+      {
+        to: '/reports/all-shipments',
+        labelKey: 'sidebar.nav_all_shipments_report',
+        icon: icon(
+          <>
+            <rect x="3" y="4" width="18" height="4" rx="1" />
+            <rect x="3" y="10" width="18" height="4" rx="1" />
+            <rect x="3" y="16" width="18" height="4" rx="1" />
+          </>
+        ),
       },
     ],
   },
@@ -300,6 +312,17 @@ export const PAGE_META: Record<string, { titleKey: string; descKey?: string; ico
     titleKey: 'page.reports',
     descKey: 'page.reports_desc',
     icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v18h18M8 17V10m5 7V6m5 11v-4" />,
+  },
+  'reports/all-shipments': {
+    titleKey: 'page.all_shipments_report',
+    descKey: 'page.all_shipments_report_desc',
+    icon: (
+      <>
+        <rect x="3" y="4" width="18" height="4" rx="1" />
+        <rect x="3" y="10" width="18" height="4" rx="1" />
+        <rect x="3" y="16" width="18" height="4" rx="1" />
+      </>
+    ),
   },
   users: {
     titleKey: 'sidebar.nav_users_permissions',

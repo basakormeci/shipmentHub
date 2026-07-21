@@ -25,6 +25,7 @@ function resolveMetaKey(pathname: string): string {
   if (pathname.startsWith('/monitoring')) return 'monitoring'
   if (pathname.startsWith('/finance')) return 'finance'
   if (pathname.startsWith('/performance')) return 'performance'
+  if (pathname.startsWith('/reports/all-shipments')) return 'reports/all-shipments'
   if (pathname.startsWith('/reports')) return 'reports'
   if (pathname.startsWith('/users')) return 'users'
   if (pathname.startsWith('/permissions')) return 'permissions'

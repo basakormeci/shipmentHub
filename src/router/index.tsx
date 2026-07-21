@@ -13,6 +13,7 @@ import { PerformancePage } from '../pages/PerformancePage'
 import { TemplatesPage } from '../pages/templates/TemplatesPage'
 import { BarcodeTemplatesPage } from '../pages/templates/BarcodeTemplatesPage'
 import { ReportsPage } from '../pages/ReportsPage'
+import { AllShipmentsReportPage } from '../pages/AllShipmentsReportPage'
 import { MonitoringPage } from '../pages/monitoring/MonitoringPage'
 import { FinancePage } from '../pages/finance/FinancePage'
 import { RoutingPage } from '../pages/routing/RoutingPage'
@@ -95,6 +96,7 @@ export const router = createBrowserRouter([
       },
       { path: 'performance', element: <PerformancePage /> },
       { path: 'reports', element: <ReportsPage /> },
+      { path: 'reports/all-shipments', element: <AllShipmentsReportPage /> },
       { path: 'users', element: <UsersPage /> },
       { path: 'permissions', element: <PermissionsPage /> },
       { path: 'templates', element: <TemplatesPage /> },

@@ -7,6 +7,8 @@ import { emptyContractForm, type ContractFilterStatus } from '../lib/contracts'
 import { emptyNodeForm, type NodeForm } from '../lib/nodes'
 import type { ReturnColumnKey, ReturnSearchField } from '../lib/returns'
 import type { TransferColumnKey, TransferSearchField } from '../lib/transfers'
+import type { ReportColumnKey } from '../lib/reports'
+import type { UnifiedColumnKey } from '../lib/allShipmentsReport'
 
 interface UiState {
   lang: Lang
@@ -17,8 +19,18 @@ interface UiState {
   dashboardDateTo: string
   reportsDateFrom: string
   reportsDateTo: string
-  reportsCompanyId: string
-  reportsProvinceId: string
+  reportsCompanySelection: Partial<Record<string, boolean>>
+  reportsProvinceSelection: Partial<Record<string, boolean>>
+  reportsKindSelection: Partial<Record<string, boolean>>
+  reportsChannelSelection: Partial<Record<string, boolean>>
+  reportsVisibleColumns: Partial<Record<ReportColumnKey, boolean>>
+  allShipmentsReportDateFrom: string
+  allShipmentsReportDateTo: string
+  allShipmentsReportCompanySelection: Partial<Record<string, boolean>>
+  allShipmentsReportKindSelection: Partial<Record<string, boolean>>
+  allShipmentsReportProvinceSelection: Partial<Record<string, boolean>>
+  allShipmentsReportVisibleColumns: Partial<Record<UnifiedColumnKey, boolean>>
+  allShipmentsReportPage: number
   routingSimulator: {
     desi: string
     provinceId: string
@@ -68,7 +80,18 @@ interface UiState {
   toggleNodeExpanded: (id: number) => void
   setDashboardDateFrom: (v: string) => void
   setDashboardDateTo: (v: string) => void
-  setReportsFilter: (key: 'reportsDateFrom' | 'reportsDateTo' | 'reportsCompanyId' | 'reportsProvinceId', v: string) => void
+  setReportsFilter: (key: 'reportsDateFrom' | 'reportsDateTo', v: string) => void
+  setReportsCompanySelection: (sel: Partial<Record<string, boolean>>) => void
+  setReportsProvinceSelection: (sel: Partial<Record<string, boolean>>) => void
+  setReportsKindSelection: (sel: Partial<Record<string, boolean>>) => void
+  setReportsChannelSelection: (sel: Partial<Record<string, boolean>>) => void
+  setReportsVisibleColumns: (cols: Partial<Record<ReportColumnKey, boolean>>) => void
+  setAllShipmentsReportFilter: (key: 'allShipmentsReportDateFrom' | 'allShipmentsReportDateTo', v: string) => void
+  setAllShipmentsReportCompanySelection: (sel: Partial<Record<string, boolean>>) => void
+  setAllShipmentsReportKindSelection: (sel: Partial<Record<string, boolean>>) => void
+  setAllShipmentsReportProvinceSelection: (sel: Partial<Record<string, boolean>>) => void
+  setAllShipmentsReportVisibleColumns: (cols: Partial<Record<UnifiedColumnKey, boolean>>) => void
+  setAllShipmentsReportPage: (page: number) => void
   setRoutingSimulator: (patch: Partial<UiState['routingSimulator']>) => void
   setRoutingWeights: (patch: Partial<UiState['routingWeights']>) => void
   setShipmentsFilter: (
@@ -138,8 +161,18 @@ export const useUiStore = create<UiState>()(
       dashboardDateTo: '',
       reportsDateFrom: '2026-04-10',
       reportsDateTo: '2026-07-08',
-      reportsCompanyId: '',
-      reportsProvinceId: '',
+      reportsCompanySelection: {},
+      reportsProvinceSelection: {},
+      reportsKindSelection: {},
+      reportsChannelSelection: {},
+      reportsVisibleColumns: {},
+      allShipmentsReportDateFrom: '',
+      allShipmentsReportDateTo: '',
+      allShipmentsReportCompanySelection: {},
+      allShipmentsReportKindSelection: {},
+      allShipmentsReportProvinceSelection: {},
+      allShipmentsReportVisibleColumns: {},
+      allShipmentsReportPage: 1,
       routingSimulator: { desi: '', provinceId: '', amount: '', cargoType: '', resultId: null },
       routingWeights: { deliveryTime: 3, successRate: 4, damagedRate: 2, avgPickupHours: 2, costDiffPct: 2 },
       shipmentsSearch: '',
@@ -181,6 +214,17 @@ export const useUiStore = create<UiState>()(
       setDashboardDateFrom: (v) => set({ dashboardDateFrom: v }),
       setDashboardDateTo: (v) => set({ dashboardDateTo: v }),
       setReportsFilter: (key, v) => set({ [key]: v } as Partial<UiState>),
+      setReportsCompanySelection: (sel) => set({ reportsCompanySelection: sel }),
+      setReportsProvinceSelection: (sel) => set({ reportsProvinceSelection: sel }),
+      setReportsKindSelection: (sel) => set({ reportsKindSelection: sel }),
+      setReportsChannelSelection: (sel) => set({ reportsChannelSelection: sel }),
+      setReportsVisibleColumns: (cols) => set({ reportsVisibleColumns: cols }),
+      setAllShipmentsReportFilter: (key, v) => set({ [key]: v, allShipmentsReportPage: 1 } as Partial<UiState>),
+      setAllShipmentsReportCompanySelection: (sel) => set({ allShipmentsReportCompanySelection: sel, allShipmentsReportPage: 1 }),
+      setAllShipmentsReportKindSelection: (sel) => set({ allShipmentsReportKindSelection: sel, allShipmentsReportPage: 1 }),
+      setAllShipmentsReportProvinceSelection: (sel) => set({ allShipmentsReportProvinceSelection: sel, allShipmentsReportPage: 1 }),
+      setAllShipmentsReportVisibleColumns: (cols) => set({ allShipmentsReportVisibleColumns: cols }),
+      setAllShipmentsReportPage: (page) => set({ allShipmentsReportPage: page }),
       setRoutingSimulator: (patch) => set({ routingSimulator: { ...get().routingSimulator, ...patch } }),
       setRoutingWeights: (patch) => set({ routingWeights: { ...get().routingWeights, ...patch } }),
       setShipmentsFilter: (patch) => set(patch),
@@ -233,8 +277,18 @@ export const useUiStore = create<UiState>()(
         dashboardDateTo: s.dashboardDateTo,
         reportsDateFrom: s.reportsDateFrom,
         reportsDateTo: s.reportsDateTo,
-        reportsCompanyId: s.reportsCompanyId,
-        reportsProvinceId: s.reportsProvinceId,
+        reportsCompanySelection: s.reportsCompanySelection,
+        reportsProvinceSelection: s.reportsProvinceSelection,
+        reportsKindSelection: s.reportsKindSelection,
+        reportsChannelSelection: s.reportsChannelSelection,
+        reportsVisibleColumns: s.reportsVisibleColumns,
+        allShipmentsReportDateFrom: s.allShipmentsReportDateFrom,
+        allShipmentsReportDateTo: s.allShipmentsReportDateTo,
+        allShipmentsReportCompanySelection: s.allShipmentsReportCompanySelection,
+        allShipmentsReportKindSelection: s.allShipmentsReportKindSelection,
+        allShipmentsReportProvinceSelection: s.allShipmentsReportProvinceSelection,
+        allShipmentsReportVisibleColumns: s.allShipmentsReportVisibleColumns,
+        allShipmentsReportPage: s.allShipmentsReportPage,
         routingWeights: s.routingWeights,
         shipmentsSearch: s.shipmentsSearch,
         shipmentsSearchField: s.shipmentsSearchField,
