@@ -21,196 +21,80 @@ const TABS = [
   { key: 'quotas', label: 'Kota Kullanımları', to: '/finance/quotas' },
 ] as const
 
-function InvoiceModal({
-  open,
-  editId,
-  onClose,
-}: {
-  open: boolean
-  editId: number | null
-  onClose: () => void
-}) {
-  const carrierInvoices = useDataStore((s) => s.carrierInvoices)
-  const upsertInvoice = useDataStore((s) => s.upsertInvoice)
-  const existing = editId != null ? carrierInvoices.find((i) => i.id === editId) : null
-
-  const [companyId, setCompanyId] = useState(existing?.companyId ?? COMPANIES[0].id)
-  const [shipmentNo, setShipmentNo] = useState(existing ? String(existing.shipmentNo) : '')
-  const [invoiceNo, setInvoiceNo] = useState(existing?.invoiceNo ?? '')
-  const [expectedCost, setExpectedCost] = useState(existing ? String(existing.expectedCost) : '')
-  const [realCost, setRealCost] = useState(existing ? String(existing.realCost) : '')
-  const [status, setStatus] = useState<CarrierInvoice['status']>(existing?.status ?? 'pending')
-
-  if (!open) return null
-
-  const canSave = companyId && shipmentNo && invoiceNo && expectedCost !== '' && realCost !== ''
-
-  function save() {
-    if (!canSave) return
-    upsertInvoice({
-      id: editId,
-      companyId,
-      shipmentNo: +shipmentNo,
-      invoiceNo,
-      expectedCost: +expectedCost,
-      realCost: +realCost,
-      invoiceDate: existing?.invoiceDate ?? new Date().toISOString(),
-      status,
-    })
-    toast(editId ? 'Fatura kaydı güncellendi.' : 'Yeni fatura kaydı oluşturuldu.', 'success')
-    onClose()
-  }
-
-  return (
-    <div
-      className="overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div className="modal-box w-full max-w-md p-6">
-        <h3 className="font-semibold text-neutral-950 mb-4">{editId ? 'Fatura Kaydını Düzenle' : 'Yeni Fatura Kaydı'}</h3>
-        <div className="flex flex-col gap-4">
-          <div>
-            <label className="form-label">Kargo Firması</label>
-            <Dropdown
-              value={String(companyId)}
-              onChange={(v) => setCompanyId(+v)}
-              options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="form-label">Gönderi No</label>
-              <input type="text" className="form-input" value={shipmentNo} onChange={(e) => setShipmentNo(e.target.value)} />
-            </div>
-            <div>
-              <label className="form-label">Fatura No</label>
-              <input type="text" className="form-input" value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="form-label">Beklenen Ücret (₺)</label>
-              <input type="text" inputMode="numeric" className="form-input" value={expectedCost} onChange={(e) => setExpectedCost(e.target.value)} />
-            </div>
-            <div>
-              <label className="form-label">Gerçek Ücret (₺)</label>
-              <input type="text" inputMode="numeric" className="form-input" value={realCost} onChange={(e) => setRealCost(e.target.value)} />
-            </div>
-          </div>
-          <div>
-            <label className="form-label">Durum</label>
-            <Dropdown
-              value={status}
-              onChange={(v) => setStatus(v as CarrierInvoice['status'])}
-              options={(Object.keys(INVOICE_STATUS) as CarrierInvoice['status'][]).map((k) => ({
-                value: k,
-                label: INVOICE_STATUS[k].label,
-              }))}
-            />
-          </div>
-        </div>
-        <div className="flex justify-end gap-3 mt-6">
-          <button className="secondary-btn" type="button" onClick={onClose}>
-            Vazgeç
-          </button>
-          <button className="primary-btn" type="button" onClick={save} disabled={!canSave}>
-            Kaydet
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+const INVOICE_STATUS_FILTERS: { value: 'all' | CarrierInvoice['status']; label: string }[] = [
+  { value: 'all', label: 'Tümü' },
+  { value: 'pending', label: INVOICE_STATUS.pending.label },
+  { value: 'matched', label: INVOICE_STATUS.matched.label },
+  { value: 'disputed', label: INVOICE_STATUS.disputed.label },
+]
 
 function InvoicePanel() {
   const carrierInvoices = useDataStore((s) => s.carrierInvoices)
-  const removeInvoice = useDataStore((s) => s.removeInvoice)
-  const [modalId, setModalId] = useState<number | null>(null)
+  const [statusFilter, setStatusFilter] = useState<'all' | CarrierInvoice['status']>('all')
 
   if (carrierInvoices.length === 0) {
     return <div className="py-16 text-center text-neutral-400 text-sm">Fatura kaydı bulunmuyor.</div>
   }
 
+  const filtered = statusFilter === 'all' ? carrierInvoices : carrierInvoices.filter((inv) => inv.status === statusFilter)
+
   return (
-    <>
-      <div className="border border-neutral-200 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left border-b border-neutral-100 bg-neutral-50">
-              <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Fatura No</th>
-              <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kargo Firması</th>
-              <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Gönderi</th>
-              <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Beklenen / Gerçek</th>
-              <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Tarih</th>
-              <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Durum</th>
-              <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider text-right">İşlem</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-neutral-100">
-            {carrierInvoices.map((inv) => {
-              const co = getCompany(inv.companyId)
-              const meta = INVOICE_STATUS[inv.status]
-              const diff = inv.realCost - inv.expectedCost
-              return (
-                <tr key={inv.id} className="hover:bg-neutral-50/80">
-                  <td className="px-4 py-3 font-mono text-xs text-neutral-700">{inv.invoiceNo}</td>
-                  <td className="px-4 py-3 text-neutral-600">{co ? co.name : 'Bilinmiyor'}</td>
-                  <td className="px-4 py-3 text-neutral-500">
-                    {inv.shipmentNo != null
-                      ? `#${inv.shipmentNo}`
-                      : inv.returnNo != null
-                        ? `İade #${inv.returnNo}`
-                        : inv.transferNo != null
-                          ? `Transfer #${inv.transferNo}`
-                          : '-'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-neutral-500">₺{inv.expectedCost}</span> /{' '}
-                    <span className={`font-semibold ${diff > 0 ? 'text-[#ad1f2b]' : diff < 0 ? 'text-[#1a8245]' : 'text-neutral-700'}`}>
-                      ₺{inv.realCost}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-neutral-400 text-xs">{fmtDateTimeStr(inv.invoiceDate)}</td>
-                  <td className="px-4 py-3">
-                    <span className={`badge ${meta.badge}`}>{meta.label}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1 justify-end">
-                      <button
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-primary hover:bg-neutral-100 transition-colors flex-shrink-0"
-                        type="button"
-                        title="Düzenle"
-                        onClick={() => setModalId(inv.id)}
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[#ad1f2b] hover:bg-[#ffebec] transition-colors flex-shrink-0"
-                        type="button"
-                        title="Sil"
-                        onClick={() => {
-                          removeInvoice(inv.id)
-                          toast('Fatura kaydı silindi.', 'info')
-                        }}
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+    <div>
+      <div className="flex items-center gap-3 mb-4">
+        <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Durum</span>
+        <SegmentedToggle value={statusFilter} onChange={setStatusFilter} options={INVOICE_STATUS_FILTERS} />
       </div>
-      {modalId != null ? <InvoiceModal open editId={modalId} onClose={() => setModalId(null)} /> : null}
-    </>
+      {filtered.length === 0 ? (
+        <div className="py-16 text-center text-neutral-400 text-sm">Bu durumda fatura kaydı bulunmuyor.</div>
+      ) : (
+        <div className="border border-neutral-200 rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left border-b border-neutral-100 bg-neutral-50">
+                <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Fatura No</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Kargo Firması</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Gönderi</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Beklenen / Gerçek</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Tarih</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Durum</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-100">
+              {filtered.map((inv) => {
+                const co = getCompany(inv.companyId)
+                const meta = INVOICE_STATUS[inv.status]
+                const diff = inv.realCost - inv.expectedCost
+                return (
+                  <tr key={inv.id} className="hover:bg-neutral-50/80">
+                    <td className="px-4 py-3 font-mono text-xs text-neutral-700">{inv.invoiceNo}</td>
+                    <td className="px-4 py-3 text-neutral-600">{co ? co.name : 'Bilinmiyor'}</td>
+                    <td className="px-4 py-3 text-neutral-500">
+                      {inv.shipmentNo != null
+                        ? `#${inv.shipmentNo}`
+                        : inv.returnNo != null
+                          ? `İade #${inv.returnNo}`
+                          : inv.transferNo != null
+                            ? `Transfer #${inv.transferNo}`
+                            : '-'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-neutral-500">₺{inv.expectedCost}</span> /{' '}
+                      <span className={`font-semibold ${diff > 0 ? 'text-[#ad1f2b]' : diff < 0 ? 'text-[#1a8245]' : 'text-neutral-700'}`}>
+                        ₺{inv.realCost}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-neutral-400 text-xs">{fmtDateTimeStr(inv.invoiceDate)}</td>
+                    <td className="px-4 py-3">
+                      <span className={`badge ${meta.badge}`}>{meta.label}</span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   )
 }
 
