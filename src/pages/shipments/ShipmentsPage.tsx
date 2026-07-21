@@ -24,37 +24,14 @@ import { SearchInput } from '../../components/ui/SearchInput'
 import { useHeaderSlotStore } from '../../stores/headerSlotStore'
 import { Dropdown } from '../../components/ui/Dropdown'
 
-function CargoTypeChip({ type, label }: { type: 'order' | 'return'; label: string }) {
-  if (type === 'order') {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary whitespace-nowrap">
-        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-        </svg>
-        {label}
-      </span>
-    )
-  }
-  return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-medium whitespace-nowrap" style={{ color: '#7d52f4' }}>
-      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-      </svg>
-      {label}
-    </span>
-  )
-}
-
 function ShipmentCell({
   colKey,
   shipment,
   statusLabel,
-  cargoTypeLabel,
 }: {
   colKey: ShipmentColumnKey
   shipment: Shipment
   statusLabel: (s: ShipmentStatus) => string
-  cargoTypeLabel: (t: 'order' | 'return') => string
 }) {
   const t = useT()
   const co = getCompany(shipment.companyId)
@@ -95,8 +72,6 @@ function ShipmentCell({
       )
     case 'status':
       return <span className={`badge ${st.badge}`}>{statusLabel(shipment.status)}</span>
-    case 'cargoType':
-      return <CargoTypeChip type={shipment.cargoType} label={cargoTypeLabel(shipment.cargoType)} />
     case 'referenceId':
       return <span className="text-neutral-500 text-xs font-mono">{shipment.referenceId}</span>
     case 'packageNo':
@@ -133,7 +108,6 @@ export function ShipmentsPage() {
   const searchField = useUiStore((s) => s.shipmentsSearchField)
   const filterStatus = useUiStore((s) => s.shipmentsFilterStatus)
   const filterSupplierId = useUiStore((s) => s.shipmentsFilterSupplierId)
-  const filterCargoType = useUiStore((s) => s.shipmentsFilterCargoType)
   const dateFrom = useUiStore((s) => s.shipmentsDateFrom)
   const dateTo = useUiStore((s) => s.shipmentsDateTo)
   const page = useUiStore((s) => s.shipmentsPage)
@@ -148,7 +122,6 @@ export function ShipmentsPage() {
   const [barcodeShipments, setBarcodeShipments] = useState<Shipment[]>([])
 
   const statusLabel = (key: ShipmentStatus) => t(`status.${key}`)
-  const cargoTypeLabel = (type: 'order' | 'return') => t(`cargoType.${type}`)
   const columnLabel = (key: ShipmentColumnKey) => t(`column.${key}`)
 
   const filters = useMemo(
@@ -157,13 +130,12 @@ export function ShipmentsPage() {
       searchField,
       filterStatus,
       filterSupplierId,
-      filterCargoType,
       dateFrom,
       dateTo,
       page,
       visibleColumns,
     }),
-    [search, searchField, filterStatus, filterSupplierId, filterCargoType, dateFrom, dateTo, page, visibleColumns],
+    [search, searchField, filterStatus, filterSupplierId, dateFrom, dateTo, page, visibleColumns],
   )
 
   const list = useMemo(() => filterShipments(shipments, filters), [shipments, filters])
@@ -172,7 +144,7 @@ export function ShipmentsPage() {
   const pageStart = (safePage - 1) * SHIPMENT_PAGE_SIZE
   const pageList = list.slice(pageStart, pageStart + SHIPMENT_PAGE_SIZE)
   const activeCols = SHIPMENT_COLUMNS.filter((c) => visibleColumns[c.key] !== false)
-  const extraFiltersActive = !!(filterSupplierId || filterCargoType || dateFrom || dateTo)
+  const extraFiltersActive = !!(filterSupplierId || dateFrom || dateTo)
   const allVisibleSelected = pageList.length > 0 && pageList.every((s) => selectedIds.includes(s.id))
   const cancelTarget = cancelId != null ? shipments.find((s) => s.id === cancelId) ?? null : null
 
@@ -198,7 +170,7 @@ export function ShipmentsPage() {
       toast(t('toast.csv_none'), 'info')
       return
     }
-    exportShipmentsCsv(list, statusLabel, cargoTypeLabel, columnLabel, lang)
+    exportShipmentsCsv(list, statusLabel, columnLabel, lang)
     toast(t('toast.csv_done', { n: list.length }), 'success')
   }
 
@@ -295,7 +267,7 @@ export function ShipmentsPage() {
         </div>
 
         {showFilters ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-5 py-4 border-b border-neutral-100 bg-neutral-50/50">
             <div>
               <label className="form-label">{t('shipments.supplier')}</label>
               <Dropdown
@@ -303,23 +275,6 @@ export function ShipmentsPage() {
                 onChange={(v) => setShipmentsFilter({ shipmentsFilterSupplierId: v, shipmentsPage: 1 })}
                 placeholder={t('common.all')}
                 options={[{ value: '', label: t('common.all') }, ...COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))]}
-              />
-            </div>
-            <div>
-              <label className="form-label">{t('shipments.cargo_type')}</label>
-              <Dropdown
-                value={filterCargoType}
-                onChange={(v) =>
-                  setShipmentsFilter({
-                    shipmentsFilterCargoType: v as '' | 'order' | 'return',
-                    shipmentsPage: 1,
-                  })
-                }
-                options={[
-                  { value: '', label: t('common.all') },
-                  { value: 'order', label: cargoTypeLabel('order') },
-                  { value: 'return', label: cargoTypeLabel('return') },
-                ]}
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -390,7 +345,7 @@ export function ShipmentsPage() {
                         </td>
                         {activeCols.map((c) => (
                           <td key={c.key} className="px-4 py-3 whitespace-nowrap">
-                            <ShipmentCell colKey={c.key} shipment={s} statusLabel={statusLabel} cargoTypeLabel={cargoTypeLabel} />
+                            <ShipmentCell colKey={c.key} shipment={s} statusLabel={statusLabel} />
                           </td>
                         ))}
                         <td

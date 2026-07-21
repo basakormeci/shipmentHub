@@ -26,7 +26,6 @@ export type ShipmentColumnKey =
   | 'shipTo'
   | 'shipTime'
   | 'status'
-  | 'cargoType'
   | 'referenceId'
   | 'packageNo'
   | 'customerName'
@@ -45,7 +44,6 @@ export const SHIPMENT_COLUMNS: { key: ShipmentColumnKey }[] = [
   { key: 'shipTo' },
   { key: 'shipTime' },
   { key: 'status' },
-  { key: 'cargoType' },
   { key: 'referenceId' },
   { key: 'packageNo' },
   { key: 'customerName' },
@@ -63,7 +61,6 @@ export type ShipmentListFilters = {
   searchField: ShipmentSearchField
   filterStatus: ShipmentStatus | 'all'
   filterSupplierId: string
-  filterCargoType: '' | 'order' | 'return'
   dateFrom: string
   dateTo: string
   page: number
@@ -148,9 +145,11 @@ export function generateTrackingNo(companyId: number) {
 export function filterShipments(shipments: Shipment[], filters: ShipmentListFilters) {
   const q = filters.search.trim().toLowerCase()
   return shipments.filter((s) => {
+    // Sipariş Gönderileri is order shipments only — pre-dedicated-returns-module legacy
+    // records tagged cargoType 'return' belong to İade Gönderileri now, never here.
+    if (s.cargoType !== 'order') return false
     if (filters.filterStatus !== 'all' && s.status !== filters.filterStatus) return false
     if (filters.filterSupplierId && s.companyId !== +filters.filterSupplierId) return false
-    if (filters.filterCargoType && s.cargoType !== filters.filterCargoType) return false
     if (filters.dateFrom && s.shipTime.slice(0, 10) < filters.dateFrom) return false
     if (filters.dateTo && s.shipTime.slice(0, 10) > filters.dateTo) return false
     if (q && !String(s[filters.searchField] ?? '').toLowerCase().includes(q)) return false
@@ -187,7 +186,6 @@ export function csvEscape(val: unknown) {
 export function exportShipmentsCsv(
   list: Shipment[],
   statusLabel: (key: ShipmentStatus) => string,
-  cargoTypeLabel: (type: 'order' | 'return') => string,
   columnLabel: (key: ShipmentColumnKey) => string,
   lang: 'tr' | 'en',
 ) {
@@ -201,7 +199,6 @@ export function exportShipmentsCsv(
     `${s.shipTo.district} / ${s.shipTo.province}`,
     s.shipTime,
     statusLabel(s.status),
-    cargoTypeLabel(s.cargoType),
     s.referenceId,
     s.packageNo,
     s.customerName,

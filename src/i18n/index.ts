@@ -204,6 +204,7 @@ const tr: Dict = {
   'shipmentDetail.cancel_shipment': 'İptal Et',
   'shipmentDetail.recall_shipment': 'Geri Çağır',
   'shipmentDetail.edit_shipment': 'Düzenle',
+  'shipmentDetail.update_carrier': 'Kargo Firması Güncelle',
   'shipmentDetail.other_actions': 'Diğer İşlemler',
   'shipmentDetail.section_order': 'Sipariş',
   'shipmentDetail.section_detail': 'Gönderi Detay',
@@ -349,6 +350,7 @@ const tr: Dict = {
   'toast.shipment_cancelled': 'Gönderi #{no} iptal edildi.',
   'toast.shipment_recalled': 'Gönderi #{no} geri çağrıldı.',
   'toast.shipment_updated': 'Gönderi #{no} güncellendi.',
+  'toast.shipment_carrier_updated': 'Gönderi #{no} kargo firması "{carrier}" olarak güncellendi.',
   'toast.csv_none': 'Dışa aktarılacak gönderi bulunamadı.',
   'toast.csv_done': '{n} gönderi CSV olarak indirildi.',
   'toast.contract_activated': '"{name}" aktif edildi.',
@@ -644,6 +646,11 @@ const tr: Dict = {
   'returnCarrierModal.desc_before': 'İade #',
   'returnCarrierModal.desc_after': ' için yeni kurye firmasını seçin.',
   'returnCarrierModal.update_btn': 'Güncelle',
+
+  'shipmentCarrierModal.title': 'Kargo Firması Güncelle',
+  'shipmentCarrierModal.desc_before': 'Gönderi #',
+  'shipmentCarrierModal.desc_after': ' için yeni kargo firmasını seçin.',
+  'shipmentCarrierModal.update_btn': 'Güncelle',
 
   'returnAddressModal.title': 'Adres Güncelle',
   'returnAddressModal.desc_before': 'İade #',
@@ -969,6 +976,7 @@ const en: Dict = {
   'shipmentDetail.cancel_shipment': 'Cancel',
   'shipmentDetail.recall_shipment': 'Recall',
   'shipmentDetail.edit_shipment': 'Edit',
+  'shipmentDetail.update_carrier': 'Update carrier',
   'shipmentDetail.other_actions': 'More actions',
   'shipmentDetail.section_order': 'Order',
   'shipmentDetail.section_detail': 'Shipment detail',
@@ -1114,6 +1122,7 @@ const en: Dict = {
   'toast.shipment_cancelled': 'Shipment #{no} cancelled.',
   'toast.shipment_recalled': 'Shipment #{no} recalled.',
   'toast.shipment_updated': 'Shipment #{no} updated.',
+  'toast.shipment_carrier_updated': 'Shipment #{no} carrier updated to "{carrier}".',
   'toast.csv_none': 'No shipments to export.',
   'toast.csv_done': '{n} shipments exported as CSV.',
 
@@ -1284,6 +1293,11 @@ const en: Dict = {
   'returnCarrierModal.desc_before': 'Return #',
   'returnCarrierModal.desc_after': ' — select new carrier.',
   'returnCarrierModal.update_btn': 'Update',
+
+  'shipmentCarrierModal.title': 'Update carrier',
+  'shipmentCarrierModal.desc_before': 'Shipment #',
+  'shipmentCarrierModal.desc_after': ' — select new carrier.',
+  'shipmentCarrierModal.update_btn': 'Update',
 
   'returnAddressModal.title': 'Update address',
   'returnAddressModal.desc_before': 'Return #',

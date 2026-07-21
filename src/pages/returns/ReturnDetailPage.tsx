@@ -127,10 +127,12 @@ function ActionMenu({
   const t = useT()
   const [open, setOpen] = useState(false)
   const terminal = item.status === 'ReturnShipmentError' || item.status === 'ReceivedByReturnCenter' || item.status === 'ReturnCodeExpired'
+  // Carrier can only be reassigned before the courier has actually picked up the return.
+  const carrierDisabled = !['ReturnCodeCreated', 'ReturnOnTheWay', 'OnReturnAddress'].includes(item.status)
 
   const items = [
     { label: t('returnDetail.status_update'), onClick: onStatus, disabled: false, danger: false },
-    { label: t('returnDetail.update_carrier'), onClick: onCarrier, disabled: terminal, danger: false },
+    { label: t('returnDetail.update_carrier'), onClick: onCarrier, disabled: carrierDisabled, danger: false },
     { label: t('returnDetail.update_address'), onClick: onAddress, disabled: terminal, danger: false },
     { label: t('returnDetail.recall'), onClick: onRecall, disabled: item.status !== 'ReturnOnTheWay', danger: false },
     { divider: true as const },

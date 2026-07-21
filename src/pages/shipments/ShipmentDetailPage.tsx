@@ -20,6 +20,7 @@ import {
   CancelShipmentModal,
   EditShipmentModal,
   RecallShipmentModal,
+  ShipmentCarrierModal,
   StatusUpdateModal,
   BarcodePrintModal,
 } from './ShipmentModals'
@@ -108,16 +109,21 @@ function DetailSection({
   )
 }
 
+// Carrier can only be reassigned before the courier has actually picked up the package.
+const CARRIER_UPDATE_STATUSES: ShipmentStatus[] = ['DispatchLabelCreated', 'OnTheWayForPickUp', 'OnPickUpAddress']
+
 function ActionMenu({
   shipment,
   onStatus,
   onEdit,
+  onCarrier,
   onRecall,
   onCancel,
 }: {
   shipment: Shipment
   onStatus: () => void
   onEdit: () => void
+  onCarrier: () => void
   onRecall: () => void
   onCancel: () => void
 }) {
@@ -126,12 +132,14 @@ function ActionMenu({
   const editDisabled = ['DeliveredToCustomer', 'DeliveredToStore', 'ShipmentCanceled', 'ReturnToSender', 'OnTheWayBackToSender'].includes(
     shipment.status,
   )
+  const carrierDisabled = !CARRIER_UPDATE_STATUSES.includes(shipment.status)
   const recallDisabled = shipment.status !== 'OnTheWay'
   const cancelDisabled = shipment.status === 'ShipmentCanceled'
 
   const items = [
     { label: t('shipmentDetail.status_update'), onClick: onStatus, disabled: false, danger: false },
     { label: t('shipmentDetail.edit_shipment'), onClick: onEdit, disabled: editDisabled, danger: false },
+    { label: t('shipmentDetail.update_carrier'), onClick: onCarrier, disabled: carrierDisabled, danger: false },
     { label: t('shipmentDetail.recall_shipment'), onClick: onRecall, disabled: recallDisabled, danger: false },
     { divider: true as const },
     { label: t('shipmentDetail.cancel_shipment'), onClick: onCancel, disabled: cancelDisabled, danger: true },
@@ -198,6 +206,8 @@ export function ShipmentDetailPage() {
   const [cancelOpen, setCancelOpen] = useState(false)
   const [recallOpen, setRecallOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [carrierOpen, setCarrierOpen] = useState(false)
+  const [companyId, setCompanyId] = useState<number | ''>('')
   const [barcodeOpen, setBarcodeOpen] = useState(false)
 
   useEffect(() => {
@@ -220,6 +230,19 @@ export function ShipmentDetailPage() {
 
   function toggleSection(key: string) {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  function openCarrierModal() {
+    setCompanyId(shipment!.companyId)
+    setCarrierOpen(true)
+  }
+
+  function applyCarrier() {
+    if (companyId === '') return
+    const updated = updateShipment(shipment!.id, { companyId })
+    const carrier = getCompany(companyId)
+    if (updated) toast(t('toast.shipment_carrier_updated', { no: updated.shipmentNo, carrier: carrier?.name ?? '' }), 'success')
+    setCarrierOpen(false)
   }
 
   function applyStatus(status: ShipmentStatus) {
@@ -422,6 +445,7 @@ export function ShipmentDetailPage() {
             shipment={shipment}
             onStatus={() => setStatusOpen(true)}
             onEdit={() => setEditOpen(true)}
+            onCarrier={openCarrierModal}
             onRecall={() => setRecallOpen(true)}
             onCancel={() => setCancelOpen(true)}
           />
@@ -583,6 +607,15 @@ export function ShipmentDetailPage() {
       {cancelOpen ? <CancelShipmentModal shipment={shipment} onClose={() => setCancelOpen(false)} onConfirm={applyCancel} /> : null}
       {recallOpen ? <RecallShipmentModal shipment={shipment} onClose={() => setRecallOpen(false)} onConfirm={applyRecall} /> : null}
       {editOpen ? <EditShipmentModal shipment={shipment} onClose={() => setEditOpen(false)} onSave={applyEdit} /> : null}
+      {carrierOpen ? (
+        <ShipmentCarrierModal
+          shipment={shipment}
+          companyId={companyId}
+          onCompanyChange={setCompanyId}
+          onClose={() => setCarrierOpen(false)}
+          onConfirm={applyCarrier}
+        />
+      ) : null}
       {barcodeOpen ? <BarcodePrintModal shipments={[shipment]} onClose={() => setBarcodeOpen(false)} /> : null}
     </div>
   )

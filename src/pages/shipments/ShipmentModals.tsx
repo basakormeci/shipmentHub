@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { SHIPMENT_STATUS, PRINT_RESOLUTIONS, type Shipment, type ShipmentStatus } from '../../data/catalog'
+import { COMPANIES, SHIPMENT_STATUS, PRINT_RESOLUTIONS, type Shipment, type ShipmentStatus } from '../../data/catalog'
 import { useT } from '../../hooks/useT'
 import { openShipmentBarcodePrint } from '../../lib/barcodePrint'
 import { toast } from '../../lib/toast'
@@ -149,6 +149,54 @@ export function RecallShipmentModal({
           </button>
           <button className="primary-btn" type="button" style={{ background: '#c2570e' }} onClick={onConfirm}>
             {t('recallShipmentModal.confirm_btn')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function ShipmentCarrierModal({
+  shipment,
+  companyId,
+  onCompanyChange,
+  onClose,
+  onConfirm,
+}: {
+  shipment: Shipment | null
+  companyId: number | ''
+  onCompanyChange: (id: number) => void
+  onClose: () => void
+  onConfirm: () => void
+}) {
+  const t = useT()
+  if (!shipment) return null
+
+  return (
+    <div
+      className="overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div className="modal-box w-full max-w-md p-6">
+        <h3 className="font-semibold text-neutral-950 mb-1">{t('shipmentCarrierModal.title')}</h3>
+        <p className="text-sm text-neutral-500 mb-4">
+          {t('shipmentCarrierModal.desc_before')}
+          <strong className="text-neutral-700">{shipment.shipmentNo}</strong>
+          {t('shipmentCarrierModal.desc_after')}
+        </p>
+        <Dropdown
+          value={String(companyId)}
+          onChange={(v) => onCompanyChange(+v)}
+          options={COMPANIES.map((c) => ({ value: String(c.id), label: c.name }))}
+        />
+        <div className="flex justify-end gap-3 mt-6">
+          <button className="secondary-btn" type="button" onClick={onClose}>
+            {t('common.cancel')}
+          </button>
+          <button className="primary-btn" type="button" onClick={onConfirm}>
+            {t('shipmentCarrierModal.update_btn')}
           </button>
         </div>
       </div>

@@ -37,7 +37,6 @@ interface UiState {
   shipmentsSearchField: ShipmentSearchField
   shipmentsFilterStatus: ShipmentStatus | 'all'
   shipmentsFilterSupplierId: string
-  shipmentsFilterCargoType: '' | 'order' | 'return'
   shipmentsDateFrom: string
   shipmentsDateTo: string
   shipmentsPage: number
@@ -80,7 +79,6 @@ interface UiState {
         | 'shipmentsSearchField'
         | 'shipmentsFilterStatus'
         | 'shipmentsFilterSupplierId'
-        | 'shipmentsFilterCargoType'
         | 'shipmentsDateFrom'
         | 'shipmentsDateTo'
         | 'shipmentsPage'
@@ -148,7 +146,6 @@ export const useUiStore = create<UiState>()(
       shipmentsSearchField: 'shipmentNo',
       shipmentsFilterStatus: 'all',
       shipmentsFilterSupplierId: '',
-      shipmentsFilterCargoType: '',
       shipmentsDateFrom: '',
       shipmentsDateTo: '',
       shipmentsPage: 1,
@@ -192,7 +189,6 @@ export const useUiStore = create<UiState>()(
           shipmentsSearch: '',
           shipmentsFilterStatus: 'all',
           shipmentsFilterSupplierId: '',
-          shipmentsFilterCargoType: '',
           shipmentsDateFrom: '',
           shipmentsDateTo: '',
           shipmentsPage: 1,
@@ -244,7 +240,6 @@ export const useUiStore = create<UiState>()(
         shipmentsSearchField: s.shipmentsSearchField,
         shipmentsFilterStatus: s.shipmentsFilterStatus,
         shipmentsFilterSupplierId: s.shipmentsFilterSupplierId,
-        shipmentsFilterCargoType: s.shipmentsFilterCargoType,
         shipmentsDateFrom: s.shipmentsDateFrom,
         shipmentsDateTo: s.shipmentsDateTo,
         shipmentsPage: s.shipmentsPage,

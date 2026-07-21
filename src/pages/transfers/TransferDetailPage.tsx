@@ -120,10 +120,12 @@ function ActionMenu({
   const t = useT()
   const [open, setOpen] = useState(false)
   const terminal = item.status === 'ShipmentCanceled' || item.status === 'DeliveredToStore' || item.status === 'OnTheWayBackToSender'
+  // Carrier can only be reassigned before the courier has actually picked up the package.
+  const carrierDisabled = !['DispatchLabelCreated', 'OnTheWayForPickUp', 'OnPickUpAddress'].includes(item.status)
 
   const items = [
     { label: t('transferDetail.update_nodes'), onClick: onNodes, disabled: terminal, danger: false },
-    { label: t('transferDetail.update_carrier'), onClick: onCarrier, disabled: terminal, danger: false },
+    { label: t('transferDetail.update_carrier'), onClick: onCarrier, disabled: carrierDisabled, danger: false },
     { label: t('transferDetail.recall'), onClick: onRecall, disabled: item.status !== 'OnTheWay', danger: false },
     { divider: true as const },
     {
