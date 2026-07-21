@@ -1,7 +1,6 @@
 import {
   CARRIER_METRIC_KEYS,
   type CarrierMetricKey,
-  type CarrierPricingRule,
   type Contract,
   type RoutingCargoType,
   type RoutingRule,
@@ -20,7 +19,6 @@ export interface DecideCarrierInput {
   routingWeights: Record<CarrierMetricKey, number>
   shipments: Shipment[]
   carrierInvoices: { companyId: number; realCost: number; expectedCost: number }[]
-  carrierPricing: CarrierPricingRule[]
   shippingType?: ShippingType
   cargoType?: RoutingCargoType
   productType?: string
@@ -52,7 +50,6 @@ export function decideCarrier(input: DecideCarrierInput): ShipmentRoutingDecisio
     routingWeights,
     shipments,
     carrierInvoices,
-    carrierPricing,
     shippingType = 'orderShipping',
     cargoType = 'shipment',
     productType,
@@ -71,7 +68,7 @@ export function decideCarrier(input: DecideCarrierInput): ShipmentRoutingDecisio
     productType,
   )
 
-  const scores = computeCarrierScores(routingWeights, shipments, carrierInvoices, carrierPricing, [...narrowed])
+  const scores = computeCarrierScores(routingWeights, shipments, carrierInvoices, [...narrowed])
   if (scores.length === 0) return null
 
   const chosen = scores[0]

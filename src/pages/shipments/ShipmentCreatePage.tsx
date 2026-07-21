@@ -65,7 +65,6 @@ export function ShipmentCreatePage() {
   const routingRules = useDataStore((s) => s.routingRules)
   const shipments = useDataStore((s) => s.shipments)
   const carrierInvoices = useDataStore((s) => s.carrierInvoices)
-  const carrierPricing = useDataStore((s) => s.carrierPricing)
   const routingWeights = useUiStore((s) => s.routingWeights)
   const addShipment = useDataStore((s) => s.addShipment)
 
@@ -89,7 +88,6 @@ export function ShipmentCreatePage() {
       routingWeights,
       shipments,
       carrierInvoices,
-      carrierPricing,
       productType: form.productType || undefined,
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- canPreviewRouting already encodes the relevant form fields
@@ -104,7 +102,6 @@ export function ShipmentCreatePage() {
     routingWeights,
     shipments,
     carrierInvoices,
-    carrierPricing,
   ])
 
   function setField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -166,7 +163,6 @@ export function ShipmentCreatePage() {
         routingWeights,
         shipments,
         carrierInvoices,
-        carrierPricing,
         productType: form.productType || undefined,
       })
       if (!decision) {
@@ -187,7 +183,7 @@ export function ShipmentCreatePage() {
         ruleNarrowedCompanyIds: null,
         excludedCompanyIds: [],
         excludedByRuleNames: [],
-        weights: { cost: 0, deliveryTime: 0, successRate: 0, damagedRate: 0, avgPickupHours: 0, costDiffPct: 0 },
+        weights: { deliveryTime: 0, successRate: 0, damagedRate: 0, avgPickupHours: 0, costDiffPct: 0 },
         scores: [],
         chosenCompanyId: companyId,
       }

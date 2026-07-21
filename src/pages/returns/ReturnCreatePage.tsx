@@ -85,7 +85,6 @@ export function ReturnCreatePage() {
   const routingRules = useDataStore((s) => s.routingRules)
   const shipments = useDataStore((s) => s.shipments)
   const carrierInvoices = useDataStore((s) => s.carrierInvoices)
-  const carrierPricing = useDataStore((s) => s.carrierPricing)
   const routingWeights = useUiStore((s) => s.routingWeights)
   const addReturn = useDataStore((s) => s.addReturn)
 
@@ -109,7 +108,6 @@ export function ReturnCreatePage() {
       routingWeights,
       shipments,
       carrierInvoices,
-      carrierPricing,
       shippingType: 'returnShipping',
       cargoType: 'return',
       productType: form.productType || undefined,
@@ -126,7 +124,6 @@ export function ReturnCreatePage() {
     routingWeights,
     shipments,
     carrierInvoices,
-    carrierPricing,
   ])
 
   const effectiveCompanyId = form.routingMode === 'manual' ? (form.companyId ? +form.companyId : null) : routingPreview?.chosenCompanyId ?? null
@@ -223,7 +220,7 @@ export function ReturnCreatePage() {
         ruleNarrowedCompanyIds: null,
         excludedCompanyIds: [],
         excludedByRuleNames: [],
-        weights: { cost: 0, deliveryTime: 0, successRate: 0, damagedRate: 0, avgPickupHours: 0, costDiffPct: 0 },
+        weights: { deliveryTime: 0, successRate: 0, damagedRate: 0, avgPickupHours: 0, costDiffPct: 0 },
         scores: [],
         chosenCompanyId: companyId,
       }
@@ -237,7 +234,6 @@ export function ReturnCreatePage() {
         routingWeights,
         shipments,
         carrierInvoices,
-        carrierPricing,
         shippingType: 'returnShipping',
         cargoType: 'return',
         productType: form.productType || undefined,

@@ -498,7 +498,6 @@ export const useDataStore = create<DataState>()(
           routingRules: merged.routingRules ?? [],
           shipments,
           carrierInvoices: merged.carrierInvoices ?? [],
-          carrierPricing: merged.carrierPricing ?? [],
         }
         return {
           ...merged,

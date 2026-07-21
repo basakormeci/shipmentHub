@@ -9,19 +9,10 @@ import {
   plannedDeliveryDate,
   actualDeliveryDate,
   type CarrierMetricKey,
-  type CarrierPricingRule,
   type RoutingCargoType,
   type RoutingRule,
   type Shipment,
 } from '../data/catalog'
-
-// perDesi bands don't have a standalone ₺ figure — approximate one using the band's own
-// midpoint desi so it stays comparable to fixed bands' flat prices.
-function representativePrice(rule: CarrierPricingRule): number | null {
-  if (!rule.tiers?.length) return null
-  const amounts = rule.tiers.map((t) => (t.type === 'perDesi' ? t.price * ((t.minDesi + t.maxDesi) / 2) : t.price))
-  return amounts.reduce((sum, a) => sum + a, 0) / amounts.length
-}
 
 function getProvince(id: number) {
   return PROVINCES.find((p) => p.id === id)
@@ -182,20 +173,18 @@ export function computeCarrierPerformance(
 /** Metrics whose *displayed* score is inverted from its "goodness" for the weighted total —
  * only damagedRate: the score shown is the literal damage percentage (low = good, but still a
  * high raw number would look bad), while avgPickupHours/costDiffPct are already goodness-scaled
- * (see below) and cost is already inverted by its own min-max comparison. */
+ * (see below). */
 const DISPLAY_INVERTED_FOR_COMBINED: CarrierMetricKey[] = ['damagedRate']
 
 /** Computes the weighted score table used to rank carriers. By default scores every company
  * in the system (used by the standalone "Puanlama" screen); pass `companyIds` to restrict
- * both which carriers are scored AND the cost min-max comparison to just that pool — this is
- * what smart routing uses so scores (and the "cheapest wins" cost comparison) are relative to
- * the carriers actually still in the running after eligibility/rule filtering, not the whole
- * roster. */
+ * which carriers are scored to just that pool — this is what smart routing uses so scores
+ * are relative to the carriers actually still in the running after eligibility/rule
+ * filtering, not the whole roster. */
 export function computeCarrierScores(
   weights: Record<CarrierMetricKey, number>,
   shipments: Parameters<typeof computeCarrierPerformance>[0],
   carrierInvoices: Parameters<typeof computeCarrierPerformance>[1],
-  carrierPricing: CarrierPricingRule[],
   companyIds?: number[],
 ) {
   const totalWeight = CARRIER_METRIC_KEYS.reduce((sum, k) => sum + (weights[k] ?? 0), 0) || 1
@@ -211,31 +200,8 @@ export function computeCarrierScores(
 
   const pool = companyIds ? COMPANIES.filter((c) => companyIds.includes(c.id)) : COMPANIES
 
-  // Cost has no fixed absolute scale (₺ amounts vary wildly) — it stays comparative: cheapest
-  // carrier with pricing data scores highest, relative to the others still in the pool.
-  const pricingByCompany: Record<number, number[]> = {}
-  carrierPricing.forEach((rule) => {
-    const price = representativePrice(rule)
-    if (price == null) return
-    if (!pricingByCompany[rule.companyId]) pricingByCompany[rule.companyId] = []
-    pricingByCompany[rule.companyId].push(price)
-  })
-  const avgPriceFor = (companyId: number) => {
-    const prices = pricingByCompany[companyId]
-    return prices?.length ? prices.reduce((a, b) => a + b, 0) / prices.length : null
-  }
-  const allPrices = pool.map((c) => avgPriceFor(c.id)).filter((v): v is number => v !== null)
-  const priceBounds = { min: allPrices.length ? Math.min(...allPrices) : 0, max: allPrices.length ? Math.max(...allPrices) : 0 }
-  function costScore(companyId: number): number {
-    const price = avgPriceFor(companyId)
-    if (price === null) return 0.5
-    if (priceBounds.max <= priceBounds.min) return 1
-    return 1 - (price - priceBounds.min) / (priceBounds.max - priceBounds.min)
-  }
-
   function displayScore(companyId: number, key: CarrierMetricKey): number {
     const p = perfMap[companyId]
-    if (key === 'cost') return costScore(companyId)
     if (!p) return 0.5
     if (key === 'deliveryTime') return p.otdRate
     if (key === 'successRate') return p.successRate

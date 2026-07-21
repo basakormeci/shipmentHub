@@ -360,7 +360,6 @@ function RulesTab() {
 }
 
 const WEIGHT_FIELDS: { key: CarrierMetricKey; label: string; lowerIsBetter?: boolean }[] = [
-  { key: 'cost', label: 'Maliyet' },
   { key: 'deliveryTime', label: 'Zamanında Teslimat (OTD)' },
   { key: 'successRate', label: 'Başarı Oranı' },
   { key: 'damagedRate', label: 'Hasar Oranı', lowerIsBetter: true },
@@ -426,11 +425,10 @@ function ScoringTab() {
   const weights = useUiStore((s) => s.routingWeights)
   const shipments = useDataStore((s) => s.shipments)
   const carrierInvoices = useDataStore((s) => s.carrierInvoices)
-  const carrierPricing = useDataStore((s) => s.carrierPricing)
 
   const scores = useMemo(
-    () => computeCarrierScores(weights, shipments, carrierInvoices, carrierPricing),
-    [weights, shipments, carrierInvoices, carrierPricing],
+    () => computeCarrierScores(weights, shipments, carrierInvoices),
+    [weights, shipments, carrierInvoices],
   )
 
   return (
@@ -439,8 +437,8 @@ function ScoringTab() {
         <p className="text-sm font-semibold text-neutral-950">Taşıyıcı Puan Tablosu</p>
         <p className="text-xs text-neutral-400 mt-0.5">
           Zamanında Teslimat, Başarı ve Hasar Oranı gerçek yüzdelerin kendisidir (örn. 100 gönderiden 90&apos;ı zamanında
-          teslim edildiyse puan 90&apos;dır). Maliyet, firmalar arası kıyaslamayla belirlenir (veri yoksa 50). Toplam
-          sütunu, &quot;Ağırlıklandırma&quot; sekmesindeki katsayılarla hesaplanan bileşik skordur.
+          teslim edildiyse puan 90&apos;dır). Toplam sütunu, &quot;Ağırlıklandırma&quot; sekmesindeki katsayılarla
+          hesaplanan bileşik skordur.
         </p>
       </div>
       <div className="overflow-x-auto">

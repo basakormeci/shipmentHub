@@ -51,7 +51,6 @@ export function TransferCreatePage() {
   const routingRules = useDataStore((s) => s.routingRules)
   const shipments = useDataStore((s) => s.shipments)
   const carrierInvoices = useDataStore((s) => s.carrierInvoices)
-  const carrierPricing = useDataStore((s) => s.carrierPricing)
   const routingWeights = useUiStore((s) => s.routingWeights)
   const addTransfer = useDataStore((s) => s.addTransfer)
 
@@ -76,7 +75,6 @@ export function TransferCreatePage() {
       routingWeights,
       shipments,
       carrierInvoices,
-      carrierPricing,
       shippingType: 'transferShipping',
       cargoType: 'transfer',
       productType: form.productType || undefined,
@@ -92,7 +90,6 @@ export function TransferCreatePage() {
     routingWeights,
     shipments,
     carrierInvoices,
-    carrierPricing,
   ])
 
   function setField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -137,7 +134,6 @@ export function TransferCreatePage() {
         routingWeights,
         shipments,
         carrierInvoices,
-        carrierPricing,
         shippingType: 'transferShipping',
         cargoType: 'transfer',
         productType: form.productType || undefined,
@@ -160,7 +156,7 @@ export function TransferCreatePage() {
         ruleNarrowedCompanyIds: null,
         excludedCompanyIds: [],
         excludedByRuleNames: [],
-        weights: { cost: 0, deliveryTime: 0, successRate: 0, damagedRate: 0, avgPickupHours: 0, costDiffPct: 0 },
+        weights: { deliveryTime: 0, successRate: 0, damagedRate: 0, avgPickupHours: 0, costDiffPct: 0 },
         scores: [],
         chosenCompanyId: companyId,
       }

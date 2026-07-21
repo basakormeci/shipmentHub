@@ -27,7 +27,6 @@ interface UiState {
     resultId: number | null | false
   }
   routingWeights: {
-    cost: number
     deliveryTime: number
     successRate: number
     damagedRate: number
@@ -144,7 +143,7 @@ export const useUiStore = create<UiState>()(
       reportsCompanyId: '',
       reportsProvinceId: '',
       routingSimulator: { desi: '', provinceId: '', amount: '', cargoType: '', resultId: null },
-      routingWeights: { cost: 4, deliveryTime: 3, successRate: 4, damagedRate: 2, avgPickupHours: 2, costDiffPct: 2 },
+      routingWeights: { deliveryTime: 3, successRate: 4, damagedRate: 2, avgPickupHours: 2, costDiffPct: 2 },
       shipmentsSearch: '',
       shipmentsSearchField: 'shipmentNo',
       shipmentsFilterStatus: 'all',
@@ -271,11 +270,17 @@ export const useUiStore = create<UiState>()(
         contractWizard: s.contractWizard,
         nodeWizard: s.nodeWizard,
       }),
-      version: 7,
+      version: 8,
       migrate: (persisted, version) => {
-        const state = persisted as UiState
+        let state = persisted as UiState
         if (version < 7) {
-          return { ...state, routingWeights: { cost: 4, deliveryTime: 3, successRate: 4, damagedRate: 2, avgPickupHours: 2, costDiffPct: 2 } }
+          state = { ...state, routingWeights: { cost: 4, deliveryTime: 3, successRate: 4, damagedRate: 2, avgPickupHours: 2, costDiffPct: 2 } } as UiState
+        }
+        if (version < 8) {
+          // 'cost' (Maliyet) was dropped as a routing weighting criterion — strip any
+          // leftover key from a session that persisted before this change.
+          const { cost: _cost, ...rest } = state.routingWeights as UiState['routingWeights'] & { cost?: number }
+          state = { ...state, routingWeights: rest }
         }
         return state
       },

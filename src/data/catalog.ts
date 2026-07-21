@@ -261,7 +261,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -273,7 +272,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -286,7 +284,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -369,7 +366,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -381,7 +377,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -464,7 +459,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -476,7 +470,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -559,7 +552,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -571,7 +563,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -584,7 +575,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -667,7 +657,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -679,7 +668,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -692,7 +680,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -775,7 +762,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -787,7 +773,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -800,7 +785,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -883,7 +867,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -895,7 +878,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -978,7 +960,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -990,7 +971,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -1073,7 +1053,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -1085,7 +1064,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -1098,7 +1076,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -1181,7 +1158,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -1193,7 +1169,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -1206,7 +1181,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -1289,7 +1263,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -1301,7 +1274,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -1384,7 +1356,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -1396,7 +1367,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -1409,7 +1379,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -1492,7 +1461,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -1504,7 +1472,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -1517,7 +1484,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -1588,7 +1554,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -1600,7 +1565,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -1613,7 +1577,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -1696,7 +1659,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -1708,7 +1670,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -1721,7 +1682,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -1804,7 +1764,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -1816,7 +1775,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -1829,7 +1787,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -1912,7 +1869,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -1924,7 +1880,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -1937,7 +1892,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -2020,7 +1974,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -2032,7 +1985,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -2045,7 +1997,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -2128,7 +2079,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -2140,7 +2090,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -2153,7 +2102,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -2236,7 +2184,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -2248,7 +2195,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -2331,7 +2277,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -2343,7 +2288,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -2426,7 +2370,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -2438,7 +2381,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -2451,7 +2393,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -2534,7 +2475,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -2546,7 +2486,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -2559,7 +2498,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -2642,7 +2580,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -2654,7 +2591,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -2667,7 +2603,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -2750,7 +2685,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -2762,7 +2696,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -2845,7 +2778,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -2857,7 +2789,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -2940,7 +2871,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -2952,7 +2882,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -3035,7 +2964,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -3047,7 +2975,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -3060,7 +2987,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -3143,7 +3069,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -3155,7 +3080,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -3238,7 +3162,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -3250,7 +3173,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -3263,7 +3185,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -3346,7 +3267,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -3358,7 +3278,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -3371,7 +3290,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -3454,7 +3372,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -3466,7 +3383,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -3479,7 +3395,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -3562,7 +3477,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -3574,7 +3488,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -3587,7 +3500,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -3646,7 +3558,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -3658,7 +3569,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -3671,7 +3581,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -3754,7 +3663,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -3766,7 +3674,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -3779,7 +3686,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -3862,7 +3768,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -3874,7 +3779,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -3887,7 +3791,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -3970,7 +3873,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -3982,7 +3884,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -3995,7 +3896,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -4078,7 +3978,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -4090,7 +3989,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -4173,7 +4071,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -4185,7 +4082,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -4198,7 +4094,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -4281,7 +4176,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -4293,7 +4187,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -4376,7 +4269,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -4388,7 +4280,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -4401,7 +4292,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -4484,7 +4374,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -4496,7 +4385,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -4579,7 +4467,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -4591,7 +4478,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -4674,7 +4560,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -4686,7 +4571,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -4769,7 +4653,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -4781,7 +4664,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -4794,7 +4676,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -4877,7 +4758,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -4889,7 +4769,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -4972,7 +4851,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -4984,7 +4862,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -4997,7 +4874,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -5056,7 +4932,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -5068,7 +4943,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -5081,7 +4955,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -5164,7 +5037,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -5176,7 +5048,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -5259,7 +5130,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -5271,7 +5141,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -5284,7 +5153,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -5343,7 +5211,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -5355,7 +5222,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -5368,7 +5234,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -5451,7 +5316,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -5463,7 +5327,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -5546,7 +5409,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -5558,7 +5420,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -5571,7 +5432,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -5654,7 +5514,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -5666,7 +5525,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -5749,7 +5607,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -5761,7 +5618,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -5844,7 +5700,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -5856,7 +5711,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -5869,7 +5723,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -5952,7 +5805,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -5964,7 +5816,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -5977,7 +5828,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -6060,7 +5910,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -6072,7 +5921,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -6085,7 +5933,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -6168,7 +6015,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -6180,7 +6026,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -6193,7 +6038,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -6276,7 +6120,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -6288,7 +6131,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -6301,7 +6143,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -6384,7 +6225,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -6396,7 +6236,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -6409,7 +6248,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -6492,7 +6330,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -6504,7 +6341,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -6517,7 +6353,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -6600,7 +6435,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -6612,7 +6446,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -6625,7 +6458,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -6708,7 +6540,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -6720,7 +6551,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -6733,7 +6563,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -6792,7 +6621,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -6804,7 +6632,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -6887,7 +6714,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -6899,7 +6725,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -6912,7 +6737,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -6995,7 +6819,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -7007,7 +6830,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -7020,7 +6842,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -7103,7 +6924,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -7115,7 +6935,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -7198,7 +7017,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -7210,7 +7028,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -7223,7 +7040,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -7306,7 +7122,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -7318,7 +7133,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -7331,7 +7145,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -7414,7 +7227,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -7426,7 +7238,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -7509,7 +7320,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -7521,7 +7331,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -7534,7 +7343,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -7617,7 +7425,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -7629,7 +7436,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -7712,7 +7518,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -7724,7 +7529,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -7737,7 +7541,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -7820,7 +7623,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -7832,7 +7634,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -7915,7 +7716,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -7927,7 +7727,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -7940,7 +7739,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -8023,7 +7821,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -8035,7 +7832,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -8118,7 +7914,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -8130,7 +7925,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -8143,7 +7937,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -8226,7 +8019,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -8238,7 +8030,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -8321,7 +8112,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -8333,7 +8123,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -8416,7 +8205,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -8428,7 +8216,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -8441,7 +8228,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -8524,7 +8310,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -8536,7 +8321,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -8619,7 +8403,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -8631,7 +8414,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -8644,7 +8426,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -8703,7 +8484,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -8715,7 +8495,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -8798,7 +8577,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -8810,7 +8588,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -8823,7 +8600,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -8906,7 +8682,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -8918,7 +8693,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -8931,7 +8705,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -9014,7 +8787,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -9026,7 +8798,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -9039,7 +8810,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -9122,7 +8892,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -9134,7 +8903,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -9217,7 +8985,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -9229,7 +8996,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -9312,7 +9078,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -9324,7 +9089,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -9337,7 +9101,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -9420,7 +9183,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -9432,7 +9194,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -9445,7 +9206,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -9528,7 +9288,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -9540,7 +9299,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -9623,7 +9381,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -9635,7 +9392,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -9648,7 +9404,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -9731,7 +9486,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -9743,7 +9497,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -9756,7 +9509,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -9839,7 +9591,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -9851,7 +9602,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -9864,7 +9614,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -9947,7 +9696,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -9959,7 +9707,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -9972,7 +9719,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -10055,7 +9801,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -10067,7 +9812,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -10080,7 +9824,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -10163,7 +9906,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -10175,7 +9917,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -10258,7 +9999,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -10270,7 +10010,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -10283,7 +10022,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -10366,7 +10104,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -10378,7 +10115,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -10391,7 +10127,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -10474,7 +10209,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -10486,7 +10220,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -10499,7 +10232,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -10582,7 +10314,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -10594,7 +10325,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -10607,7 +10337,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -10690,7 +10419,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -10702,7 +10430,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -10785,7 +10512,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -10797,7 +10523,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -10810,7 +10535,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -10893,7 +10617,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -10905,7 +10628,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -10918,7 +10640,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -11001,7 +10722,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -11013,7 +10733,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -11096,7 +10815,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -11108,7 +10826,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -11121,7 +10838,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -11204,7 +10920,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -11216,7 +10931,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -11229,7 +10943,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -11312,7 +11025,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -11324,7 +11036,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -11407,7 +11118,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -11419,7 +11129,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -11502,7 +11211,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -11514,7 +11222,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -11597,7 +11304,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -11609,7 +11315,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -11622,7 +11327,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -11705,7 +11409,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -11717,7 +11420,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -11730,7 +11432,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -11813,7 +11514,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -11825,7 +11525,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -11838,7 +11537,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -11922,7 +11620,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -11934,7 +11631,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -11947,7 +11643,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -11960,7 +11655,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -12043,7 +11737,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -12055,7 +11748,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -12068,7 +11760,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -12139,7 +11830,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -12151,7 +11841,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -12234,7 +11923,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -12246,7 +11934,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -12259,7 +11946,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -12342,7 +12028,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -12354,7 +12039,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -12437,7 +12121,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -12449,7 +12132,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -12532,7 +12214,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -12544,7 +12225,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -12557,7 +12237,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -12640,7 +12319,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -12652,7 +12330,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -12665,7 +12342,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -12748,7 +12424,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -12760,7 +12435,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -12773,7 +12447,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -12832,7 +12505,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -12844,7 +12516,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -12927,7 +12598,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -12939,7 +12609,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -12952,7 +12621,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -13035,7 +12703,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -13047,7 +12714,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -13060,7 +12726,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -13143,7 +12808,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -13155,7 +12819,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -13238,7 +12901,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -13250,7 +12912,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -13263,7 +12924,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -13346,7 +13006,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -13358,7 +13017,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -13371,7 +13029,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -13442,7 +13099,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -13454,7 +13110,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -13467,7 +13122,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -13522,7 +13176,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -13534,7 +13187,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -13547,7 +13199,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -13602,7 +13253,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -13614,7 +13264,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -13627,7 +13276,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -13698,7 +13346,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -13710,7 +13357,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -13765,7 +13411,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -13777,7 +13422,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -13790,7 +13434,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -13861,7 +13504,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -13873,7 +13515,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -13928,7 +13569,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -13940,7 +13580,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -13953,7 +13592,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -14008,7 +13646,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -14020,7 +13657,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -14033,7 +13669,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -14088,7 +13723,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -14100,7 +13734,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -14113,7 +13746,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -14184,7 +13816,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -14196,7 +13827,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -14209,7 +13839,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -14264,7 +13893,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -14276,7 +13904,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -14289,7 +13916,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -14360,7 +13986,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -14372,7 +13997,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -14427,7 +14051,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -14439,7 +14062,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -14452,7 +14074,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -14523,7 +14144,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -14535,7 +14155,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -14606,7 +14225,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -14618,7 +14236,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -14689,7 +14306,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -14701,7 +14317,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -14772,7 +14387,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -14784,7 +14398,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -14797,7 +14410,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -14852,7 +14464,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -14864,7 +14475,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -14877,7 +14487,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -14948,7 +14557,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -14960,7 +14568,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -14973,7 +14580,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -15044,7 +14650,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -15056,7 +14661,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -15111,7 +14715,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -15123,7 +14726,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -15194,7 +14796,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -15206,7 +14807,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -15261,7 +14861,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -15273,7 +14872,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -15344,7 +14942,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -15356,7 +14953,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -15369,7 +14965,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -15440,7 +15035,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -15452,7 +15046,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -15523,7 +15116,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -15535,7 +15127,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -15548,7 +15139,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -15619,7 +15209,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -15631,7 +15220,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -15644,7 +15232,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -15715,7 +15302,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -15727,7 +15313,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -15782,7 +15367,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -15794,7 +15378,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -15807,7 +15390,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -15878,7 +15460,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -15890,7 +15471,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -15903,7 +15483,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -15974,7 +15553,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -15986,7 +15564,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -15999,7 +15576,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -16070,7 +15646,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -16082,7 +15657,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -16095,7 +15669,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -16166,7 +15739,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -16178,7 +15750,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -16249,7 +15820,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -16261,7 +15831,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -16316,7 +15885,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -16328,7 +15896,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -16341,7 +15908,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -16413,7 +15979,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -16425,7 +15990,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -16438,7 +16002,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -16451,7 +16014,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -16522,7 +16084,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -16534,7 +16095,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -16589,7 +16149,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -16601,7 +16160,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -16614,7 +16172,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -16685,7 +16242,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -16697,7 +16253,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -16710,7 +16265,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -16781,7 +16335,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -16793,7 +16346,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -16806,7 +16358,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -16877,7 +16428,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -16889,7 +16439,6 @@ export const SEED_SHIPMENTS: Shipment[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -17013,7 +16562,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -17025,7 +16573,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -17098,7 +16645,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -17110,7 +16656,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -17123,7 +16668,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -17196,7 +16740,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -17208,7 +16751,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -17221,7 +16763,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -17294,7 +16835,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -17306,7 +16846,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -17379,7 +16918,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -17391,7 +16929,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -17404,7 +16941,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -17477,7 +17013,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -17489,7 +17024,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -17502,7 +17036,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -17575,7 +17108,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -17587,7 +17119,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -17600,7 +17131,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -17673,7 +17203,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -17685,7 +17214,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -17698,7 +17226,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -17771,7 +17298,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -17783,7 +17309,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -17796,7 +17321,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -17869,7 +17393,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -17881,7 +17404,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -17894,7 +17416,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -17967,7 +17488,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -17979,7 +17499,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -17992,7 +17511,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -18065,7 +17583,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -18077,7 +17594,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -18090,7 +17606,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -18163,7 +17678,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -18175,7 +17689,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -18246,7 +17759,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -18258,7 +17770,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -18271,7 +17782,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -18284,7 +17794,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -18297,7 +17806,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -18310,7 +17818,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -18383,7 +17890,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -18395,7 +17901,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -18456,7 +17961,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -18468,7 +17972,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -18481,7 +17984,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -18542,7 +18044,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -18554,7 +18055,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -18567,7 +18067,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -18628,7 +18127,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -18640,7 +18138,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -18653,7 +18150,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -18714,7 +18210,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -18726,7 +18221,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -18739,7 +18233,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -18808,7 +18301,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -18820,7 +18312,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -18889,7 +18380,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -18901,7 +18391,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -18970,7 +18459,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -18982,7 +18470,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -18995,7 +18482,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -19064,7 +18550,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -19076,7 +18561,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -19145,7 +18629,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -19157,7 +18640,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -19170,7 +18652,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -19239,7 +18720,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -19251,7 +18731,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -19320,7 +18799,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -19332,7 +18810,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -19345,7 +18822,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -19414,7 +18890,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -19426,7 +18901,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -19439,7 +18913,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -19500,7 +18973,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -19512,7 +18984,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -19525,7 +18996,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -19586,7 +19056,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -19598,7 +19067,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -19611,7 +19079,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -19672,7 +19139,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -19684,7 +19150,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -19697,7 +19162,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -19758,7 +19222,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -19770,7 +19233,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -19830,7 +19292,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -19842,7 +19303,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -19855,7 +19315,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -19868,7 +19327,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -19881,7 +19339,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -19894,7 +19351,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -19907,7 +19363,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -19968,7 +19423,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -19980,7 +19434,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -19993,7 +19446,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -20050,7 +19502,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -20062,7 +19513,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -20075,7 +19525,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -20132,7 +19581,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -20144,7 +19592,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -20157,7 +19604,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -20214,7 +19660,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -20226,7 +19671,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -20239,7 +19683,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -20296,7 +19739,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -20308,7 +19750,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -20365,7 +19806,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -20377,7 +19817,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -20390,7 +19829,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -20447,7 +19885,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -20459,7 +19896,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -20472,7 +19908,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -20529,7 +19964,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -20541,7 +19975,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -20554,7 +19987,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -20611,7 +20043,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -20623,7 +20054,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -20636,7 +20066,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -20691,7 +20120,6 @@ export const SEED_RETURNS: ReturnItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -20703,7 +20131,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 4,
           "companyName": "PTT Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 1,
             "successRate": 1,
             "damagedRate": 0.2592592592592593,
@@ -20716,7 +20143,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -20729,7 +20155,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -20742,7 +20167,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -20755,7 +20179,6 @@ export const SEED_RETURNS: ReturnItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -20862,7 +20285,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -20874,7 +20296,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -20953,7 +20374,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -20965,7 +20385,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -20978,7 +20397,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -21057,7 +20475,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -21069,7 +20486,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -21148,7 +20564,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -21160,7 +20575,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -21173,7 +20587,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -21252,7 +20665,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -21264,7 +20676,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -21277,7 +20688,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -21356,7 +20766,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -21368,7 +20777,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -21381,7 +20789,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -21460,7 +20867,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -21472,7 +20878,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -21485,7 +20890,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -21564,7 +20968,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -21576,7 +20979,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -21589,7 +20991,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -21668,7 +21069,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -21680,7 +21080,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -21693,7 +21092,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -21772,7 +21170,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -21784,7 +21181,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -21863,7 +21259,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -21875,7 +21270,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -21954,7 +21348,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -21966,7 +21359,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -21979,7 +21371,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -22058,7 +21449,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -22070,7 +21460,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -22083,7 +21472,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -22162,7 +21550,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -22174,7 +21561,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -22187,7 +21573,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -22266,7 +21651,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -22278,7 +21662,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -22345,7 +21728,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -22357,7 +21739,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -22370,7 +21751,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -22449,7 +21829,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -22461,7 +21840,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -22540,7 +21918,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -22552,7 +21929,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -22565,7 +21941,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -22644,7 +22019,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -22656,7 +22030,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -22669,7 +22042,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -22724,7 +22096,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -22736,7 +22107,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -22749,7 +22119,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -22828,7 +22197,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -22840,7 +22208,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -22853,7 +22220,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -22932,7 +22298,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -22944,7 +22309,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -22957,7 +22321,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -23036,7 +22399,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -23048,7 +22410,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -23061,7 +22422,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -23140,7 +22500,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -23152,7 +22511,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -23165,7 +22523,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -23244,7 +22601,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -23256,7 +22612,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -23269,7 +22624,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -23348,7 +22702,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -23360,7 +22713,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -23373,7 +22725,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -23452,7 +22803,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -23464,7 +22814,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -23477,7 +22826,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -23556,7 +22904,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -23568,7 +22915,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -23581,7 +22927,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -23660,7 +23005,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -23672,7 +23016,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -23685,7 +23028,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -23764,7 +23106,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -23776,7 +23117,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -23831,7 +23171,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -23843,7 +23182,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -23856,7 +23194,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -23935,7 +23272,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -23947,7 +23283,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -23960,7 +23295,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -24039,7 +23373,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -24051,7 +23384,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -24118,7 +23450,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -24130,7 +23461,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -24209,7 +23539,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -24221,7 +23550,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -24300,7 +23628,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -24312,7 +23639,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -24325,7 +23651,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -24404,7 +23729,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -24416,7 +23740,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -24471,7 +23794,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -24483,7 +23805,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -24496,7 +23817,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -24551,7 +23871,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -24563,7 +23882,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -24576,7 +23894,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -24655,7 +23972,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -24667,7 +23983,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -24746,7 +24061,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -24758,7 +24072,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -24771,7 +24084,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -24850,7 +24162,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -24862,7 +24173,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -24875,7 +24185,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -24954,7 +24263,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -24966,7 +24274,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -24979,7 +24286,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -25058,7 +24364,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -25070,7 +24375,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -25083,7 +24387,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -25162,7 +24465,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -25174,7 +24476,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -25253,7 +24554,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -25265,7 +24565,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -25278,7 +24577,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -25357,7 +24655,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -25369,7 +24666,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -25382,7 +24678,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -25462,7 +24757,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -25474,7 +24768,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -25487,7 +24780,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 8,
           "companyName": "Hepsijet",
           "metrics": {
-            "cost": 1,
             "deliveryTime": 0,
             "successRate": 0.19047619047619038,
             "damagedRate": 1,
@@ -25500,7 +24792,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -25579,7 +24870,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -25591,7 +24881,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -25670,7 +24959,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -25682,7 +24970,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -25695,7 +24982,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -25774,7 +25060,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -25786,7 +25071,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -25865,7 +25149,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -25877,7 +25160,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -25928,7 +25210,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -25940,7 +25221,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -26007,7 +25287,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26019,7 +25298,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -26032,7 +25310,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -26083,7 +25360,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26095,7 +25371,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -26108,7 +25383,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -26175,7 +25449,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26187,7 +25460,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -26254,7 +25526,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26266,7 +25537,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -26279,7 +25549,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -26330,7 +25599,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26342,7 +25610,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -26355,7 +25622,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -26406,7 +25672,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26418,7 +25683,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -26469,7 +25733,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26481,7 +25744,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -26494,7 +25756,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -26561,7 +25822,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26573,7 +25833,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -26640,7 +25899,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26652,7 +25910,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -26665,7 +25922,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -26716,7 +25972,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26728,7 +25983,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -26741,7 +25995,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -26808,7 +26061,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26820,7 +26072,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -26887,7 +26138,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26899,7 +26149,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -26912,7 +26161,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -26979,7 +26227,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -26991,7 +26238,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -27004,7 +26250,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -27071,7 +26316,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -27083,7 +26327,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -27096,7 +26339,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -27163,7 +26405,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -27175,7 +26416,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 3,
           "companyName": "MNG Kargo",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.5199999999999999,
             "successRate": 0.679563492063492,
             "damagedRate": 0.7333333333333334,
@@ -27188,7 +26428,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -27255,7 +26494,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -27267,7 +26505,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -27280,7 +26517,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -27347,7 +26583,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -27359,7 +26594,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -27372,7 +26606,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -27439,7 +26672,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -27451,7 +26683,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -27464,7 +26695,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -27515,7 +26745,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -27527,7 +26756,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -27540,7 +26768,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -27591,7 +26818,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -27603,7 +26829,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -27616,7 +26841,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -27667,7 +26891,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -27679,7 +26902,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -27692,7 +26914,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -27759,7 +26980,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -27771,7 +26991,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -27822,7 +27041,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -27834,7 +27052,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -27901,7 +27118,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -27913,7 +27129,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -27926,7 +27141,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -27993,7 +27207,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -28005,7 +27218,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -28018,7 +27230,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -28085,7 +27296,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -28097,7 +27307,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 2,
           "companyName": "Aras Kargo",
           "metrics": {
-            "cost": 0.5853658536585367,
             "deliveryTime": 0.2800000000000001,
             "successRate": 0.679563492063492,
             "damagedRate": 0.4666666666666667,
@@ -28110,7 +27319,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 7,
           "companyName": "Horoz Lojistik",
           "metrics": {
-            "cost": 0.5,
             "deliveryTime": 0.09999999999999996,
             "successRate": 0.6471306471306472,
             "damagedRate": 1,
@@ -28177,7 +27385,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
       "excludedCompanyIds": [],
       "excludedByRuleNames": [],
       "weights": {
-        "cost": 0.25,
         "deliveryTime": 0.2,
         "successRate": 0.25,
         "damagedRate": 0.1,
@@ -28189,7 +27396,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 6,
           "companyName": "DHL eCommerce",
           "metrics": {
-            "cost": 0.29268292682926833,
             "deliveryTime": 0.6666666666666665,
             "successRate": 0,
             "damagedRate": 0.2592592592592593,
@@ -28202,7 +27408,6 @@ export const SEED_TRANSFERS: TransferItem[] = [
           "companyId": 1,
           "companyName": "Yurtiçi Kargo",
           "metrics": {
-            "cost": 0,
             "deliveryTime": 0.25000000000000006,
             "successRate": 0.3408795212073899,
             "damagedRate": 0,
@@ -28219,10 +27424,9 @@ export const SEED_TRANSFERS: TransferItem[] = [
 
 export type RoutingCargoType = 'shipment' | 'transfer' | 'return'
 
-export type CarrierMetricKey = 'cost' | 'deliveryTime' | 'successRate' | 'damagedRate' | 'avgPickupHours' | 'costDiffPct'
+export type CarrierMetricKey = 'deliveryTime' | 'successRate' | 'damagedRate' | 'avgPickupHours' | 'costDiffPct'
 
 export const CARRIER_METRIC_KEYS: CarrierMetricKey[] = [
-  'cost',
   'deliveryTime',
   'successRate',
   'damagedRate',
@@ -28231,7 +27435,6 @@ export const CARRIER_METRIC_KEYS: CarrierMetricKey[] = [
 ]
 
 export const CARRIER_METRIC_LABELS: Record<CarrierMetricKey, string> = {
-  cost: 'Maliyet',
   deliveryTime: 'Zamanında Teslimat (OTD)',
   successRate: 'Başarı Oranı',
   damagedRate: 'Hasar Oranı',
@@ -28240,7 +27443,6 @@ export const CARRIER_METRIC_LABELS: Record<CarrierMetricKey, string> = {
 }
 
 export const CARRIER_METRIC_DESCRIPTIONS: Record<CarrierMetricKey, string> = {
-  cost: 'Taşıyıcının tanımlı fiyatlandırma kurallarındaki ortalama birim ücreti. Diğer firmalara göre ne kadar ucuzsa puanı o kadar yüksek olur.',
   deliveryTime: 'Teslim edilen gönderilerin yüzde kaçının zamanında ya da tahmini teslimat tarihinden önce ulaştığı. Puan, bu yüzdenin birebir kendisidir (örn. 100 gönderiden 90\'ı zamanında teslim edildiyse puan 90\'dır).',
   successRate: 'Taşıyıcıya verilen gönderilerin yüzde kaçının başarıyla teslim edildiği (iptal/kayıp hariç). Puan bu yüzdenin birebir kendisidir.',
   damagedRate: 'Teslim edilen gönderilerin yüzde kaçının hasarlı ulaştığı. Puan bu yüzdenin birebir kendisidir (örn. 100 teslimattan 10\'u hasarlıysa puan 10\'dur — düşük olması iyidir).',

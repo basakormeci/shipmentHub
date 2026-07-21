@@ -2,7 +2,6 @@ import {
   CARRIER_METRIC_KEYS,
   PROVINCES,
   type CarrierMetricKey,
-  type CarrierPricingRule,
   type Contract,
   type RoutingCargoType,
   type RoutingRule,
@@ -14,7 +13,6 @@ import { computeCarrierScores, resolveRuleNarrowedPool, ruleConditionsSummary } 
 import { desiKgFor, packageItemsFor } from './shipments'
 
 const DEFAULT_WEIGHTS: Record<CarrierMetricKey, number> = {
-  cost: 25,
   deliveryTime: 20,
   successRate: 25,
   damagedRate: 10,
@@ -49,7 +47,6 @@ export function synthesizeRoutingDecision(params: {
   routingRules: RoutingRule[]
   shipments: Shipment[]
   carrierInvoices: { companyId: number; realCost: number; expectedCost: number }[]
-  carrierPricing: CarrierPricingRule[]
 }): ShipmentRoutingDecision | null {
   if (params.provinceId == null) return null
   const desi = params.desi ?? desiKgFor(params.id).desi
@@ -78,7 +75,7 @@ export function synthesizeRoutingDecision(params: {
   )
   narrowed.add(params.companyId)
 
-  const eligibleScores = computeCarrierScores(DEFAULT_WEIGHTS, params.shipments, params.carrierInvoices, params.carrierPricing, [...narrowed])
+  const eligibleScores = computeCarrierScores(DEFAULT_WEIGHTS, params.shipments, params.carrierInvoices, [...narrowed])
   if (eligibleScores.length === 0) return null
 
   const totalWeight = CARRIER_METRIC_KEYS.reduce((sum, k) => sum + (DEFAULT_WEIGHTS[k] ?? 0), 0) || 1
